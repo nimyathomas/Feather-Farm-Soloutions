@@ -1,0 +1,48 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feather Farm - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/stakeholder.css' %}" />
+    <link
+      href="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css'%}"
+      rel="stylesheet"
+    />
+    <script src="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'%}"></script>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar Section -->
+      <aside class="sidebar">
+        <div class="logo">
+          <h2>🪶 Feather Farm</h2>
+        </div>
+        <nav class="nav-menu">
+          <ul>
+            <li>
+              <a href="{% url 'stakeholder' %}" class="active">Dashboard</a>
+            </li>
+            <li><a href="{% url 'stateholder_batch' %}">🚑Chicken Batches</a></li>
+            <li><a href="{% url 'feed_request'  user.id %}">🚑Feeds</a></li>
+            <li><a href="#">🧑🏽‍⚕️Connect with Doctor</a></li>
+            <li><a href="#">🐥Upliftments</a></li>
+            <li><a href="#">📝Reports</a></li>
+            <li>
+              <a href="{% url 'stakeholder_registration' request.user.id %}"
+                >🏦 Account</a
+              >
+            </li>
+            <li><a href="#">💳Payments</a></li>
+            <li><a href="#">📝Feedback</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content Section -->
+      <main class="content">{% block body %} {% endblock %}</main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,325 @@
+{% extends 'stakeholder.html' %}
+
+{% load static %}
+{% block body %}
+    <style>
+        /* General Container Styling */
+     
+        /* Left and Right Sections */
+        <!-- .left-section, .right-section {
+            flex: 1;
+            padding: 20px;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        } -->
+
+        /* Title Styling */
+        h2, h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        /* Table Styling */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .table td input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .table td input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        /* Button Styling */
+        .btn-primary, .btn-success {
+            display: inline-block;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 1000px) {
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            label {
+                margin-bottom: 10px;
+            }
+
+            .col-sm-6, .col-sm-4 {
+                width: 100%;
+                padding: 0;
+            }
+
+            .btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .table td input {
+                padding: 5px;
+            }
+        }
+    </style>
+
+    <title>Daily Feed Log and Feed Requests</title>
+    <script>
+        let feedRequestLog = [];
+
+        function generateTable() {
+            let batchNo = document.getElementById("batch_no").value;
+            let startDate = document.getElementById("start_date").value;
+            if (!batchNo || !startDate) {
+                alert("Please fill in both Batch No and Start Date.");
+                return;
+            }
+
+            let tableBody = document.getElementById("feed_log_body");
+            tableBody.innerHTML = "";  // Clear previous table rows if any
+
+            let currentDate = new Date(startDate);
+
+            for (let day = 1; day <= 40; day++) {
+                // Create a new row
+                let row = document.createElement("tr");
+
+                // Add date column
+                let dateCell = document.createElement("td");
+                dateCell.innerHTML = currentDate.toISOString().split('T')[0]; // Convert date to YYYY-MM-DD format
+                row.appendChild(dateCell);
+
+                // Add feed type column
+                let feedTypeCell = document.createElement("td");
+                if (day <= 10) {
+                    feedTypeCell.innerHTML = "Pre-Starter";
+                } else if (day <= 30) {
+                    feedTypeCell.innerHTML = "Starter";
+                } else {
+                    feedTypeCell.innerHTML = "Finisher";
+                }
+                row.appendChild(feedTypeCell);
+
+                // Add sacks used column
+                let sacksCell = document.createElement("td");
+                sacksCell.innerHTML = `<input type="number" class="form-control" name="sacks_used_${day}" min="0" required>`;
+                row.appendChild(sacksCell);
+
+                // Append the row to the table body
+                tableBody.appendChild(row);
+
+                // Increment the date by 1 day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            document.getElementById("feed_log_section").style.display = "block";  // Show the table section
+        }
+
+        function requestFeed() {
+            let feedDate = document.getElementById("feed_request_date").value;
+            let feedType = document.getElementById("feed_request_type").value;
+            let feedAmount = document.getElementById("feed_request_amount").value;
+
+            if (!feedDate || !feedType || !feedAmount) {
+                alert("Please fill in all the fields for feed request.");
+                return;
+            }
+
+            // Log the feed request
+            feedRequestLog.push({
+                date: feedDate,
+                type: feedType,
+                amount: feedAmount
+            });
+
+            // Update the feed request log table
+            updateFeedRequestLog();
+        }
+
+        function updateFeedRequestLog() {
+            let logBody = document.getElementById("feed_request_log_body");
+            logBody.innerHTML = "";  // Clear previous log entries
+
+            // Generate new log entries
+            feedRequestLog.forEach((request) => {
+                let row = document.createElement("tr");
+
+                let dateCell = document.createElement("td");
+                dateCell.innerHTML = request.date;
+                row.appendChild(dateCell);
+
+                let typeCell = document.createElement("td");
+                typeCell.innerHTML = request.type;
+                row.appendChild(typeCell);
+
+                let amountCell = document.createElement("td");
+                amountCell.innerHTML = request.amount;
+                row.appendChild(amountCell);
+
+                logBody.appendChild(row);
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="left-section">
+            <h2 class="text-center">Batch Feed Log</h2>
+
+            <!-- Batch Number Input -->
+            <div class="form-group row mt-4">
+                <label for="batch_no" class="col-sm-2 col-form-label">Batch No:</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="batch_no" name="batch_no" required>
+                </div>
+            </div>
+
+            <!-- Batch Start Date Input -->
+            <div class="form-group row mt-4">
+                <label for="start_date" class="col-sm-2 col-form-label">Batch Start Date:</label>
+                <div class="col-sm-6">
+                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                </div>
+                <div class="col-sm-4">
+                    <button class="btn btn-primary" onclick="generateTable()">Generate Feed Log</button>
+                </div>
+            </div>
+
+            <!-- Feed Log Table Section -->
+            <div id="feed_log_section" class="mt-5" style="display:none;">
+                <h3 class="text-center">Daily Feed Log</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Feed Type</th>
+                                <th>Sacks Used</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feed_log_body">
+                            <!-- Rows will be generated dynamically here -->
+                        </tbody>
+                    </table>
+
+                    <!-- Submit Button -->
+                    <div class="form-group row mt-4">
+                        <div class="col-sm-10 offset-sm-1">
+                            <button type="submit" class="btn btn-success">Submit Feed Log</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <h3 class="text-center">Request Feed</h3>
+            <div class="form-group row">
+                <label for="feed_request_date" class="col-sm-2 col-form-label">Request Date:</label>
+                <div class="col-sm-6">
+                    <input type="date" class="form-control" id="feed_request_date" name="feed_request_date" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="feed_request_type" class="col-sm-2 col-form-label">Feed Type:</label>
+                <div class="col-sm-6">
+                    <select class="form-select" id="feed_request_type" name="feed_request_type" required>
+                        <option value="">Select Feed Type</option>
+                        <option value="Pre-Starter">Pre-Starter</option>
+                        <option value="Starter">Starter</option>
+                        <option value="Finisher">Finisher</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="feed_request_amount" class="col-sm-2 col-form-label">Amount (sacks):</label>
+                <div class="col-sm-6">
+                    <input type="number" class="form-control" id="feed_request_amount" name="feed_request_amount" required>
+                </div>
+                <div class="col-sm-4">
+                    <button class="btn btn-primary" onclick="requestFeed()">Request Feed</button>
+                </div>
+            </div>
+
+            <!-- Feed Request Log Table -->
+            <h4 class="text-center mt-4">Feed Request Log</h4>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Feed Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="feed_request_log_body">
+                    <!-- Rows will be populated with feed request log -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+{% endblock %}

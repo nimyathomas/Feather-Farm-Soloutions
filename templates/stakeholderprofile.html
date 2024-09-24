@@ -1,0 +1,91 @@
+{% extends 'admindash.html' %}
+{% load static %}
+{% block body %}
+<div class="profile-container">
+  <button class="back-button">
+    <a href="{% url 'stakeholderuser' %}">back</a>
+  </button>
+  <h1>Stakeholder Profile</h1>
+
+  <div class="card profile-card">
+    <!-- Flex Container for two columns -->
+    <div class="flex-container">
+      
+      <!-- Left Column: Profile and Coop Info -->
+      <div class="left-section">
+        <div class="info-section">
+          <h2>{{ user.name }}</h2>
+          <p>Name: <span>{{ user.full_name }}</span></p>
+          <p>Email: <span>{{ user.email }}</span></p>
+          <p>Address: <span>{{ user.address }}</span></p>
+          <p>Phone: <span>{{ user.phone_number }}</span></p>
+        </div>
+
+        <div class="coop-info">
+            <h3>Coop Information</h3>
+            <div class="coop-info-item">
+              <span class="coop-label">Coop Length:</span>
+              <span class="coop-value">{{ user.length }} meters</span>
+            </div>
+            <div class="coop-info-item">
+              <span class="coop-label">Coop Breadth:</span>
+              <span class="coop-value">{{ user.breadth }} meters</span>
+            </div>
+            <div class="coop-info-item">
+              <span class="coop-label">Coop Capacity:</span>
+              <span class="coop-value">{{ user.coopcapacity }} birds</span>
+            </div>
+            <div class="coop-info-item">
+              <span class="coop-label">Pollution Board Certificate Expiry:</span>
+              <span class="coop-value">{{ user.expiry_date }}</span>
+            </div>
+            <div class="coop-info-item">
+              <span class="coop-label">Chicken Count:</span>
+              <span class="coop-value">{{ total_chick_count}} </span>
+            </div>
+            <div class="coop-info-item">
+              <strong class="coop-label">Area:</strong>
+              <span class="coop-value">{{ user.length }} x {{ user.breadth }} = {{ user.length|floatformat:2 }} sq ft</span>
+            </div>
+          </div>
+          
+      </div>
+      
+      <!-- Right Column: Farm Image, Certificate, and Chick Count -->
+      <div class="right-section">
+        <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
+          {% csrf_token %}
+          <div class="chick-count">
+            <h3>Update Chick Count</h3>
+            <input
+              type="number"
+              name="chick_count"
+              placeholder="Enter number of chicks"
+              class="form-control"
+              id="chickCount"
+              required
+            />
+            <button type="submit" class="btn-submit">Submit Chick Count</button>
+          </div>
+        </form>
+
+        <!-- Farm Image Section -->
+        <h3>Farm Image</h3>
+        {% if user.farm_image %}
+        <img src="{{ user.farm_image.url }}" alt="image of farm" class="farm-image" />
+        {% else %}
+        <p>No farm image available</p>
+        {% endif %}
+
+        <!-- Certificate Section -->
+        <h3>Pollution Board Certificate</h3>
+        {% if user.pollution_certificate %}
+        <a href="{{ user.pollution_certificate.url }}" download class="download-link">Download Certificate</a>
+        {% else %}
+        <p>No certificate available</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'stakeholder.html' %} 
+{% load static %} 
+{% block body %}
+<section class="content-section">
+  <!-- Header with Profile and Notification -->
+  <header class="header">
+    <div class="profile">
+      <span class="notification-icon">🔔</span>
+      <div class="profile-details">
+        <span class="profile-name">{{ request.user.full_name }}</span>
+        <span class="profile-email">{{ request.user.email }}</span>
+        <a href="{% url 'logout' %}" class="logout">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <div class="content">
+    <h1>Welcome to your Dashboard</h1>
+
+    {% if user_data %} 
+    {% if not user_data.farm_image or not user_data.length or not user_data.breadth or not user_data.expiry_date or not user_data.pollution_certificate or not user_data.coopcapacity or not user_data.address %}
+    <div class="alert alert-warning" role="alert">
+      Please complete your profile by filling in the missing information.
+    </div>
+    <a
+      href="{% url 'stakeholder_registration' user_data.id %}"
+      class="btn btn-primary"
+      >Fill Profile</a
+    >
+    {% else %}
+    <div class="profile-complete">
+      <p>Your profile is complete!</p>
+    </div>
+    {% endif %}
+    <div class="alert-container">
+      {% for alert_date in alert_vaccine_dates %}
+          <div class="alert alert-warning" id="vaccine-alert" style="display: none;">
+              Reminder: You need to vaccinate your chicks before {{ alert_date|date:"F j, Y" }}!
+          </div>
+      {% endfor %}
+  </div>
+    <!-- Chicken Count and Coop Size Card -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h5 class="card-title">Coop Information</h5>
+        <p class="card-text">
+          <strong>Chicken Count:</strong> {{total_chick_count|default:"N/A"}}
+        </p>
+        <p class="card-text">
+          <strong>Coop Size:</strong>
+          {% if user_data.length and user_data.breadth %} {{ user_data.length }}x {{ user_data.breadth }} = {{ user_data.length|floatformat:2 }} sq ft
+          {% else %}
+           N/A 
+           {% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Calendar Section -->
+  <div class="calendar">
+    <h3>Upcoming Vaccinations</h3>
+    <div id="vaccination-calendar"></div>
+  </div>
+</section>
+
+<!-- FullCalendar Script -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css"
+  rel="stylesheet"
+/>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var today = new Date('{{ today|date:"Y-m-d" }}');  // Get today's date
+      var calendarEl = document.getElementById('vaccination-calendar');
+      today.setHours(0, 0, 0, 0);  // Reset the time for accurate date comparison
+
+        {% for alert_date in alert_vaccine_dates %}
+        var alertDate = new Date('{{ alert_date|date:"Y-m-d" }}');
+        if (today.getTime() === alertDate.getTime()) {
+            // Show the alert if today is 3 days before the upcoming batch date
+            document.getElementById('vaccine-alert').style.display = 'block';
+            alert("Reminder: Vaccinate your chicks before {{ alert_date|date:'F j, Y' }}");
+        }
+        {% endfor %}
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+        // Get today's date from Django template context
+          events: [
+              // Chick Batches Events
+              {% for batch in chick_batches %}
+              {
+                  title: 'Chick Batch: {{ batch.chick_count }} chicks',
+                  start: '{{ batch.batch_date|date:"Y-m-d" }}',
+                  backgroundColor: (function() {
+                      var batchDate = new Date('{{ batch.batch_date|date:"Y-m-d" }}');
+                      var daysDiff = (batchDate - today) / (1000 * 60 * 60 * 24);  // Difference in days
+
+                      if (daysDiff < 3 && daysDiff >= 0) {
+                          return '#FF0000';  // Red for urgent (less than 3 days)
+                      } else if (daysDiff <= 7 && daysDiff >= 0) {
+                          return '#FFA500';  // Orange for coming soon (within 7 days)
+                      } else {
+                          return '#007bff';  // Blue for upcoming (more than 7 days away)
+                      }
+                  })(),
+                  textColor: 'white'
+              }{% if not forloop.last %},{% endif %}
+              {% endfor %},
+
+              // Vaccine Expiry or Med Injection Events (Coming Soon)
+              {% for date in coming_soon_dates %}
+              {
+                  title: 'Vaccine Alert',
+                  start: '{{ date|date:"Y-m-d" }}',
+                  backgroundColor: '#FFD700',  // Gold for vaccine alerts
+                  textColor: 'black',
+                  extendedProps: {
+                      icon: '/static/images/med.png'  // Reference to the syringe icon
+                  }
+              }{% if not forloop.last %},{% endif %}
+              {% endfor %}
+
+              // Vaccine Expiry or Med Injection Events (Upcoming)
+              {% for date in upcoming_dates %}
+              {
+                  title: 'Vaccine Alert: Upcoming Injection',
+                  start: '{{ date|date:"Y-m-d" }}',
+                  backgroundColor: '#32CD32',  // Green for upcoming vaccines
+                  textColor: 'black'
+              }{% if not forloop.last %},{% endif %}
+              {% endfor %}
+          ],
+          eventContent: function(info) {
+              let icon = info.event.extendedProps.icon ? `<img src="${info.event.extendedProps.icon}" class="icon-class"/>` : '';
+              return {
+                  html: `${icon} <span>${info.event.title}</span>`
+              }
+          },
+
+          headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          dateClick: function(info) {
+              alert('Date: ' + info.dateStr);
+          }
+      });
+      calendar.render();
+  });
+</script>
+
+{% endblock %}

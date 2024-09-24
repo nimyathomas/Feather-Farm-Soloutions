@@ -1,0 +1,316 @@
+/* Base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+/* Container for layout */
+.container {
+    display: flex; /* Use flexbox for layout */
+    min-height: 100vh; /* Full height for the sidebar */
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px; /* Fixed width for sidebar */
+    background-color: #2C3E50;
+    color: #ECF0F1;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #ffffff;
+}
+
+/* Navigation menu styles */
+.nav-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-menu li {
+    margin: 20px 0;
+}
+
+.nav-menu li a {
+    color: #ECF0F1;
+    text-decoration: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center; /* Align text with icons */
+}
+
+.nav-menu li a.active {
+    font-weight: bold;
+}
+
+/* Icon styling */
+.menu-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+/* Main content area styling */
+.content {
+    flex: 1; /* Take remaining space for content */
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* Header styles */
+/* Header styles */
+.header {
+    display: flex;
+    justify-content: flex-end; /* Align items to the right */
+    align-items: center;
+    background-color: #2C3E50;
+    padding: 10px 20px;
+    color: #ECF0F1;
+    margin-bottom: 20px;
+}
+
+/* Profile styles */
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.notification-icon {
+    font-size: 24px;
+    margin-right: 20px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    text-align: right; /* Align text to the right */
+}
+
+.profile-name {
+    font-weight: bold;
+}
+
+.profile-email {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+.logout {
+    font-size: 12px;
+    color: #ECF0F1;
+    text-decoration: none;
+    margin-top: 5px;
+}
+
+/* Alert styles */
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+/* Button styles */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    background-color: #1ABC9C;
+}
+
+.btn-primary {
+    background-color: #3498DB;
+}
+
+/* Content section styles */
+.content-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Section Styles */
+.content-section {
+    padding: 20px;
+    background-color: #ffffff; /* White background for contrast */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px; /* Spacing below the section */
+}
+
+h2.text-center {
+    text-align: center;
+    margin-bottom: 20px; /* Space below the heading */
+}
+
+.form-group {
+    margin-bottom: 15px; /* Space between form groups */
+}
+
+.form-control {
+    width: 100%; /* Full width for inputs and textarea */
+    padding: 10px; /* Padding for better touch targets */
+    border: 1px solid #ccc; /* Border styling */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 14px; /* Font size for inputs */
+}
+
+.form-control:readonly {
+    background-color: #f9f9f9; /* Light background for readonly fields */
+    cursor: not-allowed; /* Indicate field is not editable */
+}
+
+.current-image {
+    margin-bottom: 10px; /* Space below the image */
+}
+
+.btn {
+    background-color: #1ABC9C; /* Primary button color */
+    color: #fff; /* Text color for button */
+    padding: 10px 20px; /* Button padding */
+    border: none; /* Remove default border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.btn:hover {
+    background-color: #16A085; /* Darker shade on hover */
+}
+
+
+.calendar {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+ 
+    margin-top: 10px;
+}
+
+.calendar h3 {
+    font-size: 20px;
+    color: #16a085;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.calendar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.calendar li {
+    background-color: #ecf0f1;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar li strong {
+    font-size: 18px;
+    color: #34495e;
+}
+
+.calendar li span.highlight-warning {
+    background-color: #f39c12;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Hover effects */
+.calendar li:hover {
+    background-color: #d1f0dd;
+    transition: background-color 0.3s ease;
+}
+/* General Card Styling */
+.card.profile-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    width: 80%;
+    margin: 20px auto;
+  }
+  
+  /* Batch Info Section */
+  .batch-info h3 {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+  }
+  
+  .total-chick-count {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #4CAF50;
+  }
+  
+  .total-chick-count strong {
+    font-size: 1.4rem;
+  }
+  
+  /* Batch List Styling */
+  .batch-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .batch-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .batch-item strong {
+    font-size: 1.1rem;
+  }
+  
+  .batch-item span {
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  .no-batches {
+    font-size: 1.1rem;
+    color: #999;
+    text-align: center;
+  }
+  
+  /* Add some hover effect to list items */
+  .batch-item:hover {
+    background-color: #f9f9f9;
+  }
+  .icon-class {
+    width: 45px;  /* Set the desired width */
+    height: 45px; /* Set the desired height */
+    vertical-align: middle;  /* Aligns the icon with the text */
+    margin-right: 5px;  /* Optional: Adds some space between the icon and the text */
+}  

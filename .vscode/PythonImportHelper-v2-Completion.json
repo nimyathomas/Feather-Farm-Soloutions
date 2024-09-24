@@ -1,0 +1,1489 @@
+[
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "get_asgi_application",
+        "importPath": "django.core.asgi",
+        "description": "django.core.asgi",
+        "isExtraImport": true,
+        "detail": "django.core.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "messages",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "include",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "reverse_lazy",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "static",
+        "importPath": "django.conf.urls.static",
+        "description": "django.conf.urls.static",
+        "isExtraImport": true,
+        "detail": "django.conf.urls.static",
+        "documentation": {}
+    },
+    {
+        "label": "logout_view",
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "isExtraImport": true,
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "views",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "logout",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "get_user_model",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "authenticate",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "login",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "get_wsgi_application",
+        "importPath": "django.core.wsgi",
+        "description": "django.core.wsgi",
+        "isExtraImport": true,
+        "detail": "django.core.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "django.db.models.deletion",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.db.models.deletion",
+        "description": "django.db.models.deletion",
+        "detail": "django.db.models.deletion",
+        "documentation": {}
+    },
+    {
+        "label": "django.utils.timezone",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.utils.timezone",
+        "description": "django.utils.timezone",
+        "detail": "django.utils.timezone",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "register",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "CustomLoginView",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "admindash",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholderuser",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "customeruser",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholderuserprofile",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "customeruserprofile",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholder_registration",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "delete_user",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "HttpResponse",
+        "importPath": "django.http",
+        "description": "django.http",
+        "isExtraImport": true,
+        "detail": "django.http",
+        "documentation": {}
+    },
+    {
+        "label": "login_required",
+        "importPath": "django.contrib.auth.decorators",
+        "description": "django.contrib.auth.decorators",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.decorators",
+        "documentation": {}
+    },
+    {
+        "label": "django.contrib.auth.models",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "AbstractUser",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "BaseUserManager",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "django.contrib.auth.validators",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.contrib.auth.validators",
+        "description": "django.contrib.auth.validators",
+        "detail": "django.contrib.auth.validators",
+        "documentation": {}
+    },
+    {
+        "label": "UserAdmin",
+        "importPath": "django.contrib.auth.admin",
+        "description": "django.contrib.auth.admin",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.admin",
+        "documentation": {}
+    },
+    {
+        "label": "gettext_lazy",
+        "importPath": "django.utils.translation",
+        "description": "django.utils.translation",
+        "isExtraImport": true,
+        "detail": "django.utils.translation",
+        "documentation": {}
+    },
+    {
+        "label": "ModelBackend",
+        "importPath": "django.contrib.auth.backends",
+        "description": "django.contrib.auth.backends",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.backends",
+        "documentation": {}
+    },
+    {
+        "label": "forms",
+        "importPath": "django",
+        "description": "django",
+        "isExtraImport": true,
+        "detail": "django",
+        "documentation": {}
+    },
+    {
+        "label": "AuthenticationForm",
+        "importPath": "django.contrib.auth.forms",
+        "description": "django.contrib.auth.forms",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.forms",
+        "documentation": {}
+    },
+    {
+        "label": "UserCreationForm",
+        "importPath": "django.contrib.auth.forms",
+        "description": "django.contrib.auth.forms",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.forms",
+        "documentation": {}
+    },
+    {
+        "label": "SetPasswordForm",
+        "importPath": "django.contrib.auth.forms",
+        "description": "django.contrib.auth.forms",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.forms",
+        "documentation": {}
+    },
+    {
+        "label": "LoginView",
+        "importPath": "django.contrib.auth.views",
+        "description": "django.contrib.auth.views",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.views",
+        "documentation": {}
+    },
+    {
+        "label": "Sum",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.asgi",
+        "description": "FeatherFarmSoloutions.asgi",
+        "peekOfCode": "application = get_asgi_application()",
+        "detail": "FeatherFarmSoloutions.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_DIR",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SECRET_KEY",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEBUG",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ALLOWED_HOSTS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'django.contrib.sites',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "INSTALLED_APPS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "INSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'django.contrib.sites',\n    'stakeholder.apps.StakeholderConfig',\n    'user',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CRISPY_TEMPLATE_PACK",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CRISPY_TEMPLATE_PACK = 'bootstrap5'\nMIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'allauth.account.middleware.AccountMiddleware',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MIDDLEWARE",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'allauth.account.middleware.AccountMiddleware',\n]",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ROOT_URLCONF",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ROOT_URLCONF = 'FeatherFarmSoloutions.urls'\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': ['templates'],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TEMPLATES",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "TEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': ['templates'],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.debug',\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "WSGI_APPLICATION",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'\n# Database\n# https://docs.djangoproject.com/en/5.0/ref/settings/#databases\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.mysql',\n        'NAME': 'featherfarm',\n        'USER': 'root',\n        'PASSWORD': '',\n        'HOST': 'localhost',  # Set to your database host",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASES",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "DATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.mysql',\n        'NAME': 'featherfarm',\n        'USER': 'root',\n        'PASSWORD': '',\n        'HOST': 'localhost',  # Set to your database host\n        'PORT': '3306',       # Default MySQL port\n        'OPTIONS': {\n            'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SECURE_REFERRER_POLICY",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "SECURE_REFERRER_POLICY = \"strict-origin-when-cross-origin\"\n# Password validation\n# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators\nAUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_PASSWORD_VALIDATORS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "AUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LANGUAGE_CODE",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TIME_ZONE",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "TIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_I18N",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "USE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_TZ",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "USE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATIC_URL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "STATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATICFILES_DIRS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "STATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MEDIA_URL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "MEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MEDIA_ROOT",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_AUTO_FIELD",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_BACKEND",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_HOST",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_PORT",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_USE_TLS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_HOST_USER",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIL_HOST_PASSWORD",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "EMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTHENTICATION_BACKENDS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "AUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None\nACCOUNT_EMAIL_VERIFICATION = 'optional'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_AUTHENTICATION_METHOD",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None\nACCOUNT_EMAIL_VERIFICATION = 'optional'\nACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_EMAIL_REQUIRED",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None\nACCOUNT_EMAIL_VERIFICATION = 'optional'\nACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_USERNAME_REQUIRED",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None\nACCOUNT_EMAIL_VERIFICATION = 'optional'\nACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_USER_MODEL_USERNAME_FIELD",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_USER_MODEL_USERNAME_FIELD = None\nACCOUNT_EMAIL_VERIFICATION = 'optional'\nACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_EMAIL_VERIFICATION",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_EMAIL_VERIFICATION = 'optional'\nACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ACCOUNT_UNIQUE_EMAIL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "ACCOUNT_UNIQUE_EMAIL = True\nCLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CLIENT_ID",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CLIENT_ID = \"993464726518-dlvqdjptpid7jmdsubuivfhe36ncc0at.apps.googleusercontent.com\"\npart1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "part1",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "part1 = \"GOCSPX\"\npart2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',\n        ],",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "part2",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "part2 = \"ahmTIfCelacuDxLKeiZ5JiX\"\npart3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',\n        ],\n        'AUTH_PARAMS': {",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "part3",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "part3 = \"Y1rx\"\nmy_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',\n        ],\n        'AUTH_PARAMS': {\n            'access_type': 'online',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "my_string",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "my_string = f\"{part1}-{part2}-{part3}\"\nSOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',\n        ],\n        'AUTH_PARAMS': {\n            'access_type': 'online',\n            'prompt': 'select_account',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SOCIALACCOUNT_PROVIDERS",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "SOCIALACCOUNT_PROVIDERS = {\n    'google': {\n        'SCOPE': [\n            'profile',\n            'email',\n        ],\n        'AUTH_PARAMS': {\n            'access_type': 'online',\n            'prompt': 'select_account',\n        },",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SITE_ID",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "SITE_ID = 2\nLOGIN_REDIRECT_URL = '/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LOGIN_REDIRECT_URL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "LOGIN_REDIRECT_URL = '/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LOGOUT_REDIRECT_URL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "LOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_USER_MODEL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "AUTH_USER_MODEL = 'user.User'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.urls",
+        "description": "FeatherFarmSoloutions.urls",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('', include('stakeholder.urls')),\n    path('accounts/', include('allauth.urls')),\n    path('logout/', logout_view, name='logout'),\n    path('password_reset/', auth_views.PasswordResetView.as_view(),\n         name='password_reset'),\n    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(),\n         name='password_reset_done'),\n    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(),",
+        "detail": "FeatherFarmSoloutions.urls",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.wsgi",
+        "description": "FeatherFarmSoloutions.wsgi",
+        "peekOfCode": "application = get_wsgi_application()",
+        "detail": "FeatherFarmSoloutions.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0001_initial",
+        "description": "stakeholder.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('user', '0006_user_chick_count'),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='VaccinationRecord',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "stakeholder.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
+        "description": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='ChickBatch',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
+        "documentation": {}
+    },
+    {
+        "label": "StakeholderConfig",
+        "kind": 6,
+        "importPath": "stakeholder.apps",
+        "description": "stakeholder.apps",
+        "peekOfCode": "class StakeholderConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'stakeholder'",
+        "detail": "stakeholder.apps",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "kind": 6,
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "peekOfCode": "class ChickBatch(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chick_batches')\n    chick_count = models.IntegerField()\n    batch_date = models.DateField(default=timezone.now)  # Automatically sets the date to the current date when added\n    def __str__(self):\n        return f\"Batch on {self.batch_date} for {self.user.full_name}: {self.chick_count} chicks\"\n    def is_coming_soon(self):\n        \"\"\"\n        Checks if the vaccination date is within 7 days.\n        \"\"\"",
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "stakeholder.urls",
+        "description": "stakeholder.urls",
+        "peekOfCode": "urlpatterns = [\n    path('', views.home, name='home'),\n    path('about/', views.about, name='about'),\n    path('services/', views.services, name='services'),\n    path('contact/', views.contact, name='contact'),\n    path('about/contact/', views.contact, name='about_contact'),\n    path('login/', CustomLoginView.as_view(), name='login'),\n    path('signup/', register, name='signup'),\n    path('stakeholder/', views.stakeholder, name='stakeholder'),\n    path('stateholder_batch/', views.stateholder_batch, name='stateholder_batch'),",
+        "detail": "stakeholder.urls",
+        "documentation": {}
+    },
+    {
+        "label": "home",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def home(request):\n    return render(request, 'index.html')\ndef about(request):\n    return render(request, 'about.html')\ndef services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "about",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def about(request):\n    return render(request, 'about.html')\ndef services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "services",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "contact",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "logout_view",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Calculate the total chick count across all batches\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholder",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Calculate the total chick count across all batches\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)\n    coming_soon = [batch for batch in chick_batches if 0 <=\n                   (batch.batch_date - today).days <= 7]\n    upcoming = [batch for batch in chick_batches if 7 < (batch.batch_date - today).days <= 40 and batch.batch_date >= today]",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "stateholder_batch",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def stateholder_batch(request):\n    user = request.user  # Assuming the user is logged in\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)\n    context = {\n        'chick_batches': chick_batches,\n        'total_chick_count': total_chick_count,\n        'user_data': user\n    }\n    return render(request, 'stakeholderbatch.html', context)",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "update_chick_count",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def update_chick_count(request, id):\n    if request.method == 'POST':\n        # Get the chick count from the form\n        chick_count = request.POST.get('chick_count')\n        if chick_count is not None:\n            try:\n                chick_count = int(chick_count)  # Convert to integer if valid\n                # Get the current logged-in user\n                user = User.objects.get(id=id)\n                # Create a new ChickBatch record for the current user",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "feed_request",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def feed_request(request, user_id):\n    user=get_object_or_404(User, id=user_id)\n    return render(request, 'feed_request.html')",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0001_initial",
+        "description": "user.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('auth', '0012_alter_user_first_name_max_length'),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='UserType',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "user.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0002_alter_user_email",
+        "description": "user.migrations.0002_alter_user_email",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='email',\n            field=models.EmailField(max_length=254, unique=True),\n        ),",
+        "detail": "user.migrations.0002_alter_user_email",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0003_remove_user_username",
+        "description": "user.migrations.0003_remove_user_username",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0002_alter_user_email'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='user',\n            name='username',\n        ),\n    ]",
+        "detail": "user.migrations.0003_remove_user_username",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0004_alter_user_managers",
+        "description": "user.migrations.0004_alter_user_managers",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0003_remove_user_username'),\n    ]\n    operations = [\n        migrations.AlterModelManagers(\n            name='user',\n            managers=[\n            ],\n        ),",
+        "detail": "user.migrations.0004_alter_user_managers",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
+        "description": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0004_alter_user_managers'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='address',\n            field=models.CharField(default='address', max_length=255),\n            preserve_default=False,",
+        "detail": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0006_user_chick_count",
+        "description": "user.migrations.0006_user_chick_count",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0005_user_address_user_breadth_user_coopcapacity_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='chick_count',\n            field=models.IntegerField(blank=True, default=None, null=True),\n        ),",
+        "detail": "user.migrations.0006_user_chick_count",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0007_remove_user_chick_count",
+        "description": "user.migrations.0007_remove_user_chick_count",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0006_user_chick_count'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='user',\n            name='chick_count',\n        ),\n    ]",
+        "detail": "user.migrations.0007_remove_user_chick_count",
+        "documentation": {}
+    },
+    {
+        "label": "UserAdmin",
+        "kind": 6,
+        "importPath": "user.admin",
+        "description": "user.admin",
+        "peekOfCode": "class UserAdmin(DefaultUserAdmin):\n    model = User\n    fieldsets = (\n        (None, {'fields': ('email', 'password')}),\n        (_('Personal info'), {\n         'fields': ('full_name', 'phone_number', 'user_type')}),\n        (_('Coop Information'), {\n         'fields': ('length', 'breadth', 'coopcapacity', 'expiry_date', 'pollution_certificate', 'farm_image')}),\n        (_('Permissions'), {'fields': ('is_active', 'is_staff',\n         'is_superuser', 'groups', 'user_permissions')}),",
+        "detail": "user.admin",
+        "documentation": {}
+    },
+    {
+        "label": "UserConfig",
+        "kind": 6,
+        "importPath": "user.apps",
+        "description": "user.apps",
+        "peekOfCode": "class UserConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'user'",
+        "detail": "user.apps",
+        "documentation": {}
+    },
+    {
+        "label": "EmailBackend",
+        "kind": 6,
+        "importPath": "user.backends",
+        "description": "user.backends",
+        "peekOfCode": "class EmailBackend(ModelBackend):\n    def authenticate(self, request, username=None, password=None, **kwargs):\n        UserModel = get_user_model()\n        try:\n            user = UserModel.objects.get(email=username)\n        except UserModel.DoesNotExist:\n            return None\n        else:\n            if user.check_password(password):\n                return user",
+        "detail": "user.backends",
+        "documentation": {}
+    },
+    {
+        "label": "CustomUserCreationForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class CustomUserCreationForm(UserCreationForm):\n    error_messages = {\n        'password_mismatch': 'The two password fields didn’t match.',\n    }\n    # user_type = forms.ModelChoiceField(queryset=UserType.objects.all())\n    user_type = forms.ModelChoiceField(\n        queryset=UserType.objects.all(),\n        required=False,\n        label=\"User Type\",\n        help_text=\"Select the type of user.\"",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "EmailAuthenticationForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class EmailAuthenticationForm(AuthenticationForm):\n    username = forms.EmailField(label=\"Email\", max_length=254)\n    def clean(self):\n        email = self.cleaned_data.get('username')\n        password = self.cleaned_data.get('password')\n        if email and password:\n            self.user_cache = authenticate(\n                self.request, email=email, password=password)\n            if self.user_cache is None:\n                raise self.get_invalid_login_error()",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "CustomSetPasswordForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class CustomSetPasswordForm(SetPasswordForm):\n    new_password1 = forms.CharField(\n        label=\"New Password\",\n        widget=forms.PasswordInput,\n        help_text=\"Your new password must be at least 8 characters long.\"\n    )\n    new_password2 = forms.CharField(\n        label=\"Confirm New Password\",\n        widget=forms.PasswordInput,\n        help_text=\"Enter the same password as above, for verification.\"",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "StakeholderUserForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class StakeholderUserForm(forms.ModelForm):\n    class Meta:\n        model = User\n        fields = ['email', 'full_name', 'phone_number', 'farm_image', 'length',\n                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address']\n        widgets = {\n            'expiry_date': forms.DateInput(attrs={'type': 'date'}),\n        }",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "CustomUserManager",
+        "kind": 6,
+        "importPath": "user.models",
+        "description": "user.models",
+        "peekOfCode": "class CustomUserManager(BaseUserManager):\n    def create_user(self, email, full_name, password=None, **extra_fields):\n        if not email:\n            raise ValueError('The Email field must be set')\n        email = self.normalize_email(email)\n        user = self.model(email=email, full_name=full_name, **extra_fields)\n        user.set_password(password)\n        user.save(using=self._db)\n        return user\n    def create_superuser(self, email, full_name, password=None, **extra_fields):",
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserType",
+        "kind": 6,
+        "importPath": "user.models",
+        "description": "user.models",
+        "peekOfCode": "class UserType(models.Model):\n    name = models.CharField(max_length=50, unique=True)\n    description = models.TextField(blank=True, null=True)\n    def __str__(self):\n        return self.name\nclass User(AbstractUser):\n    username = None  # Remove the username field\n    email = models.EmailField(unique=True)\n    user_type = models.ForeignKey(\n        UserType, on_delete=models.SET_NULL, null=True, blank=True)",
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "kind": 6,
+        "importPath": "user.models",
+        "description": "user.models",
+        "peekOfCode": "class User(AbstractUser):\n    username = None  # Remove the username field\n    email = models.EmailField(unique=True)\n    user_type = models.ForeignKey(\n        UserType, on_delete=models.SET_NULL, null=True, blank=True)\n    full_name = models.CharField(max_length=255)\n    phone_number = models.CharField(max_length=15, blank=True, null=True)\n    # ImageField for image uploads\n    farm_image = models.ImageField(upload_to='images/', null=True, blank=True)\n    length = models.IntegerField(default=None, blank=True, null=True)",
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "CustomLoginView",
+        "kind": 6,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "class CustomLoginView(LoginView):\n    authentication_form = EmailAuthenticationForm\n    template_name = 'login.html'  # Specify your template\n    redirect_authenticated_user = True  # Redirect if user is already logged in\n    # Where to redirect after successful login\n    success_url = reverse_lazy('home')\n    def get_success_url(self):  # checking for which type of user after login\n        user = self.request.user\n        if user.user_type != None and hasattr(user, 'user_type') and user.user_type.name.lower() == 'stakeholder':\n            return reverse_lazy('stakeholder')",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "register",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def register(request):\n    user_type_param = request.GET.get('user_type')\n    print(user_type_param)\n    if request.method == 'POST':\n        form = CustomUserCreationForm(request.POST)\n        if form.is_valid():\n            user = form.save(commit=False)\n            print(user)\n            # Get the selected user type\n            user_type = UserType.objects.get(name=user_type_param)",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "admindash",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def admindash(request):\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Stakeholder')\n    stakeholder_count = User.objects.filter(user_type=user_type)\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Customer')\n    customer_count = User.objects.filter(user_type=user_type)\n    return render(request, 'dashboard.html', {'stakeholder_count': stakeholder_count.count(), 'customer_count': customer_count.count()})\ndef stakeholderuser(request):\n    # fetching the usertype with name stakeholder",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholderuser",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def stakeholderuser(request):\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    context = {'users': users}\n    return render(request, 'stakeholderuser.html', context)\ndef stakeholderuserprofile(request, id):  # id is for getting a user\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholderuserprofile",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def stakeholderuserprofile(request, id):  # id is for getting a user\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(\n        Sum('chick_count'))['chick_count__sum'] or 0\n    today=date.today()\n    if user.expiry_date:\n        day_expiry=(user.expiry_date-today).days\n        print(day_expiry)\n    else:",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "customeruser",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def customeruser(request):\n    # fetching the usertype with customer\n    user_type = UserType.objects.get(name='Customer')\n    # fetching all user that having user type as customer\n    users = User.objects.filter(user_type=user_type)\n    # context is using in html for rendering the data eg: user.name,user.email etc\n    context = {'users': users}\n    return render(request, 'customeruser.html', context)\ndef customeruserprofile(request, id):\n    user = User.objects.get(id=id)",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "customeruserprofile",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def customeruserprofile(request, id):\n    user = User.objects.get(id=id)\n    return render(request, 'customerprofile.html', {'user': user})\ndef stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = StakeholderUserForm(request.POST, request.FILES, instance=user)\n        if form.is_valid():\n            form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "stakeholder_registration",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = StakeholderUserForm(request.POST, request.FILES, instance=user)\n        if form.is_valid():\n            form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need\n            return redirect('stakeholder')\n    else:\n        form = StakeholderUserForm(instance=user)",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "delete_user",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def delete_user(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    user.delete()  # Delete the user\n    return redirect('stakeholderuser')",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "manage",
+        "description": "manage",
+        "peekOfCode": "def main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'FeatherFarmSoloutions.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"",
+        "detail": "manage",
+        "documentation": {}
+    }
+]

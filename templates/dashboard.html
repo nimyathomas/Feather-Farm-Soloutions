@@ -1,0 +1,58 @@
+{% extends 'admindash.html' %}
+{% load static %}
+{% block body %}
+
+<div class="dashboard-main-content">
+    <header class="topbar">
+        <h1>Admin Dashboard</h1>
+    </header>
+    <div class="dashboard-content-area">
+        <div class="dashboard-flex-container">
+            <!-- Current Sales Status -->
+            <div class="dashboard-item">
+                <h2>Current Sales Status</h2>
+                <p>Sales information goes here...</p>
+            </div>
+
+            <!-- Stakeholders and Customers Status -->
+            <div class="dashboard-item">
+                <h2>Stakeholder & Customer Status</h2>
+                <p>Stakeholders: {{ stakeholder_count }}</p>
+                <p>Customers: {{ customer_count }}</p>
+            </div>
+
+            <!-- Profit Graph -->
+            <div class="dashboard-item">
+                <h2>Profit Graph</h2>
+                <div class="profit-graph-placeholder">
+                    Graph will be displayed here
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="dashboard-item">
+                <h2>Recent Activities</h2>
+                <ul>
+                    <li>Activity 1: Description</li>
+                    <li>Activity 2: Description</li>
+                    <li>Activity 3: Description</li>
+                </ul>
+            </div>
+
+            <!-- Alerts -->
+            <div class="dashboard-item">
+                <h2>Alerts</h2>
+                <p>No new alerts at the moment.</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="dashboard-item">
+                <h2>Quick Actions</h2>
+                <button class="action-button" onclick="window.location.href='{% url 'stakeholderuser' %}'">Manage Stakeholders</button>
+                <button class="action-button" onclick="window.location.href='{% url 'customeruser' %}'">Manage Customers</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

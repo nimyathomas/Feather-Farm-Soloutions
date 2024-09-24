@@ -1,0 +1,38 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 🪶 Feather Farm Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/adminpanel.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="logo">🪶 Feather Farm</h2>
+            <ul class="nav-menu">
+                <li><a href="{% url 'admindash' %}">Dashboard</a></li>
+                <li><a href="{% url 'stakeholderuser' %}">Stakeholder Management</a></li>
+                <li><a href="#">Employee Management</a></li>
+                <li><a href="{% url 'customeruser' %}">Customer Management</a></li>
+                <li><a href="#">Finance</a></li>
+                <li><a href="#">Alerts</a></li>
+                <li><a href="#">Sales</a></li>
+                <li><a href="#">Feeds</a></li>
+                <li><a href="#">Vaccinations</a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            {% block body %}
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

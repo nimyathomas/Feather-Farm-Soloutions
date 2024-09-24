@@ -1,0 +1,47 @@
+{% extends 'admindash.html' %}
+
+{% block body %}
+<div class="profile-container">
+    <button class="back-button"><a href="{% url 'customeruser' %}">back</a></button>
+    <h1>Customer Profile</h1>
+
+    <div class="card">
+       <!-- Profile and Info Section -->
+<div class="profile-container">
+    <!-- Profile Image -->
+    <!-- <div class="image-section">
+        <img src="{{ user.image.url }}" alt="{{ user.name }}" class="profile-pic">
+    </div> --
+    <!-- Stakeholder Information -->
+    <div class="info-section">
+        <h2>{{ user.name }}</h2>
+        <p>Name: <span>{{ user.full_name }}</span></p>
+        <p>Email: <span>{{ user.email }}</span></p>
+        <p>Address: <span>{{ user.address }}</span></p>
+        <p>Phone: <span>{{ user.phone_number }}</span></p>
+    </div>
+</div>
+
+
+     
+
+        <!-- Divider -->
+        <hr class="divider">
+
+           <!-- Coop and Certification Info -->
+           <div class="coop-info">
+            <h3>Purchase History</h3>
+        <ul class="purchase-list">
+            {% for purchase in customer.purchase_history %}
+                <li>{{ purchase.item }} - {{ purchase.date }} - ${{ purchase.amount }}</li>
+            {% empty %}
+                <li>No purchases yet</li>
+            {% endfor %}
+        </ul>
+        </div>
+
+</div>
+{% endblock %}
+
+
+

@@ -1,0 +1,30 @@
+{% extends 'stakeholder.html' %}
+{% load static %} 
+{% block body %}
+
+<div class="card profile-card">
+  <!-- Chick Batches Section -->
+  <div class="batch-info">
+    <h3>Chick Batches</h3>
+
+    <!-- Display Total Chick Count -->
+    <div class="total-chick-count">
+      <p>Total Chick Count: <strong>{{ total_chick_count }}</strong></p>
+    </div>
+
+    <!-- List of Chick Batches -->
+    <ul class="batch-list">
+      {% for batch in chick_batches %}
+        <li class="batch-item">
+          <strong>{{ batch.batch_date|date:"F j, Y" }}:</strong> 
+          <span>{{ batch.chick_count }} chicks</span>
+        </li>
+      {% empty %}
+        <li class="batch-item no-batches">No chick batches found.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+

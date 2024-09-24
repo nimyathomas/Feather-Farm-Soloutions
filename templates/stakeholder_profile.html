@@ -1,0 +1,87 @@
+{% extends 'stakeholder.html' %}
+{% load static %}
+{% block body %}
+
+<title>User Update Form</title>
+<!-- Bootstrap for styling -->
+<section class="content-section">
+    <h2 class="text-center">User Update</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Email field (readonly) -->
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" name="email" value="{{ form.email.value }}" readonly>
+        </div>
+
+        <!-- Full Name -->
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            {{ form.full_name }}
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+            <label for="phone_number">Phone Number</label>
+            {{ form.phone_number }}
+        </div>
+
+        <!-- Farm Image -->
+        <div class="form-group">
+            <label for="farm_image">Farm Image</label>
+            {% if user_data.farm_image %}
+                <div class="current-image">
+                    <img src="{{ user_data.farm_image.url }}" alt="Farm Image" style="max-width: 200px; max-height: 200px;">
+                </div>
+            {% endif %}
+            {{ form.farm_image }}
+        </div>
+
+        <!-- Length of the farm -->
+        <div class="form-group">
+            <label for="length">Length</label>
+            {{ form.length }}
+        </div>
+
+        <!-- Breadth of the farm -->
+        <div class="form-group">
+            <label for="breadth">Breadth</label>
+            {{ form.breadth }}
+        </div>
+
+        <!-- Expiry Date for Pollution Certificate -->
+        <div class="form-group">
+            <label for="expiry_date">Pollution Certificate Expiry Date</label>
+            {{ form.expiry_date }}
+        </div>
+
+        <!-- Pollution Certificate -->
+        <div class="form-group">
+            <label for="pollution_certificate">Pollution Certificate</label>
+            {% if user_data.pollution_certificate %}
+                <div>
+                    <a href="{{ user_data.pollution_certificate.url }}" target="_blank">View Current Pollution Certificate</a>
+                </div>
+            {% endif %}
+            {{ form.pollution_certificate }}
+        </div>
+
+        <!-- Coop Capacity -->
+        <div class="form-group">
+            <label for="coopcapacity">Coop Capacity</label>
+            {{ form.coopcapacity }}
+        </div>
+        <!-- Farm Address -->
+        <div class="form-group">
+            <label for="address">Farm Address</label>
+            {{ form.address }}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+</section>
+
+{% endblock %}
