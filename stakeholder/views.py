@@ -4,9 +4,11 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from stakeholder.models import ChickBatch
 from user.models import User
+from django.urls import reverse
 
 
 def home(request):
@@ -29,7 +31,7 @@ def logout_view(request):
     logout(request)
     return redirect('/')
 
-
+@login_required
 def stakeholder(request):
     user = request.user  # Assuming the user is logged in
     today = timezone.now().date()
@@ -50,13 +52,15 @@ def stakeholder(request):
         if 0 <= (batch.batch_date - today).days <= 7
     ]
     upcoming_dates = [(batch, batch.batch_date + timedelta(days=40)) for batch in upcoming]
-    print(alert_vaccine_dates)
+    sqr_feet = 0
+    if user.length and user.breadth:
+      sqr_feet = user.length * user.breadth
     context = {
         'chick_batches': chick_batches,
         'coming_soon': coming_soon,
         'upcoming': upcoming,
         'total_chick_count': total_chick_count,  # Total chick count
-        # Coming soon dates with batch_date + 7
+        'sqr_feet':sqr_feet,
         'coming_soon_dates': coming_soon_dates,
         'upcoming_dates': upcoming_dates,        # Upcoming dates with batch_date + 40
         'alert_vaccine_dates': alert_vaccine_dates,
@@ -83,12 +87,14 @@ def stateholder_batch(request):
 def update_chick_count(request, id):
     if request.method == 'POST':
         # Get the chick count from the form
+        # Get the current logged-in user
+        try:
+            user = User.objects.get(id=id)
+        except ValueError:
+            return HttpResponse("No users there.")
         chick_count = request.POST.get('chick_count')
-        if chick_count is not None:
-            try:
-                chick_count = int(chick_count)  # Convert to integer if valid
-                # Get the current logged-in user
-                user = User.objects.get(id=id)
+        chick_count = int(chick_count) # Convert to integer if valid
+        if isinstance(chick_count, int) and chick_count <= user.coopcapacity:
                 # Create a new ChickBatch record for the current user
                 ChickBatch.objects.create(
                     user=user,
@@ -96,8 +102,9 @@ def update_chick_count(request, id):
                     batch_date=timezone.now()  # Automatically set to the current date
                 )
                 return redirect('stakeholderuser')
-            except ValueError:
-                return HttpResponse("Invalid input. Please enter a valid number.")
+        else:
+            messages.error(request, "You can't add morethan 1000")
+            return redirect(reverse('stakeholderuserprofile', args=[id]))
     return redirect('stakeholderuserprofile')
 
 def feed_request(request, user_id):

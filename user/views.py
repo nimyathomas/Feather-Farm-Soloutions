@@ -98,7 +98,11 @@ def stakeholderuserprofile(request, id):  # id is for getting a user
         print(day_expiry)
     else:
         day_expiry=None
-    return render(request, 'stakeholderprofile.html', {'user': user, 'total_chick_count': total_chick_count, 'day_expiry':day_expiry})
+    sqr_feet = 0  # assuming length and breadth are provided in the User model
+    if user.length and user.breadth:
+        sqr_feet = user.length * user.breadth
+    print(sqr_feet)
+    return render(request, 'stakeholderprofile.html', {'user': user, 'total_chick_count': total_chick_count, 'day_expiry':day_expiry,"sqr_feet":sqr_feet})
 
 
 def customeruser(request):
@@ -113,6 +117,7 @@ def customeruser(request):
 
 def customeruserprofile(request, id):
     user = User.objects.get(id=id)
+    sqr_feet = 0
     return render(request, 'customerprofile.html', {'user': user})
 
 

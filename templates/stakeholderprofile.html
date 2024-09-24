@@ -5,12 +5,24 @@
   <button class="back-button">
     <a href="{% url 'stakeholderuser' %}">back</a>
   </button>
+  {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+                <span class="close" onclick="this.parentElement.style.display='none'">&times;</span> <!-- Close button -->
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
   <h1>Stakeholder Profile</h1>
 
   <div class="card profile-card">
     <!-- Flex Container for two columns -->
     <div class="flex-container">
-      
+   
+
       <!-- Left Column: Profile and Coop Info -->
       <div class="left-section">
         <div class="info-section">
@@ -45,7 +57,7 @@
             </div>
             <div class="coop-info-item">
               <strong class="coop-label">Area:</strong>
-              <span class="coop-value">{{ user.length }} x {{ user.breadth }} = {{ user.length|floatformat:2 }} sq ft</span>
+              <span class="coop-value">{{ user.length }} x {{ user.breadth }} = {{sqr_feet}} sq ft</span>
             </div>
           </div>
           
