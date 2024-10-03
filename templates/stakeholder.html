@@ -27,6 +27,9 @@
             </li>
             <li><a href="{% url 'stateholder_batch' %}">🚑Chicken Batches</a></li>
             <li><a href="{% url 'feed_request'  user.id %}">🚑Feeds</a></li>
+            <li><a href="{% url 'vaccination'  user.id %}">🚑Vaccinations</a></li>
+            
+
             <li><a href="#">🧑🏽‍⚕️Connect with Doctor</a></li>
             <li><a href="#">🐥Upliftments</a></li>
             <li><a href="#">📝Reports</a></li>
@@ -45,4 +48,32 @@
       <main class="content">{% block body %} {% endblock %}</main>
     </div>
   </body>
+
+  <script>
+    var idleTime = 0;
+    var sessionTimeout = {{ request.session.get_expiry_age }};
+    var warningTime = sessionTimeout - 60;  // Show warning 1 minute before timeout
+
+    function resetIdleTime() {
+        idleTime = 0;
+    }
+
+    setInterval(function () {
+        idleTime++;
+        if (idleTime >= warningTime) {
+            alert('Your session is about to expire.');
+        }
+        if (idleTime >= sessionTimeout) {
+            window.location.href = "{% url 'login' %}";
+        }
+    }, 1000);
+
+    window.onload = resetIdleTime;
+    window.onmousemove = resetIdleTime;
+    window.onkeypress = resetIdleTime;
+</script>
+
+
+
+
 </html>

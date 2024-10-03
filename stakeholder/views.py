@@ -9,6 +9,8 @@ from django.contrib import messages
 from stakeholder.models import ChickBatch
 from user.models import User
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
+
 
 
 def home(request):
@@ -55,6 +57,7 @@ def stakeholder(request):
     sqr_feet = 0
     if user.length and user.breadth:
       sqr_feet = user.length * user.breadth
+      coop_capacity=sqr_feet*4
     context = {
         'chick_batches': chick_batches,
         'coming_soon': coming_soon,
@@ -65,7 +68,8 @@ def stakeholder(request):
         'upcoming_dates': upcoming_dates,        # Upcoming dates with batch_date + 40
         'alert_vaccine_dates': alert_vaccine_dates,
         'today': today,  # Pass today's date to the template
-        'user_data': user
+        'user_data': user,
+        
     }
     return render(request, 'stakeholderdash.html', context)
 
@@ -83,30 +87,52 @@ def stateholder_batch(request):
     return render(request, 'stakeholderbatch.html', context)
 
 
-@login_required
 def update_chick_count(request, id):
     if request.method == 'POST':
-        # Get the chick count from the form
-        # Get the current logged-in user
         try:
+            # Get the current logged-in user
             user = User.objects.get(id=id)
-        except ValueError:
+        except User.DoesNotExist:
             return HttpResponse("No users there.")
+        
+        # Get chick count from the form
         chick_count = request.POST.get('chick_count')
-        chick_count = int(chick_count) # Convert to integer if valid
-        if isinstance(chick_count, int) and chick_count <= user.coopcapacity:
-                # Create a new ChickBatch record for the current user
-                ChickBatch.objects.create(
-                    user=user,
-                    chick_count=chick_count,
-                    batch_date=timezone.now()  # Automatically set to the current date
-                )
-                return redirect('stakeholderuser')
-        else:
-            messages.error(request, "You can't add morethan 1000")
+        
+        try:
+            chick_count = int(chick_count)  # Convert to integer
+        except ValueError:
+            messages.error(request, "Invalid chick count value.")
             return redirect(reverse('stakeholderuserprofile', args=[id]))
+        
+        # Calculate the coop capacity based on the user's length and breadth
+        if user.length and user.breadth:
+            sqr_feet = user.length * user.breadth
+            coop_capacity = sqr_feet * 4  # 4 birds per sq ft
+        else:
+            messages.error(request, "Please ensure that the coop's length and breadth are provided.")
+            return redirect(reverse('stakeholderuserprofile', args=[id]))
+
+        # Validate that the entered chick count does not exceed the coop capacity
+        if chick_count <= coop_capacity:
+            # Create a new ChickBatch record for the current user
+            ChickBatch.objects.create(
+                user=user,
+                chick_count=chick_count,
+                batch_date=timezone.now()  # Automatically set to the current date
+            )
+            messages.success(request, "Chick batch successfully added.")
+            return redirect('stakeholderuser')
+        else:
+            messages.error(request, f"You can't add more than {coop_capacity} birds for the current coop size.")
+            return redirect(reverse('stakeholderuserprofile', args=[id]))
+
     return redirect('stakeholderuserprofile')
 
 def feed_request(request, user_id):
     user=get_object_or_404(User, id=user_id)
     return render(request, 'feed_request.html') 
+
+
+def vaccination(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'vaccinations.html', {'user': user})

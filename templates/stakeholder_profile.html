@@ -27,8 +27,6 @@
             <label for="phone_number">Phone Number</label>
             {{ form.phone_number }}
         </div>
-
-        <!-- Farm Image -->
         <div class="form-group">
             <label for="farm_image">Farm Image</label>
             {% if user_data.farm_image %}
@@ -37,24 +35,48 @@
                 </div>
             {% endif %}
             {{ form.farm_image }}
+            {% if form.farm_image.errors %}
+                <div class="text-danger">
+                    {% for error in form.farm_image.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
+        
 
-        <!-- Length of the farm -->
+
+
         <div class="form-group">
             <label for="length">Coop Length</label>
             {{ form.length }}
+            {% if form.length.errors %}
+                <div class="text-danger">
+                    {{ form.length.errors }}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Breadth of the farm -->
         <div class="form-group">
             <label for="breadth">Coop Breadth</label>
             {{ form.breadth }}
+            {% if form.breadth.errors %}
+                <div class="text-danger">
+                    {{ form.breadth.errors }}
+                </div>
+            {% endif %}
         </div>
 
-        <!-- Expiry Date for Pollution Certificate -->
+
         <div class="form-group">
             <label for="expiry_date">Pollution Certificate Expiry Date</label>
             {{ form.expiry_date }}
+            {% if form.expiry_date.errors %}
+                <div class="text-danger">
+                    {{ form.expiry_date.errors }}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Pollution Certificate -->
@@ -66,13 +88,19 @@
                 </div>
             {% endif %}
             {{ form.pollution_certificate }}
+            {% if form.pollution_certificate.errors %}
+                <div class="text-danger">
+                    {{ form.pollution_certificate.errors }}
+                </div>
+            {% endif %}
         </div>
 
-        <!-- Coop Capacity -->
+
         <div class="form-group">
             <label for="coopcapacity">Coop Capacity</label>
             {{ form.coopcapacity }}
-        </div>
+        </div> 
+        
         <!-- Farm Address -->
         <div class="form-group">
             <label for="address">Farm Address</label>

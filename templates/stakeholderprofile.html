@@ -64,7 +64,9 @@
       </div>
       
       <!-- Right Column: Farm Image, Certificate, and Chick Count -->
-      <div class="right-section">
+    <div class="right-section">
+      <p>Number of birds you can grow: {{ birds_can_accommodate }}</p>
+
         <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
           {% csrf_token %}
           <div class="chick-count">
@@ -78,7 +80,7 @@
               required
             />
             <button type="submit" class="btn-submit">Submit Chick Count</button>
-          </div>
+          </div> 
         </form>
 
         <!-- Farm Image Section -->

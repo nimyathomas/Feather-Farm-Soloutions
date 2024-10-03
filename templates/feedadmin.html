@@ -1,0 +1,173 @@
+{% extends 'admindash.html' %}
+{% load static%}
+{% block content %}
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .low-stock {
+            color: red;
+            font-weight: bold;
+        }
+        .stock-info {
+            margin-top: 10px;
+            color: #777;
+        }
+        .align-right {
+            text-align: right;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Admin Dashboard - Feed Assignment</h1>
+
+    <div class="card">
+        <h2>Assign Feed to Stakeholder</h2>
+        <form>
+            <div class="form-group">
+                <label for="stakeholder">Select Stakeholder:</label>
+                <select id="stakeholder" name="stakeholder">
+                    <option value="farmer1">Farmer 1</option>
+                    <option value="farmer2">Farmer 2</option>
+                    <option value="farmer3">Farmer 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="batch">Select Batch:</label>
+                <select id="batch" name="batch">
+                    <option value="batch1">Batch 1</option>
+                    <option value="batch2">Batch 2</option>
+                    <option value="batch3">Batch 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="feed-type">Feed Type:</label>
+                <select id="feed-type" name="feed-type">
+                    <option value="pre-starter">Pre-Starter</option>
+                    <option value="starter">Starter</option>
+                    <option value="finisher">Finisher</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sacks">No. of Sacks:</label>
+                <input type="number" id="sacks" name="sacks" placeholder="Enter number of sacks" required>
+            </div>
+
+            <div class="form-group">
+                <label for="driver">Driver Name:</label>
+                <input type="text" id="driver" name="driver" placeholder="Enter driver name">
+            </div>
+
+            <div class="form-group">
+                <label for="vehicle">Vehicle Number:</label>
+                <input type="text" id="vehicle" name="vehicle" placeholder="Enter vehicle number">
+            </div>
+
+            <div class="align-right">
+                <button type="submit" class="button">Assign Feed</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Current Feed Stock</h2>
+        <p>Pre-Starter: 120 sacks <span class="low-stock">(Low Stock)</span></p>
+        <p>Starter: 300 sacks</p>
+        <p>Finisher: 240 sacks</p>
+    </div>
+
+    <div class="card">
+        <h2>Pending Feed Requests</h2>
+        <table>
+            <tr>
+                <th>Stakeholder</th>
+                <th>Batch</th>
+                <th>Feed Type</th>
+                <th>Requested Amount</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>Farmer 1</td>
+                <td>Batch 1</td>
+                <td>Starter</td>
+                <td>30 sacks</td>
+                <td><button class="button">Approve</button></td>
+            </tr>
+            <tr>
+                <td>Farmer 2</td>
+                <td>Batch 2</td>
+                <td>Finisher</td>
+                <td>20 sacks</td>
+                <td><button class="button">Approve</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+
+{% endblock %}

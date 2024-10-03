@@ -314,3 +314,9 @@ h2.text-center {
     vertical-align: middle;  /* Aligns the icon with the text */
     margin-right: 5px;  /* Optional: Adds some space between the icon and the text */
 }  
+
+.text-danger {
+    color: red; /* Change text color to red */
+    font-size: 12px; /* Set a smaller font size */
+    margin-top: 5px; /* Add some space above the error message */
+}

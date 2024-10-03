@@ -75,7 +75,7 @@
           </div>
           {% if user.is_authenticated %}
           <p style="color: aliceblue; margin-right: 5px">
-            Hello, {{ user.full_name|default:user.username }}!
+            Hello, {{ user.email|default:user.username }}!
           </p>
           <li class="logout_btn">
             <button type="button" class="btn btn-warning" name="logout">

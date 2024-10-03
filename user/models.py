@@ -44,8 +44,8 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     # ImageField for image uploads
     farm_image = models.ImageField(upload_to='images/', null=True, blank=True)
-    length = models.IntegerField(default=None, blank=True, null=True)
-    breadth = models.IntegerField(default=None, blank=True, null=True)
+    length = models.FloatField(default=None, blank=True, null=True)
+    breadth = models.FloatField(default=None, blank=True, null=True)
     expiry_date = models.DateField(default=None, blank=True, null=True)
     pollution_certificate = models.FileField(
         upload_to='certificates/', blank=True, null=True)
@@ -60,3 +60,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+    
+        

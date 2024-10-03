@@ -10,6 +10,8 @@ from stakeholder.models import ChickBatch
 from .forms import EmailAuthenticationForm
 from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
 from .models import UserType, User
+from django.shortcuts import get_object_or_404
+
 
 
 def register(request):
@@ -87,22 +89,37 @@ def stakeholderuser(request):
     return render(request, 'stakeholderuser.html', context)
 
 
-def stakeholderuserprofile(request, id):  # id is for getting a user
+from django.db.models import Sum
+from datetime import date
+
+def stakeholderuserprofile(request, id):  
     user = User.objects.get(id=id)
     chick_batches = ChickBatch.objects.filter(user=user)
-    total_chick_count = chick_batches.aggregate(
-        Sum('chick_count'))['chick_count__sum'] or 0
-    today=date.today()
+    total_chick_count = chick_batches.aggregate(Sum('chick_count'))['chick_count__sum'] or 0
+
+    today = date.today()
+    day_expiry = None
     if user.expiry_date:
-        day_expiry=(user.expiry_date-today).days
-        print(day_expiry)
-    else:
-        day_expiry=None
-    sqr_feet = 0  # assuming length and breadth are provided in the User model
+        day_expiry = (user.expiry_date - today).days
+    
+    # Calculate square feet based on length and breadth (assuming they're in the User model)
+    sqr_feet = 0  
     if user.length and user.breadth:
         sqr_feet = user.length * user.breadth
-    print(sqr_feet)
-    return render(request, 'stakeholderprofile.html', {'user': user, 'total_chick_count': total_chick_count, 'day_expiry':day_expiry,"sqr_feet":sqr_feet})
+    
+    # Calculate number of birds that can be accommodated
+    birds_can_accommodate = sqr_feet * 4  # 4 birds per sq foot
+    
+    context = {
+        'user': user,
+        'total_chick_count': total_chick_count,
+        'day_expiry': day_expiry,
+        'sqr_feet': sqr_feet,
+        'birds_can_accommodate': birds_can_accommodate
+    }
+
+    return render(request, 'stakeholderprofile.html', context)
+
 
 
 def customeruser(request):
@@ -140,3 +157,12 @@ def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.delete()  # Delete the user
     return redirect('stakeholderuser')
+
+
+def vaccine_admin(request):
+    # Assuming you're trying to retrieve a VaccineAdmin object by its ID (pk)
+
+    return render(request, 'vaccination.html')
+
+def feed_admin(request):
+    return render(request, 'feedadmin.html')

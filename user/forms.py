@@ -5,6 +5,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import SetPasswordForm
 from .models import User, UserType
 from django.contrib.auth import authenticate
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -100,3 +103,64 @@ class StakeholderUserForm(forms.ModelForm):
         widgets = {
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
         }
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        length = cleaned_data.get('length')
+        
+    
+        print(length)
+        breadth = cleaned_data.get('breadth')
+        print(type(breadth))
+        
+        if length is not None and breadth is not None and (length <= 0 or breadth <= 0):
+            raise forms.ValidationError("Length and breadth must be positive numbers.")
+        
+        
+        
+    def clean_farm_image(self):
+        farm_image = self.cleaned_data.get('farm_image')
+
+        # Check if an image was uploaded
+        if farm_image:
+            # Validate the file size (limit to 2 MB, for example)
+            max_size = 2 * 1024 * 1024  # 2 MB
+            if farm_image.size > max_size:
+                raise forms.ValidationError("The image file is too large (max size is 2 MB).")
+
+            # Validate the file type (only allow images)
+            if not farm_image.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                raise forms.ValidationError("Only image files (PNG, JPG, JPEG, GIF) are allowed.")
+        else:
+            raise forms.ValidationError("No image uploaded. Please upload a farm image.")
+
+        return farm_image
+
+    
+
+    def clean_pollution_certificate(self):
+        pdf = self.cleaned_data.get('pollution_certificate')
+
+        # Check if the file is uploaded
+        if not pdf:
+            raise ValidationError("Please upload a PDF file.")
+
+        # Check if the file has a valid extension
+        if not pdf.name.lower().endswith('.pdf'):
+            raise ValidationError("Only PDF files are allowed to upload.")
+
+        # Check if the file size is greater than 5 MB
+        if pdf.size > 5 * 1024 * 1024:
+            raise ValidationError("The PDF file is too large.")
+
+        return pdf
+
+  
+    
+    def clean_expiry_date(self):
+        expiry_date=self.cleaned_data.get('expiry_date')
+        print(expiry_date)
+        if expiry_date and expiry_date < timezone.now().date():
+            print("Expiry date")
+            raise ValidationError("expiry date cannot be in the past")
+        return expiry_date
