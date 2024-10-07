@@ -9,7 +9,9 @@ from django.contrib import messages
 from stakeholder.models import ChickBatch
 from user.models import User
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
+from .models import  FeedRequest,  ChickBatch
+from user.models import User,SupervisorStakeholderAssignment
+from .forms import FeedRequestForm  # Assuming you have a form for feed requests
 
 
 
@@ -42,33 +44,49 @@ def stakeholder(request):
 
     # Calculate the total chick count across all batches
     total_chick_count = sum(batch.chick_count for batch in chick_batches)
+    stakeholder_feedrequest=FeedRequest.objects.filter(stakeholder=user)
+    
+    
 
-    coming_soon = [batch for batch in chick_batches if 0 <=
-                   (batch.batch_date - today).days <= 7]
-    upcoming = [batch for batch in chick_batches if 7 < (batch.batch_date - today).days <= 40 and batch.batch_date >= today]
-    # Calculate dates for alert (3 days before upcoming batch date)
-    alert_vaccine_dates = [(batch.batch_date - timedelta(days=3)) for batch in upcoming if 7 < (batch.batch_date - today).days <= 40]
-    coming_soon_dates = [
-        (batch.batch_date + timedelta(days=7))
-        for batch in chick_batches
-        if 0 <= (batch.batch_date - today).days <= 7
-    ]
-    upcoming_dates = [(batch, batch.batch_date + timedelta(days=40)) for batch in upcoming]
+    alert_vaccine_dates = []
+    upliftment_alert_dates = []
+    feed_dates = []
+    for batch in chick_batches:
+        batch_date = batch.batch_date
+        # Calculate 7th, 14th, and 21st day reminders
+        alert_vaccine_dates.append({
+            '7th_day': batch_date + timedelta(days=7),
+            '14th_day': batch_date + timedelta(days=14),
+            '21st_day': batch_date + timedelta(days=21),
+            'batch': batch,
+        })  
+        upliftment_alert_dates.append(
+            batch_date+timedelta(days=39)
+        )
+        
+        feed_dates.append({
+            'pre_starter':batch_date,
+            'starter':batch_date+timedelta(days=10),
+            'finisher':batch_date+timedelta(days=24)
+        }
+            
+        )
+        
     sqr_feet = 0
     if user.length and user.breadth:
       sqr_feet = user.length * user.breadth
       coop_capacity=sqr_feet*4
     context = {
         'chick_batches': chick_batches,
-        'coming_soon': coming_soon,
-        'upcoming': upcoming,
         'total_chick_count': total_chick_count,  # Total chick count
         'sqr_feet':sqr_feet,
-        'coming_soon_dates': coming_soon_dates,
-        'upcoming_dates': upcoming_dates,        # Upcoming dates with batch_date + 40
-        'alert_vaccine_dates': alert_vaccine_dates,
         'today': today,  # Pass today's date to the template
         'user_data': user,
+        'alert_vaccine_dates': alert_vaccine_dates,
+        'upliftment_alert_dates':upliftment_alert_dates,
+        'feed_dates':feed_dates,
+        'stakeholder_feedrequest':stakeholder_feedrequest
+
         
     }
     return render(request, 'stakeholderdash.html', context)
@@ -111,6 +129,11 @@ def update_chick_count(request, id):
         else:
             messages.error(request, "Please ensure that the coop's length and breadth are provided.")
             return redirect(reverse('stakeholderuserprofile', args=[id]))
+        
+        if chick_count < 0:
+            messages.error(request, "Chick count cannot be less than zero.")
+            return redirect(reverse('stakeholderuserprofile', args=[id]))
+
 
         # Validate that the entered chick count does not exceed the coop capacity
         if chick_count <= coop_capacity:
@@ -128,9 +151,47 @@ def update_chick_count(request, id):
 
     return redirect('stakeholderuserprofile')
 
+
+
 def feed_request(request, user_id):
-    user=get_object_or_404(User, id=user_id)
-    return render(request, 'feed_request.html') 
+    
+    # Get the batches for the current stakeholder
+    chick_batches = ChickBatch.objects.filter(user_id=user_id)
+    # Fetch the user (stakeholder)
+    stakeholder = get_object_or_404(User, id=user_id, user_type__name='stakeholder')
+    print(stakeholder)
+    
+    # Get the supervisor assigned to this stakeholder
+    supervisor_assignment = get_object_or_404(SupervisorStakeholderAssignment, stakeholder=stakeholder)
+    print(supervisor_assignment)
+    supervisor = supervisor_assignment.supervisor
+    print(supervisor)
+
+    # Process the form submission
+    if request.method == 'POST':
+        form = FeedRequestForm(request.POST)
+        print(form.errors)
+        
+        if form.is_valid():
+            feed_request = form.save(commit=False)
+            feed_request.stakeholder = stakeholder
+            feed_request.supervisor = supervisor
+            feed_request.save()
+            return redirect('stakeholder')  # Redirect to a success page or another view
+    else:
+        form = FeedRequestForm()
+        
+       
+
+    # Render the feed request form
+    return render(request, 'feed_request.html', {
+        'form': form,
+        'supervisor': supervisor,
+        'stakeholder': stakeholder,
+        'chick_batches': chick_batches,
+
+    })
+
 
 
 def vaccination(request, user_id):

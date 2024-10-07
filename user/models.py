@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
+
 
 
 class CustomUserManager(BaseUserManager):
@@ -57,10 +59,24 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['full_name']
 
     objects = CustomUserManager()  # connecting user model with customusermanager
-
+    
+    
+    def save(self, *args, **kwargs):
+        # Check if expiry date exists and is in the past
+        if self.expiry_date and self.expiry_date < timezone.now().date():
+            self.is_active = False  # Deactivate the user
+        super().save(*args, **kwargs)  # Call the base class save method
+        
     def __str__(self):
         return self.email
+    
 
 
     
-        
+class SupervisorStakeholderAssignment(models.Model):
+    supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor_assignments')
+    stakeholders = models.ManyToManyField(User, related_name='stakeholder_assignments')
+
+    def __str__(self):
+        return f'{self.supervisor.full_name} assigned to {self.stakeholders}'
+

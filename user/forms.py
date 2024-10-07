@@ -1,12 +1,14 @@
 from .models import User
+from django.contrib import admin
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import SetPasswordForm
-from .models import User, UserType
+from .models import User, UserType,SupervisorStakeholderAssignment
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+
 
 
 
@@ -164,3 +166,15 @@ class StakeholderUserForm(forms.ModelForm):
             print("Expiry date")
             raise ValidationError("expiry date cannot be in the past")
         return expiry_date
+    
+    
+class SupervisorStakeholderAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = SupervisorStakeholderAssignment
+        fields = ['supervisor', 'stakeholders']
+    
+    stakeholders = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(user_type__name='stakeholder'),  # Adjust filter if necessary
+        widget=admin.widgets.FilteredSelectMultiple("Stakeholders", is_stacked=False),
+        required=True
+    )

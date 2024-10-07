@@ -49,31 +49,7 @@
     </div>
   </body>
 
-  <script>
-    var idleTime = 0;
-    var sessionTimeout = {{ request.session.get_expiry_age }};
-    var warningTime = sessionTimeout - 60;  // Show warning 1 minute before timeout
-
-    function resetIdleTime() {
-        idleTime = 0;
-    }
-
-    setInterval(function () {
-        idleTime++;
-        if (idleTime >= warningTime) {
-            alert('Your session is about to expire.');
-        }
-        if (idleTime >= sessionTimeout) {
-            window.location.href = "{% url 'login' %}";
-        }
-    }, 1000);
-
-    window.onload = resetIdleTime;
-    window.onmousemove = resetIdleTime;
-    window.onkeypress = resetIdleTime;
-</script>
-
-
+  
 
 
 </html>

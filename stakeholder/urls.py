@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, delete_user,vaccine_admin,feed_admin
+from user.views import register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, delete_user,vaccine_admin,superviser_dashboard,superviser
 from .import views
 
 
@@ -28,10 +28,8 @@ urlpatterns = [
     path('delete-user/<int:user_id>/', delete_user, name='delete_user'),
     path('vaccination/<int:user_id>/',views.vaccination, name='vaccination'),
     path('vaccine_admin/', vaccine_admin, name='vaccine_admin'),
-    path('feed_admin/', feed_admin, name='feed_admin')
+    path('superviser/', superviser, name='superviser'),
+    path('superviser_dashboard/', superviser_dashboard, name='superviser_dashboard'),
 
 
-
-    
-    
 ]

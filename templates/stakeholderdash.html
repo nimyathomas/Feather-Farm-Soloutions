@@ -46,7 +46,14 @@
         <h5 class="card-title">Coop Information</h5>
         <p class="card-text">
           <strong>Chicken Count:</strong> {{total_chick_count|default:"N/A"}}
+
         </p>
+        {% for feedr in stakeholder_feedrequest%}
+        <p class="card-text">
+          <strong>FeedRequest-Status:</strong> {{feedr.status|default:"N/A"}}
+          
+        </p>
+        {% endfor %}
         <p class="card-text">
           <strong>Coop Size:</strong>
           {% if sqr_feet %}
@@ -62,7 +69,8 @@
 
   <!-- Calendar Section -->
   <div class="calendar">
-    <h3>Upcoming Vaccinations</h3>
+    <h3>Upcoming Vaccinations</h3> 
+   
     <div id="vaccination-calendar"></div>
   </div>
   {% endif %}
@@ -82,80 +90,101 @@
       var calendarEl = document.getElementById('vaccination-calendar');
       today.setHours(0, 0, 0, 0);  // Reset the time for accurate date comparison
 
-        {% for alert_date in alert_vaccine_dates %}
-        var alertDate = new Date('{{ alert_date|date:"Y-m-d" }}');
-        if (today.getTime() === alertDate.getTime()) {
-            // Show the alert if today is 3 days before the upcoming batch date
-            document.getElementById('vaccine-alert').style.display = 'block';
-            alert("Reminder: Vaccinate your chicks before {{ alert_date|date:'F j, Y' }}");
-        }
-        {% endfor %}
+      var events = [];
+
+      // Chick Batches Events and Vaccine Alerts for 7th, 14th, and 21st day
+      {% for alert in alert_vaccine_dates %}
+      events.push({
+          title: 'Chick Batch: {{ alert.batch.chick_count }} chicks',
+          start: '{{ alert.batch.batch_date|date:"Y-m-d" }}',
+          textColor: 'white'
+      });
+      events.push({
+          title: 'Vaccine Alert',
+          start: '{{ alert.7th_day|date:"Y-m-d" }}',
+          backgroundColor: '#FFD700',  // Gold for vaccine alerts
+          textColor: 'black',
+          extendedProps: {
+            icon: '/static/images/med.png'  // Reference to the syringe icon
+          }
+      });
+      events.push({
+          title: 'Vaccine Alert',
+          start: '{{ alert.14th_day|date:"Y-m-d" }}',
+          backgroundColor: '#FFD700',  // Gold for vaccine alerts
+          textColor: 'black',
+          extendedProps: {
+            icon: '/static/images/med.png'  // Reference to the syringe icon
+          }
+      });
+      events.push({
+          title: 'Vaccine Alert',
+          start: '{{ alert.21st_day|date:"Y-m-d" }}',
+          backgroundColor: '#FFD700',  // Gold for vaccine alerts
+          textColor: 'black',
+          extendedProps: {
+            icon: '/static/images/med.png'  // Reference to the syringe icon
+          }
+      });
+      {% endfor %}
+
+      // Upliftment Alerts
+      {% for alert in upliftment_alert_dates %}
+      events.push({
+          title: 'Upliftment Alert',
+          start: '{{ alert|date:"Y-m-d" }}',
+          backgroundColor: 'red',  // Gold for upliftment alerts
+          textColor: 'black'
+      });
+      {% endfor %}
+
+
+
+      {% for alert in feed_dates %}
+      events.push({
+          title: 'pre-starter feed',
+          start: '{{ alert.pre_starter|date:"Y-m-d" }}',
+          backgroundColor: 'Green', 
+          textColor: 'black'
+      });
+      events.push({
+        title: 'starter feed',
+        start: '{{ alert.starter|date:"Y-m-d" }}',
+        backgroundColor: 'Green', 
+        textColor: 'black'
+    });
+    events.push({
+      title: 'finisher feed',
+      start: '{{ alert.finisher|date:"Y-m-d" }}',
+      backgroundColor: 'Green', 
+      textColor: 'black'
+  });
+      {% endfor %}
+
       var calendar = new FullCalendar.Calendar(calendarEl, {
           initialView: 'dayGridMonth',
-        // Get today's date from Django template context
-          events: [
-              // Chick Batches Events
-              {% for batch in chick_batches %}
-              {
-                  title: 'Chick Batch: {{ batch.chick_count }} chicks',
-                  start: '{{ batch.batch_date|date:"Y-m-d" }}',
-                  backgroundColor: (function() {
-                      var batchDate = new Date('{{ batch.batch_date|date:"Y-m-d" }}');
-                      var daysDiff = (batchDate - today) / (1000 * 60 * 60 * 24);  // Difference in days
-
-                      if (daysDiff < 3 && daysDiff >= 0) {
-                          return '#FF0000';  // Red for urgent (less than 3 days)
-                      } else if (daysDiff <= 7 && daysDiff >= 0) {
-                          return '#FFA500';  // Orange for coming soon (within 7 days)
-                      } else {
-                          return '#007bff';  // Blue for upcoming (more than 7 days away)
-                      }
-                  })(),
-                  textColor: 'white'
-              }{% if not forloop.last %},{% endif %}
-              {% endfor %},
-
-              // Vaccine Expiry or Med Injection Events (Coming Soon)
-              {% for date in coming_soon_dates %}
-              {
-                  title: 'Vaccine Alert',
-                  start: '{{ date|date:"Y-m-d" }}',
-                  backgroundColor: '#FFD700',  // Gold for vaccine alerts
-                  textColor: 'black',
-                  extendedProps: {
-                      icon: '/static/images/med.png'  // Reference to the syringe icon
-                  }
-              }{% if not forloop.last %},{% endif %}
-              {% endfor %}
-
-              // Vaccine Expiry or Med Injection Events (Upcoming)
-              {% for date in upcoming_dates %}
-              {
-                  title: 'Vaccine Alert: Upcoming Injection',
-                  start: '{{ date|date:"Y-m-d" }}',
-                  backgroundColor: '#32CD32',  // Green for upcoming vaccines
-                  textColor: 'black'
-              }{% if not forloop.last %},{% endif %}
-              {% endfor %}
-          ],
+          events: events,
           eventContent: function(info) {
-              let icon = info.event.extendedProps.icon ? `<img src="${info.event.extendedProps.icon}" class="icon-class"/>` : '';
+              // Check if extendedProps exists before accessing icon
+              let icon = (info.event.extendedProps && info.event.extendedProps.icon) ? 
+                  `<img src="${info.event.extendedProps.icon}" class="icon-class"/>` : '';
               return {
                   html: `${icon} <span>${info.event.title}</span>`
-              }
+              };
           },
-
           headerToolbar: {
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              right: ''
           },
           dateClick: function(info) {
               alert('Date: ' + info.dateStr);
           }
       });
+
       calendar.render();
   });
 </script>
+
 
 {% endblock %}

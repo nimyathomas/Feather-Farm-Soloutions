@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import User, UserType
+from .models import User, UserType, SupervisorStakeholderAssignment
+from  .forms import SupervisorStakeholderAssignmentForm
 
 # this fields is for add these data to adminpanel
 
@@ -29,7 +30,22 @@ class UserAdmin(DefaultUserAdmin):
     list_filter = ('user_type', 'is_staff', 'is_active')
     search_fields = ('email', 'full_name', 'phone_number')
     ordering = ('email',)
+    
+    from django import forms
+from django.contrib import admin
+from .models import SupervisorStakeholderAssignment, User
+
+
+
+class SupervisorStakeholderAssignmentAdmin(admin.ModelAdmin):
+    form = SupervisorStakeholderAssignmentForm
+    list_display = ('supervisor',)  # Display the supervisor in the list view
+
+admin.site.register(SupervisorStakeholderAssignment, SupervisorStakeholderAssignmentAdmin)
+
 
 
 admin.site.register(User, UserAdmin)
 admin.site.register(UserType)
+
+

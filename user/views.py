@@ -5,11 +5,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
 from django.db.models import Sum
+from django.contrib.auth import authenticate, login
 
 from stakeholder.models import ChickBatch
 from .forms import EmailAuthenticationForm
 from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
-from .models import UserType, User
+from .models import UserType, User,SupervisorStakeholderAssignment
 from django.shortcuts import get_object_or_404
 
 
@@ -166,3 +167,38 @@ def vaccine_admin(request):
 
 def feed_admin(request):
     return render(request, 'feedadmin.html')
+
+
+def superviser(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+        try:
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                if user.user_type.name.lower()!='superviser':
+                   messages.error(request, 'You are not a superviser')
+                login(request, user)
+                return redirect('superviser_dashboard')
+            else:
+                messages.error(request, 'Invalid credentials.')
+        except User.DoesNotExist:
+            messages.error(request, 'User does not exist.')
+        
+        
+    return render(request, 'supervisor_login.html')
+
+def superviser_dashboard(request):
+    
+    farm_active=SupervisorStakeholderAssignment.objects.filter(stakeholders__is_active=True)
+    print(farm_active)
+    farmactive_count=farm_active.count()
+    total_farm=SupervisorStakeholderAssignment.objects.get(supervisor=request.user.id)
+    print(total_farm)
+    print(total_farm.stakeholders.count())
+    context={
+        'farmactive_count': farmactive_count,
+        'total_farm':total_farm.stakeholders.count()
+    }
+    
+    return render(request, 'super_dash.html',context)
