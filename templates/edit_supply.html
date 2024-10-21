@@ -1,0 +1,13 @@
+<!-- user/templates/admin/edit_supplier.html -->
+{% extends 'admindash.html' %}
+{% load static %}
+{% block body %}
+<body>
+    <h1>Edit Supplier</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update Supplier</button>
+    </form>
+    <a href="{% url 'supplier_list' %}">Back to Supplier List</a>
+{% endblock %}

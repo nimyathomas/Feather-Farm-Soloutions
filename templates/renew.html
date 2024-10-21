@@ -1,0 +1,7 @@
+<!-- template.html -->
+<form method="POST" action="{% url 'renew_certificate' user.id %}">
+    {% csrf_token %}
+    <label for="expiry_date">New Expiry Date:</label>
+    <input type="date" name="expiry_date" required>
+    <button type="submit">Renew Certificate</button>
+</form>

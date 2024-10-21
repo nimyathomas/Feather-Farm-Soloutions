@@ -15,10 +15,10 @@ body, html {
 
 /* Sidebar styles */
 .sidebar {
-    width: 250px; /* Fixed width for sidebar */
+    width: 200px; /* Fixed width for sidebar */
     background-color: #2C3E50;
     color: #ECF0F1;
-    padding: 20px;
+    padding: 5px;
 }
 
 .sidebar h2 {
@@ -69,9 +69,9 @@ body, html {
     justify-content: flex-end; /* Align items to the right */
     align-items: center;
     background-color: #2C3E50;
-    padding: 10px 20px;
+    padding: 25px 20px;
     color: #ECF0F1;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 /* Profile styles */
@@ -319,4 +319,52 @@ h2.text-center {
     color: red; /* Change text color to red */
     font-size: 12px; /* Set a smaller font size */
     margin-top: 5px; /* Add some space above the error message */
+}
+.feed-monitoring {
+    margin-top: 20px; /* Space above the feed section */
+}
+
+.feed-card {
+    background-color: #f9f9f9; /* Light background for cards */
+    border: 1px solid #e0e0e0; /* Border color */
+    border-radius: 8px; /* Rounded corners */
+    padding: 15px; /* Padding inside the card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin-bottom: 20px; /* Space below each card */
+}
+
+.feed-card h2 {
+    font-size: 1.5rem; /* Larger font size for the title */
+    margin-bottom: 15px; /* Space below the title */
+    color: #333; /* Dark color for the title */
+}
+
+.feed-card p {
+    font-size: 1.1rem; /* Slightly larger font size for paragraphs */
+    margin: 5px 0; /* Space above and below paragraphs */
+    color: #555; /* Gray color for text */
+}
+
+.feed-card a {
+    display: inline-block; /* Allows for margin and padding */
+    margin-top: 10px; /* Space above the button */
+    padding: 10px 15px; /* Padding inside the button */
+    border-radius: 5px; /* Rounded corners for buttons */
+    text-decoration: none; /* Remove underline */
+    color: #fff; /* White text color */
+    background-color: #007bff; /* Primary button color */
+    transition: background-color 0.3s; /* Transition for hover effect */
+}
+
+.feed-card a:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.alert-container {
+    background-color: #fff3cd; /* Light yellow background for alerts */
+    border: 1px solid #ffeeba; /* Yellow border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px; /* Padding inside the alert */
+    color: #856404; /* Dark yellow text color */
+    margin-top: 20px; /* Space above the alert */
 }

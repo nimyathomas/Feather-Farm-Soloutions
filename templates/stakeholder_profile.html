@@ -7,8 +7,10 @@
 <section class="content-section">
     <h2 class="text-center">User Update</h2>
 
+
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+       
 
         <!-- Email field (readonly) -->
         <div class="form-group">
@@ -67,6 +69,15 @@
                 </div>
             {% endif %}
         </div>
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="font-size: small; color: red;">
+            <ul>
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+         </div>
+         {% endif %}
 
 
         <div class="form-group">
@@ -81,7 +92,7 @@
 
         <!-- Pollution Certificate -->
         <div class="form-group">
-            <label for="pollution_certificate">Pollution Certificate</label>
+            <label for="plan_file">Pollution Certificate</label>
             {% if user_data.pollution_certificate %}
                 <div>
                     <a href="{{ user_data.pollution_certificate.url }}" target="_blank">View Current Pollution Certificate</a>
@@ -100,12 +111,35 @@
             <label for="coopcapacity">Coop Capacity</label>
             {{ form.coopcapacity }}
         </div> 
-        
+       
         <!-- Farm Address -->
         <div class="form-group">
             <label for="address">Farm Address</label>
             {{ form.address }}
+            {% if form.address.errors %}
+                <div class="text-danger">
+                    {% for error in form.address.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
+       
+        <div class="form-group">
+            <label for="plan_file">Farm plan</label>
+            {% if user_data.plan_file %}
+                <div>
+                    <a href="{{ user_data.plan_file.url }}" target="_blank">View Farm Plan</a>
+                </div>
+            {% endif %}
+            {{ form.plan_file }}
+            {% if form.plan_file.errors %}
+                <div class="text-danger">
+                    {{ form.plan_file.errors }}
+                </div>
+            {% endif %}
+        </div>
+
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Update</button>

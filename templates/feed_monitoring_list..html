@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Feed Monitoring Data</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Batch ID</th>
+        <th>Date</th>
+        <th>Feed Consumed (kg)</th>
+        <th>Feed Wastage (kg)</th>
+        <th>Feed Forecast (kg)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for data in feed_data %}
+      <tr>
+        <td>{{ data.batch_id }}</td>
+        <td>{{ data.date }}</td>
+        <td>{{ data.feed_consumed }}</td>
+        <td>{{ data.feed_wastage }}</td>
+        <td>{{ data.feed_forecast }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

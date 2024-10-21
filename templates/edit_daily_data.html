@@ -1,0 +1,75 @@
+{% extends 'stakeholder.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2>Edit Daily Data</h2>
+
+    <!-- Button to Open the Modal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal">
+        Edit Daily Data
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Daily Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-2"> <!-- Adjust column width as needed -->
+                                <label for="date">Date:</label>
+                                <input type="date" class="form-control" name="date" value="{{ form.date.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="alive_count">Alive Count:</label>
+                                <input type="number" class="form-control" name="alive_count" value="{{ form.alive_count.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="sick_chicks">Sick Chicks:</label>
+                                <input type="number" class="form-control" name="sick_chicks" value="{{ form.sick_chicks.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="weight_gain">Weight Gain (g):</label>
+                                <input type="number" class="form-control" name="weight_gain" value="{{ form.weight_gain.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="feed_uplifted">Feed Uplifted (kg):</label>
+                                <input type="number" class="form-control" name="feed_uplifted" value="{{ form.feed_uplifted.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="water_consumption">Water Consumption (L):</label>
+                                <input type="number" class="form-control" name="water_consumption" value="{{ form.water_consumption.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="temperature">Temperature (°C):</label>
+                                <input type="number" class="form-control" name="temperature" value="{{ form.temperature.value|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="mortality_count">Mortality Count:</label>
+                                <input type="number" class="form-control" name="mortality_count" value="{{ form.mortality_count.value|default:'' }}">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="{% url 'stakeholder' %}" class="btn btn-secondary" data-dismiss="modal">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% endblock %}

@@ -16,9 +16,14 @@
 
             <!-- Stakeholders and Customers Status -->
             <div class="dashboard-item">
-                <h2>Stakeholder & Customer Status</h2>
-                <p>Stakeholders: {{ stakeholder_count }}</p>
-                <p>Customers: {{ customer_count }}</p>
+                <div class="overview-card">
+                    <h2>Active Farms</h2>
+                    <p>Number of active farms: <strong>{{ farmactive_count }}</strong></p>
+                </div>
+                <div class="overview-card">
+                    <h2>Assigned Farms</h2>
+                    <p>Total assigned farms: <strong>{{ total_farm }}</strong></p>
+                </div>
             </div>
 
             <!-- Profit Graph -->
@@ -31,11 +36,11 @@
 
             <!-- Recent Activities -->
             <div class="dashboard-item">
-                <h2>Recent Activities</h2>
+                
                 <ul>
-                    <li>Activity 1: Description</li>
-                    <li>Activity 2: Description</li>
-                    <li>Activity 3: Description</li>
+                <h2>Stakeholder & Customer Status</h2>
+                <p>Stakeholders: {{ stakeholder_count }}</p>
+                <p>Customers: {{ customer_count }}</p>
                 </ul>
             </div>
 

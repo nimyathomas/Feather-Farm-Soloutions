@@ -1,0 +1,49 @@
+<!-- user/templates/admin/supplier_list.html -->
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<body>
+    <h1>Supplier List</h1>
+    <a href="{% url 'add_supplier' %}">Add Supplier</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Address</th>
+                <th>Tax ID</th>
+                <th>Supplier Code</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supplier in suppliers %}
+                <tr>
+                    <td>{{ supplier.name }}</td>
+                    <td>{{ supplier.email }}</td>
+                    <td>{{ supplier.phone_number }}</td>
+                    <td>{{ supplier.address }}</td>
+                    <td>{{ supplier.tax_id }}</td>
+                    <td>{{ supplier.supplier_code }}</td>  <!-- Ensure no space here -->
+                    <td>{{ supplier.is_active|yesno:"Active,Inactive" }}</td>
+                    <td>
+                        <a href="{% url 'edit_supplier' supplier.id %}">Edit</a>
+                        {% if supplier.is_active %}
+                            <a href="{% url 'disable_supplier' supplier.id %}">Disable</a>
+                        {% else %}
+                            <a href="{% url 'enable_supplier' supplier.id %}">Enable</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8">No suppliers available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+{% endblock %}

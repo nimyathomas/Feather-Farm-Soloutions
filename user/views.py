@@ -5,13 +5,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
 from django.db.models import Sum
-from django.contrib.auth import authenticate, login
 
 from stakeholder.models import ChickBatch
 from .forms import EmailAuthenticationForm
 from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
-from .models import UserType, User,SupervisorStakeholderAssignment
+from .models import UserType, User
 from django.shortcuts import get_object_or_404
+import math
+from math import floor  
 
 
 
@@ -64,6 +65,10 @@ class CustomLoginView(LoginView):
         user = self.request.user
         if user.user_type != None and hasattr(user, 'user_type') and user.user_type.name.lower() == 'stakeholder':
             return reverse_lazy('stakeholder')
+        
+        if user.expiry_date and user.expiry_date < date.today():
+            # Redirect the user to an 'expiry notification' page if the certificate has expired
+            return reverse_lazy('expiry_notification') 
 
         elif user.user_type != None and user.user_type.name.lower() == 'admin':
             return reverse_lazy('admindash')
@@ -96,7 +101,9 @@ from datetime import date
 def stakeholderuserprofile(request, id):  
     user = User.objects.get(id=id)
     chick_batches = ChickBatch.objects.filter(user=user)
-    total_chick_count = chick_batches.aggregate(Sum('chick_count'))['chick_count__sum'] or 0
+    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))['initial_chick_count__sum'] or 0
+    
+    
 
     today = date.today()
     day_expiry = None
@@ -107,15 +114,42 @@ def stakeholderuserprofile(request, id):
     sqr_feet = 0  
     if user.length and user.breadth:
         sqr_feet = user.length * user.breadth
+        
+    sqr_feet_rounded = round(sqr_feet, 0)
     
     # Calculate number of birds that can be accommodated
-    birds_can_accommodate = sqr_feet * 4  # 4 birds per sq foot
+    birds_per_square_feet =2
+    birds_can_accommodate = floor(sqr_feet * birds_per_square_feet)  # Use floor to round down
+    
+    if request.method == 'POST':
+        
+        initial_chick_count = request.POST.get('initial_chick_count')
+        
+        
+        # Backend validation: Chick count must not be less than zero
+        try:
+            initial_chick_count = int(initial_chick_count)
+            if initial_chick_count < 0:
+                messages.error(request, "Chick count cannot be less than zero.")
+                return redirect('stakeholderuserprofile', id=id)
+        except ValueError:
+            messages.error(request, "Invalid chick count entered.")
+            return redirect('stakeholderuserprofile', id=id)
+        
+        # Check if the new chick count exceeds capacity
+        
+
+        # Save the chick count to the user's chick batches or user model (depending on your logic)
+        # Assuming you want to update chick batches:
+        ChickBatch.objects.create(user=user, initial_chick_count=initial_chick_count)
+        messages.success(request, "Chick count updated successfully.")
+        return redirect('stakeholderuserprofile', id=id)
     
     context = {
         'user': user,
         'total_chick_count': total_chick_count,
         'day_expiry': day_expiry,
-        'sqr_feet': sqr_feet,
+        'sqr_feet': sqr_feet_rounded,
         'birds_can_accommodate': birds_can_accommodate
     }
 
@@ -146,6 +180,7 @@ def stakeholder_registration(request, id):
         form = StakeholderUserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()  # Save the updated user profile
+            
             # Redirect to a success page or wherever you need
             return redirect('stakeholder')
     else:
@@ -169,36 +204,76 @@ def feed_admin(request):
     return render(request, 'feedadmin.html')
 
 
-def superviser(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        try:
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
-                if user.user_type.name.lower()!='superviser':
-                   messages.error(request, 'You are not a superviser')
-                login(request, user)
-                return redirect('superviser_dashboard')
-            else:
-                messages.error(request, 'Invalid credentials.')
-        except User.DoesNotExist:
-            messages.error(request, 'User does not exist.')
-        
-        
-    return render(request, 'supervisor_login.html')
+# user/views.py
 
-def superviser_dashboard(request):
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import User
+
+def renew_pollution_certificate(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        new_expiry_date = request.POST.get('expiry_date')
+        if new_expiry_date:
+            user.expiry_date = new_expiry_date  # Update the expiry date
+            user.is_active = True  # Reactivate the user
+            user.save()
+            messages.success(request, "Pollution certificate renewed successfully.")
+        else:
+            messages.error(request, "Please provide a valid expiry date.")
     
-    farm_active=SupervisorStakeholderAssignment.objects.filter(stakeholders__is_active=True)
-    print(farm_active)
-    farmactive_count=farm_active.count()
-    total_farm=SupervisorStakeholderAssignment.objects.get(supervisor=request.user.id)
-    print(total_farm)
-    print(total_farm.stakeholders.count())
-    context={
-        'farmactive_count': farmactive_count,
-        'total_farm':total_farm.stakeholders.count()
-    }
+    return redirect('stakeholder')  # Replace 'some_view' with the appropriate view name
+
+# user/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Supplier
+from .forms import SupplierForm
+
+def supplier_list(request):
+    """Display the list of suppliers."""
+    suppliers = Supplier.objects.all()
+    return render(request, 'supplier_list.html', {'suppliers': suppliers})
+
+def add_supplier(request):
+    """Add a new supplier."""
+    if request.method == 'POST':
+        form = SupplierForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Supplier added successfully.')  # Success message
+            return redirect('supplier_list')  # Redirect to supplier list after adding
+        else:
+            # This part will execute if the form is not valid
+            messages.error(request, 'Please correct the errors below.')  # Error message
+    else:
+        form = SupplierForm()
     
-    return render(request, 'super_dash.html',context)
+    return render(request, 'add_supplier.html', {'form': form})
+
+def edit_supplier(request, supplier_id):
+    """Edit an existing supplier."""
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    if request.method == 'POST':
+        form = SupplierForm(request.POST, instance=supplier)
+        if form.is_valid():
+            form.save()
+            return redirect('supplier_list')  # Redirect to supplier list after editing
+    else:
+        form = SupplierForm(instance=supplier)
+    return render(request, 'edit_supplier.html', {'form':form})
+
+def enable_supplier(request, supplier_id):
+    """Enable a supplier."""
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier.is_active = True
+    supplier.save()
+    return redirect('supplier_list')  # Redirect to supplier list after enabling
+
+def disable_supplier(request, supplier_id):
+    """Disable a supplier."""
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier.is_active = False
+    supplier.save()
+    return redirect('supplier_list')  # Redirect to supplier list after disabling
+

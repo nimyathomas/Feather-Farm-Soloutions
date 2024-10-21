@@ -3,16 +3,32 @@
 {% block body %}
 <section class="content-section">
   <!-- Header with Profile and Notification -->
-  <header class="header">
-    <div class="profile">
-      <span class="notification-icon">🔔</span>
-      <div class="profile-details">
-        <span class="profile-name">{{ request.user.full_name }}</span>
-        <span class="profile-email">{{ request.user.email }}</span>
-        <a href="{% url 'logout' %}" class="logout">Logout</a>
-      </div>
-    </div>
-  </header>
+
+  <style>
+    .alert-container {
+      width: 100%;
+      overflow: hidden; /* Hide overflow to make the text appear to scroll inside the container */
+      height: 50px;
+      position: relative;
+    }
+  
+    .alert-running {
+      position: absolute;
+      white-space: nowrap;
+      animation: scroll-alert 10s linear infinite; /* 10 seconds scroll duration */
+    }
+  
+    /* Animation for scrolling text */
+    @keyframes scroll-alert {
+      0% {
+        transform: translateX(100%); /* Start from right */
+      }
+      100% {
+        transform: translateX(-100%); /* End to the left */
+      }
+    }
+  </style>
+  
 
   <!-- Dashboard Content -->
   <div class="content">
@@ -33,27 +49,22 @@
       <p>Your profile is complete!</p>
     </div>
   
-    <div class="alert-container">
-      {% for alert_date in alert_vaccine_dates %}
-          <div class="alert alert-warning" id="vaccine-alert" style="display: none;">
-              Reminder: You need to vaccinate your chicks before {{ alert_date|date:"F j, Y" }}!
-          </div>
-      {% endfor %}
-  </div>
+
+    <div>
+    <h2>Current Weather</h2>
+    <p>Temperature: {{ weather_data.temperature }} °C</p>
+    <p>Humidity: {{ weather_data.humidity }} %</p>
+    
+    
+    
     <!-- Chicken Count and Coop Size Card -->
     <div class="card mt-4">
       <div class="card-body">
         <h5 class="card-title">Coop Information</h5>
+        
         <p class="card-text">
           <strong>Chicken Count:</strong> {{total_chick_count|default:"N/A"}}
-
         </p>
-        {% for feedr in stakeholder_feedrequest%}
-        <p class="card-text">
-          <strong>FeedRequest-Status:</strong> {{feedr.status|default:"N/A"}}
-          
-        </p>
-        {% endfor %}
         <p class="card-text">
           <strong>Coop Size:</strong>
           {% if sqr_feet %}
@@ -64,13 +75,23 @@
         </p>
       </div>
     </div>
-    
-  </div>
+
+   
+
+
+    {% if expiry_soon_alert %}
+    <div class="alert-container mt-4">
+      <div class="alert-running">
+        <div class="alert alert-danger" style="font-size: large; color: red;">
+          {{ expiry_soon_alert }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
   <!-- Calendar Section -->
   <div class="calendar">
-    <h3>Upcoming Vaccinations</h3> 
-   
+    <h3>My Calender</h3>
     <div id="vaccination-calendar"></div>
   </div>
   {% endif %}
@@ -86,105 +107,138 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-      var today = new Date('{{ today|date:"Y-m-d" }}');  // Get today's date
-      var calendarEl = document.getElementById('vaccination-calendar');
-      today.setHours(0, 0, 0, 0);  // Reset the time for accurate date comparison
+    var today = new Date('{{ today|date:"Y-m-d" }}');  // Get today's date
+    var calendarEl = document.getElementById('vaccination-calendar');
+    today.setHours(0, 0, 0, 0);  // Reset the time for accurate date comparison
 
-      var events = [];
+    var events = [];
 
-      // Chick Batches Events and Vaccine Alerts for 7th, 14th, and 21st day
-      {% for alert in alert_vaccine_dates %}
-      events.push({
-          title: 'Chick Batch: {{ alert.batch.chick_count }} chicks',
-          start: '{{ alert.batch.batch_date|date:"Y-m-d" }}',
-          textColor: 'white'
-      });
-      events.push({
-          title: 'Vaccine Alert',
-          start: '{{ alert.7th_day|date:"Y-m-d" }}',
-          backgroundColor: '#FFD700',  // Gold for vaccine alerts
-          textColor: 'black',
-          extendedProps: {
-            icon: '/static/images/med.png'  // Reference to the syringe icon
-          }
-      });
-      events.push({
-          title: 'Vaccine Alert',
-          start: '{{ alert.14th_day|date:"Y-m-d" }}',
-          backgroundColor: '#FFD700',  // Gold for vaccine alerts
-          textColor: 'black',
-          extendedProps: {
-            icon: '/static/images/med.png'  // Reference to the syringe icon
-          }
-      });
-      events.push({
-          title: 'Vaccine Alert',
-          start: '{{ alert.21st_day|date:"Y-m-d" }}',
-          backgroundColor: '#FFD700',  // Gold for vaccine alerts
-          textColor: 'black',
-          extendedProps: {
-            icon: '/static/images/med.png'  // Reference to the syringe icon
-          }
-      });
-      {% endfor %}
-
-      // Upliftment Alerts
-      {% for alert in upliftment_alert_dates %}
-      events.push({
-          title: 'Upliftment Alert',
-          start: '{{ alert|date:"Y-m-d" }}',
-          backgroundColor: 'red',  // Gold for upliftment alerts
-          textColor: 'black'
-      });
-      {% endfor %}
-
-
-
-      {% for alert in feed_dates %}
-      events.push({
-          title: 'pre-starter feed',
-          start: '{{ alert.pre_starter|date:"Y-m-d" }}',
-          backgroundColor: 'Green', 
-          textColor: 'black'
-      });
-      events.push({
-        title: 'starter feed',
-        start: '{{ alert.starter|date:"Y-m-d" }}',
-        backgroundColor: 'Green', 
-        textColor: 'black'
+    // Chick Batches Events and Vaccine Alerts for 7th, 14th, and 21st day
+    {% for alert in alert_vaccine_dates %}
+    events.push({
+        title: 'Chick Batch: {{ alert.batch.initial_chick_count }} chicks',
+        start: '{{ alert.batch.batch_date|date:"Y-m-d" }}',
+        textColor: 'white'
     });
     events.push({
-      title: 'finisher feed',
-      start: '{{ alert.finisher|date:"Y-m-d" }}',
+        title: 'Vaccine Alert',
+        start: '{{ alert.7th_day|date:"Y-m-d" }}',
+        backgroundColor: '#FFD700',  // Gold for vaccine alerts
+        textColor: 'black',
+        extendedProps: {
+          icon: '/static/images/med.png'  // Reference to the syringe icon
+        }
+    });
+    events.push({
+        title: 'Vaccine Alert',
+        start: '{{ alert.14th_day|date:"Y-m-d" }}',
+        backgroundColor: '#FFD700',  // Gold for vaccine alerts
+        textColor: 'black',
+        extendedProps: {
+          icon: '/static/images/med.png'  // Reference to the syringe icon
+        }
+    });
+    events.push({
+        title: 'Vaccine Alert',
+        start: '{{ alert.21st_day|date:"Y-m-d" }}',
+        backgroundColor: '#FFD700',  // Gold for vaccine alerts
+        textColor: 'black',
+        extendedProps: {
+          icon: '/static/images/med.png'  // Reference to the syringe icon
+        }
+    });
+    {% endfor %}
+
+    // Upliftment Alerts
+    {% for alert in upliftment_alert_dates %}
+    events.push({
+        title: 'Upliftment Alert',
+        title:'!Chicks reach 2kg',
+        start: '{{ alert|date:"Y-m-d" }}',
+        backgroundColor: 'red',  // Gold for upliftment alerts
+        textColor: 'white'
+    });
+    {% endfor %}
+
+
+
+    {% for alert in feed_dates %}
+    events.push({
+        title: 'pre-starter feed',
+        start: '{{ alert.pre_starter|date:"Y-m-d" }}',
+        backgroundColor: 'Green', 
+        textColor: 'white'
+    });
+    events.push({
+      title: 'starter feed',
+      start: '{{ alert.starter|date:"Y-m-d" }}',
       backgroundColor: 'Green', 
-      textColor: 'black'
+      textColor: 'white'
   });
-      {% endfor %}
+  events.push({
+    title: 'finisher feed',
+    start: '{{ alert.finisher|date:"Y-m-d" }}',
+    backgroundColor: 'Green', 
+    textColor: 'white'
+});
+    {% endfor %}
 
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          events: events,
-          eventContent: function(info) {
-              // Check if extendedProps exists before accessing icon
-              let icon = (info.event.extendedProps && info.event.extendedProps.icon) ? 
-                  `<img src="${info.event.extendedProps.icon}" class="icon-class"/>` : '';
-              return {
-                  html: `${icon} <span>${info.event.title}</span>`
-              };
-          },
-          headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: ''
-          },
-          dateClick: function(info) {
-              alert('Date: ' + info.dateStr);
-          }
-      });
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: events,
+        eventContent: function(info) {
+            // Check if extendedProps exists before accessing icon
+            let icon = (info.event.extendedProps && info.event.extendedProps.icon) ? 
+                `<img src="${info.event.extendedProps.icon}" class="icon-class"/>` : '';
+            return {
+                html: `${icon} <span>${info.event.title}</span>`
+            };
+        },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+        },
+        dateClick: function(info) {
+            alert('Date: ' + info.dateStr);
+        }
+    });
 
-      calendar.render();
-  });
+    calendar.render();
+});
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Check if the URL already contains 'lat' and 'lon' parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasLatitude = urlParams.has('lat');
+  const hasLongitude = urlParams.has('lon');
+
+  if (!hasLatitude && !hasLongitude) {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              function (position) {
+                  const latitude = position.coords.latitude;
+                  const longitude = position.coords.longitude;
+
+                  // Build the new URL with the location data
+                  const newUrl = `${window.location.pathname}?lat=${latitude}&lon=${longitude}`;
+                  window.location.href = newUrl;  // Redirect to the new URL
+              },
+              function (error) {
+                  console.error("Error fetching location:", error.message);
+                  alert("Location access denied. Default weather data will be used.");
+              }
+          );
+      } else {
+          alert("Geolocation is not supported by your browser.");
+      }
+  }
+});
+
+
+
+
+
 </script>
-
-
 {% endblock %}

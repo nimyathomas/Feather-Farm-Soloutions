@@ -1,7 +1,5 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from django.utils import timezone
-
 
 
 class CustomUserManager(BaseUserManager):
@@ -53,30 +51,35 @@ class User(AbstractUser):
         upload_to='certificates/', blank=True, null=True)
     coopcapacity = models.IntegerField(default=None, blank=True, null=True)
     address = models.CharField(max_length=255)
+    plan_file = models.FileField(upload_to='farm_plan/', blank=True, null=True)
 
     USERNAME_FIELD = 'email'  # Use email to login
     # Fields that are required when creating a user via
     REQUIRED_FIELDS = ['full_name']
 
     objects = CustomUserManager()  # connecting user model with customusermanager
-    
-    
-    def save(self, *args, **kwargs):
-        # Check if expiry date exists and is in the past
-        if self.expiry_date and self.expiry_date < timezone.now().date():
-            self.is_active = False  # Deactivate the user
-        super().save(*args, **kwargs)  # Call the base class save method
-        
+
     def __str__(self):
         return self.email
-    
 
 
     
-class SupervisorStakeholderAssignment(models.Model):
-    supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='supervisor_assignments')
-    stakeholders = models.ManyToManyField(User, related_name='stakeholder_assignments')
+class Supplier(models.Model):
+    supplier_code = models.CharField(max_length=50, unique=True, blank=True, null=True)  # Unique supplier code
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=15)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)  # New field to track active status
+    
+    
+    class Meta:
+        constraints = [
+            
+            models.UniqueConstraint(fields=['supplier_code'], name='unique_supplier_code')  # Unique supplier code
+        ]
+        
+
 
     def __str__(self):
-        return f'{self.supervisor.full_name} assigned to {self.stakeholders}'
-
+        return self.name

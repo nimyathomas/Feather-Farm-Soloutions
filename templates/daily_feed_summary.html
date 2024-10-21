@@ -1,0 +1,33 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<h2 style="text-align: center;">Daily Feed Summary Comparison</h2>
+
+<form method="post" style="text-align: center; margin-bottom: 20px;">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Compare
+    </button>
+</form>
+
+{% if current_batch and past_batch and compare_day %}
+    <h3 style="text-align: center;">Comparison for Day {{ compare_day }}</h3>
+
+    <div style="margin: 20px; text-align: center;">
+        <p><strong>Feed Uplifted Comparison</strong></p>
+        <div style="background-color: #f2f2f2; border-radius: 8px; overflow: hidden; width: 80%; margin: 0 auto;">
+            <div style="width: {{ feed_uplifted_percentage }}%; background-color: #007bff; color: white; padding: 5px;">
+                Current: {{ current_feed_uplifted }} kg
+            </div>
+        </div>
+
+        <p><strong>Weight Gain Comparison</strong></p>
+        <div style="background-color: #f2f2f2; border-radius: 8px; overflow: hidden; width: 80%; margin: 0 auto;">
+            <div style="width: {{ weight_gain_percentage }}%; background-color: #28a745; color: white; padding: 5px;">
+                Current: {{ current_weight_gain }} kg
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

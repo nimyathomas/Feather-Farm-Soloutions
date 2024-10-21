@@ -9,9 +9,8 @@ from django.contrib import messages
 from stakeholder.models import ChickBatch
 from user.models import User
 from django.urls import reverse
-from .models import  FeedRequest,  ChickBatch
-from user.models import User,SupervisorStakeholderAssignment
-from .forms import FeedRequestForm  # Assuming you have a form for feed requests
+from django.shortcuts import get_object_or_404
+from math import floor
 
 
 
@@ -35,70 +34,122 @@ def logout_view(request):
     logout(request)
     return redirect('/')
 
+# views.py
+from pyowm import OWM
+from datetime import timedelta
+from math import floor
+
+
+
+
 @login_required
+
 def stakeholder(request):
     user = request.user  # Assuming the user is logged in
     today = timezone.now().date()
-    # Fetch all chick batches for the user and order them by the latest batch_date
+
+    # Fetch chick batches
     chick_batches = user.chick_batches.all().order_by('-batch_date')
+    total_chick_count = sum(batch.initial_chick_count for batch in chick_batches)
 
-    # Calculate the total chick count across all batches
-    total_chick_count = sum(batch.chick_count for batch in chick_batches)
-    stakeholder_feedrequest=FeedRequest.objects.filter(stakeholder=user)
-    
-    
+    # Fetch location from query parameters (not from the User model)
+    latitude = request.GET.get('lat')
+    longitude = request.GET.get('lon')
 
-    alert_vaccine_dates = []
+    # Set up OpenWeatherMap client
+    api_key = '6a0179abe35c7736af4f3f57bd4da77e'
+    owm = OWM(api_key)
+
+    # Create a WeatherManager instance
+    mgr = owm.weather_manager()  # This should be correct if you're using the right version
+
+    # Fetch weather data based on coordinates or use fallback
+    if latitude and longitude:
+        try:
+            observation = mgr.weather_at_coords(float(latitude), float(longitude))
+        except Exception as e:
+            observation = mgr.weather_at_place('Erattupetta')  # Fallback
+    else:
+        observation = mgr.weather_at_place('Erattupetta')  # Fallback
+
+    weather = observation.weather
+
+    weather_data = {
+        'temperature': weather.temperature('celsius')['temp'],
+        'humidity': weather.humidity,
+        'wind_speed': weather.wind()['speed'],
+    }
+
+    # Handle alerts (add your logic here)
+    alert_vaccine_dates = []  # Example alert lists
     upliftment_alert_dates = []
     feed_dates = []
+    
     for batch in chick_batches:
         batch_date = batch.batch_date
-        # Calculate 7th, 14th, and 21st day reminders
+
+        # Calculate vaccination and upliftment dates
         alert_vaccine_dates.append({
-            '7th_day': batch_date + timedelta(days=7),
-            '14th_day': batch_date + timedelta(days=14),
-            '21st_day': batch_date + timedelta(days=21),
+            '7th_day': batch_date + timedelta(days=6),
+            '14th_day': batch_date + timedelta(days=13),
+            '21st_day': batch_date + timedelta(days=20),
             'batch': batch,
-        })  
-        upliftment_alert_dates.append(
-            batch_date+timedelta(days=39)
-        )
-        
+        })
+
+        upliftment_alert_dates.append(batch_date + timedelta(days=39))
+
+        # Feed stage reminders (pre-starter, starter, finisher)
         feed_dates.append({
-            'pre_starter':batch_date,
-            'starter':batch_date+timedelta(days=10),
-            'finisher':batch_date+timedelta(days=24)
-        }
-            
-        )
-        
-    sqr_feet = 0
-    if user.length and user.breadth:
-      sqr_feet = user.length * user.breadth
-      coop_capacity=sqr_feet*4
+            'pre_starter': batch_date,
+            'starter': batch_date + timedelta(days=9),
+            'finisher': batch_date + timedelta(days=23),
+            'batch': batch,
+        })
+
+
+    # Populate alerts as per your logic...
+
     context = {
         'chick_batches': chick_batches,
-        'total_chick_count': total_chick_count,  # Total chick count
-        'sqr_feet':sqr_feet,
-        'today': today,  # Pass today's date to the template
+        'total_chick_count': total_chick_count,
+        'today': today,
         'user_data': user,
+        'weather_data': weather_data,
         'alert_vaccine_dates': alert_vaccine_dates,
-        'upliftment_alert_dates':upliftment_alert_dates,
-        'feed_dates':feed_dates,
-        'stakeholder_feedrequest':stakeholder_feedrequest
-
-        
+        'upliftment_alert_dates': upliftment_alert_dates,
+        'feed_dates': feed_dates,
+    
     }
+
     return render(request, 'stakeholderdash.html', context)
 
+
+
+def calculate_feeders_and_drinkers(initial_chick_count):
+    feeders = initial_chick_count // 50  # 1 feeder for every 50 chicks
+    drinkers = initial_chick_count // 50  # 1 drinker for every 50 chicks
+    return feeders, drinkers
 
 def stateholder_batch(request):
     user = request.user  # Assuming the user is logged in
     chick_batches = user.chick_batches.all().order_by('-batch_date')
 
-    total_chick_count = sum(batch.chick_count for batch in chick_batches)
+    # Prepare to store batch-wise feeders and drinkers
+    batch_info = []
+
+    for batch in chick_batches:
+        initial_chick_count = batch.initial_chick_count
+        feeders, drinkers = calculate_feeders_and_drinkers(initial_chick_count)
+        batch_info.append({
+            'batch': batch,
+            'initial_chick_count': initial_chick_count,
+            'feeders_required': feeders,
+            'drinkers_required': drinkers
+        })
+
+    total_chick_count = sum(batch.initial_chick_count for batch in chick_batches)
     context = {
-        'chick_batches': chick_batches,
+        'batch_info': batch_info,  # Updated to pass batch information
         'total_chick_count': total_chick_count,
         'user_data': user
     }
@@ -114,10 +165,10 @@ def update_chick_count(request, id):
             return HttpResponse("No users there.")
         
         # Get chick count from the form
-        chick_count = request.POST.get('chick_count')
+        initial_chick_count = request.POST.get('initial_chick_count')
         
         try:
-            chick_count = int(chick_count)  # Convert to integer
+            initial_chick_count = int(initial_chick_count)  # Convert to integer
         except ValueError:
             messages.error(request, "Invalid chick count value.")
             return redirect(reverse('stakeholderuserprofile', args=[id]))
@@ -129,18 +180,13 @@ def update_chick_count(request, id):
         else:
             messages.error(request, "Please ensure that the coop's length and breadth are provided.")
             return redirect(reverse('stakeholderuserprofile', args=[id]))
-        
-        if chick_count < 0:
-            messages.error(request, "Chick count cannot be less than zero.")
-            return redirect(reverse('stakeholderuserprofile', args=[id]))
-
 
         # Validate that the entered chick count does not exceed the coop capacity
-        if chick_count <= coop_capacity:
+        if initial_chick_count <= coop_capacity:
             # Create a new ChickBatch record for the current user
             ChickBatch.objects.create(
                 user=user,
-                chick_count=chick_count,
+                initial_chick_count=initial_chick_count,
                 batch_date=timezone.now()  # Automatically set to the current date
             )
             messages.success(request, "Chick batch successfully added.")
@@ -151,49 +197,452 @@ def update_chick_count(request, id):
 
     return redirect('stakeholderuserprofile')
 
-
-
 def feed_request(request, user_id):
-    
-    # Get the batches for the current stakeholder
-    chick_batches = ChickBatch.objects.filter(user_id=user_id)
-    # Fetch the user (stakeholder)
-    stakeholder = get_object_or_404(User, id=user_id, user_type__name='stakeholder')
-    print(stakeholder)
-    
-    # Get the supervisor assigned to this stakeholder
-    supervisor_assignment = get_object_or_404(SupervisorStakeholderAssignment, stakeholder=stakeholder)
-    print(supervisor_assignment)
-    supervisor = supervisor_assignment.supervisor
-    print(supervisor)
-
-    # Process the form submission
-    if request.method == 'POST':
-        form = FeedRequestForm(request.POST)
-        print(form.errors)
-        
-        if form.is_valid():
-            feed_request = form.save(commit=False)
-            feed_request.stakeholder = stakeholder
-            feed_request.supervisor = supervisor
-            feed_request.save()
-            return redirect('stakeholder')  # Redirect to a success page or another view
-    else:
-        form = FeedRequestForm()
-        
-       
-
-    # Render the feed request form
-    return render(request, 'feed_request.html', {
-        'form': form,
-        'supervisor': supervisor,
-        'stakeholder': stakeholder,
-        'chick_batches': chick_batches,
-
-    })
-
+    user=get_object_or_404(User, id=user_id)
+    return render(request, 'feed_request.html') 
 
 
 def vaccination(request, user_id):
     user = get_object_or_404(User, id=user_id)
     return render(request, 'vaccinations.html', {'user': user})
+
+from django.shortcuts import render, redirect
+from .models import ChickBatch, DailyData
+from .forms import DailyDataForm  # Assume you have created a form for DailyData
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.db.models import Sum
+from .models import ChickBatch, DailyData
+from django.utils import timezone
+from datetime import timedelta
+
+
+@login_required  # Ensure only logged-in users can add daily data
+
+
+
+
+def add_daily_data(request):
+    selected_batch = None
+    initial_alive_count = 0
+    updated_alive_count = 0
+    updated_mortality_count = 0
+
+    # Filter batches based on the logged-in user
+    all_batches = ChickBatch.objects.filter(user=request.user)
+
+    # Initialize selected_batch_id
+    selected_batch_id = request.session.get('selected_batch', None)
+
+    # Check if a batch was submitted and store it in the session
+    if request.method == 'POST':
+        selected_batch_id = request.POST.get('batch')
+        request.session['selected_batch'] = selected_batch_id  # Store the selected batch ID in the session
+
+        # Handle saving daily data
+        date_list = request.POST.getlist('date[]')
+        sick_chicks_list = request.POST.getlist('sick_chicks[]')
+        mortality_count_list = request.POST.getlist('mortality_count[]')
+        feed_uplifted_list = request.POST.getlist('feed_uplifted[]')
+        water_consumption_list = request.POST.getlist('water_consumption[]')
+        weight_gain_list = request.POST.getlist('weight_gain[]')
+        temperature_list = request.POST.getlist('temperature[]')
+
+        # Get the selected batch object
+        selected_batch = get_object_or_404(ChickBatch, id=selected_batch_id)
+
+        # Initialize the previous day's alive count
+        previous_day_data = DailyData.objects.filter(batch=selected_batch).order_by('-date').first()
+        initial_alive_count = selected_batch.initial_chick_count
+
+        # Loop through submitted daily entries
+        for i in range(len(date_list)):
+            date = date_list[i]
+            sick_chicks = int(sick_chicks_list[i]) if sick_chicks_list[i] else 0
+            mortality_count = int(mortality_count_list[i]) if mortality_count_list[i] else 0
+            feed_uplifted = float(feed_uplifted_list[i]) if feed_uplifted_list[i] else 0.0
+            water_consumption = float(water_consumption_list[i]) if water_consumption_list[i] else 0.0
+            weight_gain = float(weight_gain_list[i]) if weight_gain_list[i] else 0.0
+            temperature = float(temperature_list[i]) if temperature_list[i] else 0.0
+
+            # Validation checks
+            if sick_chicks < 0:
+                messages.error(request, "Sick chicks cannot be negative.")
+                return redirect('add_daily_data')
+
+            if feed_uplifted < 0:
+                messages.error(request, "Feed uplifted cannot be negative.")
+                return redirect('add_daily_data')
+
+            if water_consumption < 0:
+                messages.error(request, "Water consumption cannot be negative.")
+                return redirect('add_daily_data')
+
+            if weight_gain < 0:
+                messages.error(request, "Weight gain cannot be negative.")
+                return redirect('add_daily_data')
+
+            if mortality_count < 0:
+                messages.error(request, "Mortality count cannot be negative.")
+                return redirect('add_daily_data')
+
+            # Calculate updated alive count before checking mortality
+            updated_alive_count = initial_alive_count - updated_mortality_count
+            
+            # Check if mortality count exceeds updated alive count
+            if mortality_count > updated_alive_count:
+                messages.error(request, "Mortality count cannot exceed the updated alive count.")
+                return redirect('add_daily_data')
+
+            # Check if mortality count exceeds initial chick count
+            if mortality_count > initial_alive_count:
+                messages.error(request, "Mortality count cannot exceed the initial chick count.")
+                return redirect('add_daily_data')
+
+            # Check if a record already exists for the same batch and date
+            existing_record = DailyData.objects.filter(batch=selected_batch, date=date).exists()
+
+            if existing_record:
+                messages.error(request, f"Data for {date} already exists for this batch.")
+                return redirect('add_daily_data')  # Redirect back to the form
+
+            # Calculate alive_count based on previous day's data
+            if previous_day_data:
+                alive_count = previous_day_data.alive_count - mortality_count
+            else:
+                alive_count = initial_alive_count - mortality_count
+
+            # Ensure alive_count is not negative
+            if alive_count < 0:
+                messages.error(request, "Calculated alive count cannot be negative.")
+                return redirect('add_daily_data')
+
+            # Create a new daily data record
+            DailyData.objects.create(
+                batch=selected_batch,
+                date=date,
+                alive_count=alive_count,
+                sick_chicks=sick_chicks,
+                mortality_count=mortality_count,
+                feed_uplifted=feed_uplifted,
+                water_consumption=water_consumption,
+                weight_gain=weight_gain,
+                temperature=temperature,
+                owner=request.user,
+            )
+
+            # Update previous_day_data to the newly created one
+            previous_day_data = DailyData.objects.filter(batch=selected_batch, date=date).first()
+
+        messages.success(request, 'Daily data has been saved successfully.')
+        return redirect('stakeholder')  # Replace with your actual view name
+
+    # Get the selected batch from the session if exists
+    if selected_batch_id:
+        selected_batch = get_object_or_404(ChickBatch, id=selected_batch_id)
+        updated_mortality_count = DailyData.objects.filter(batch=selected_batch).aggregate(Sum('mortality_count'))['mortality_count__sum'] or 0
+        initial_alive_count = selected_batch.initial_chick_count  # Get initial chick count again
+        updated_alive_count = initial_alive_count - updated_mortality_count
+
+    return render(request, 'daily_batch.html', {
+        'all_batches': all_batches,
+        'selected_batch': selected_batch,
+        'initial_chick_count': initial_alive_count,
+        'updated_alive_count': updated_alive_count,
+        'updated_mortality_count': updated_mortality_count,
+    })
+
+
+def calculate_weeks(batch_date):
+    weeks = []
+    for i in range(6):  # Create 6 weeks
+        start_date = batch_date + timedelta(days=i * 7)
+        end_date = start_date + timedelta(days=6)
+        if i == 5:  # For the 6th week, adjust the end date to only go to day 40
+            end_date = batch_date + timedelta(days=39)  # 5 extra days
+        weeks.append((start_date, end_date))
+    return weeks
+
+
+
+from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from .models import ChickBatch, DailyData  # Adjust based on your models
+
+def list_daily_data(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+
+    # Get the selected filters from the GET request
+    selected_category = request.GET.get('category')
+    min_value = request.GET.get('min_value')
+    max_value = request.GET.get('max_value')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Fetch daily data for the batch
+    daily_data_records = DailyData.objects.filter(batch=batch).order_by('date')
+
+    # Apply date filtering
+    if start_date and end_date:
+        daily_data_records = daily_data_records.filter(date__range=[start_date, end_date])
+
+    # Apply category filtering with range
+    if selected_category:
+        if selected_category == 'weight_gain':
+            if min_value and max_value:
+                daily_data_records = daily_data_records.filter(weight_gain__gte=min_value, weight_gain__lte=max_value)
+            elif min_value:
+                daily_data_records = daily_data_records.filter(weight_gain__gte=min_value)
+            elif max_value:
+                daily_data_records = daily_data_records.filter(weight_gain__lte=max_value)
+
+        elif selected_category == 'sick_chicks':
+            if min_value and max_value:
+                daily_data_records = daily_data_records.filter(sick_chicks__gte=min_value, sick_chicks__lte=max_value)
+            elif min_value:
+                daily_data_records = daily_data_records.filter(sick_chicks__gte=min_value)
+            elif max_value:
+                daily_data_records = daily_data_records.filter(sick_chicks__lte=max_value)
+
+        elif selected_category == 'mortality_count':
+            if min_value and max_value:
+                daily_data_records = daily_data_records.filter(mortality_count__gte=min_value, mortality_count__lte=max_value)
+            elif min_value:
+                daily_data_records = daily_data_records.filter(mortality_count__gte=min_value)
+            elif max_value:
+                daily_data_records = daily_data_records.filter(mortality_count__lte=max_value)
+
+    # Check if any records are found
+    if not daily_data_records.exists():
+        error_message = "No records found for the given filters."
+    else:
+        error_message = None
+
+    # Calculate totals and averages
+    total_sick_chicks = sum(record.sick_chicks for record in daily_data_records)
+    total_weight_gain = sum(record.weight_gain for record in daily_data_records)
+    total_feed_uplifted = sum(record.feed_uplifted for record in daily_data_records)
+    total_water_consumption = sum(record.water_consumption for record in daily_data_records)
+    average_temperature = (
+        sum(record.temperature for record in daily_data_records) / len(daily_data_records)
+        if daily_data_records else 0
+    )
+    total_mortality_count = sum(record.mortality_count for record in daily_data_records)
+
+    # Implement pagination
+    paginator = Paginator(daily_data_records, 10)  # Show 10 records per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Prepare context
+    context = {
+        'batch': batch,
+        'daily_data_records': page_obj,
+        'selected_category': selected_category,
+        'min_value': min_value,
+        'max_value': max_value,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_sick_chicks': total_sick_chicks,
+        'total_weight_gain': total_weight_gain,
+        'total_feed_uplifted': total_feed_uplifted,
+        'total_water_consumption': total_water_consumption,
+        'average_temperature': average_temperature,
+        'total_mortality_count': total_mortality_count,
+        'error_message': error_message,
+    }
+
+    return render(request, 'list_daily_data.html', context)
+
+
+
+
+
+
+from .models import DailyData
+from .forms import DailyDataForm
+
+def edit_daily_data(request, id):
+    # Fetch the specific record or return 404 if not found
+    daily_data = get_object_or_404(DailyData, id=id)
+
+    if request.method == 'POST':
+        # Bind data to the form to process user input
+        form = DailyDataForm(request.POST, instance=daily_data)
+        if form.is_valid():
+            form.save()  # Save changes
+            return redirect('list_daily_data',batch_id=daily_data.batch.id)  # Redirect back to the list page
+    else:
+        # Display the form with pre-filled data
+        form = DailyDataForm(instance=daily_data)
+
+    # Pass the form to the template
+    return render(request, 'edit_daily_data.html', {'form': form})
+
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from .models import DailyData  # Ensure you import your model
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import DailyData  # Ensure you import the DailyData model
+
+def delete_daily_data(request, daily_data_id):
+    daily_data_entry = get_object_or_404(DailyData, id=daily_data_id)
+    
+    # Get the batch ID to redirect to the correct page
+    batch_id = daily_data_entry.batch_id  # Get the batch ID from the related batch
+    
+    daily_data_entry.delete()
+    messages.success(request, 'Daily data entry deleted successfully.')
+    
+    return redirect('list_daily_data', batch_id=batch_id)  # Redirect to the list with the batch ID
+from .models import FeedMonitoring
+from .forms import FeedMonitoringForm
+
+
+from django.db.models import Sum
+from .forms import DailyComparisonForm  # Ensure this is the correct import
+
+
+
+
+
+
+from .forms import DailyComparisonForm
+
+from django.shortcuts import render
+from datetime import timedelta
+def daily_feed_summary(request):
+    current_batch = None
+    past_batch = None
+    compare_day = None
+    current_feed_uplifted = 0
+    current_weight_gain = 0
+    current_water_consumption = 0  # New metric
+
+    past_feed_uplifted = 0
+    past_weight_gain = 0
+    past_water_consumption = 0  # New metric
+
+    feed_uplifted_percentage = 0
+    weight_gain_percentage = 0
+    water_consumption_percentage = 0  # New metric
+
+    if request.method == 'POST':
+        form = DailyComparisonForm(request.POST, user=request.user)
+        if form.is_valid():
+            current_batch = form.cleaned_data['current_batch']
+            past_batch = form.cleaned_data['past_batch']
+            compare_day = int(form.cleaned_data['compare_day'])
+
+            # Calculate the date for the selected day
+            current_day_date = current_batch.batch_date + timedelta(days=compare_day - 1)
+            past_day_date = past_batch.batch_date + timedelta(days=compare_day - 1)
+
+            # Fetch the daily data
+            current_day_data = DailyData.objects.filter(batch=current_batch, date=current_day_date).first()
+            past_day_data = DailyData.objects.filter(batch=past_batch, date=past_day_date).first()
+
+            # Extract data or set to 0 if not available
+            current_feed_uplifted = current_day_data.feed_uplifted if current_day_data else 0
+            current_weight_gain = current_day_data.weight_gain if current_day_data else 0
+            current_water_consumption = current_day_data.water_consumption if current_day_data else 0
+
+            past_feed_uplifted = past_day_data.feed_uplifted if past_day_data else 0
+            past_weight_gain = past_day_data.weight_gain if past_day_data else 0
+            past_water_consumption = past_day_data.water_consumption if past_day_data else 0
+
+            # Calculate percentages (avoid division by zero)
+            if current_feed_uplifted + past_feed_uplifted > 0:
+                feed_uplifted_percentage = (current_feed_uplifted / 
+                                            (current_feed_uplifted + past_feed_uplifted)) * 100
+
+            if current_weight_gain + past_weight_gain > 0:
+                weight_gain_percentage = (current_weight_gain / 
+                                          (current_weight_gain + past_weight_gain)) * 100
+
+            if current_water_consumption + past_water_consumption > 0:
+                water_consumption_percentage = (current_water_consumption / 
+                                                (current_water_consumption + past_water_consumption)) * 100
+
+    else:
+        form = DailyComparisonForm(user=request.user)
+
+    return render(request, 'daily_feed_summary.html', {
+        'form': form,
+        'current_batch': current_batch,
+        'past_batch': past_batch,
+        'compare_day': compare_day,
+        'current_feed_uplifted': current_feed_uplifted,
+        'current_weight_gain': current_weight_gain,
+        'current_water_consumption': current_water_consumption,
+        'past_feed_uplifted': past_feed_uplifted,
+        'past_weight_gain': past_weight_gain,
+        'past_water_consumption': past_water_consumption,
+        'feed_uplifted_percentage': feed_uplifted_percentage,
+        'weight_gain_percentage': weight_gain_percentage,
+        'water_consumption_percentage': water_consumption_percentage,
+    })
+
+
+
+from .forms import BatchSelectionForm
+
+def batch_feed_summary(request):
+    if request.method == 'POST':
+        form = BatchSelectionForm(request.POST, user=request.user)
+        if form.is_valid():
+            selected_batch = form.cleaned_data['batch']
+
+            # Get daily data for the selected batch
+            daily_data = DailyData.objects.filter(batch=selected_batch).order_by('date')
+
+            # Prepare data for the chart and table
+            dates = [data.date.strftime('%Y-%m-%d') for data in daily_data]  # Dates for the x-axis
+            daily_feed_uplifted = [data.feed_uplifted for data in daily_data]  # Daily feed uplifted
+            total_weight_gain = [data.weight_gain for data in daily_data]  # Weight gain per day
+
+            # Calculate total feed used and total weight gain
+            total_feed_used = sum(daily_feed_uplifted)
+            total_weight_gain_sum = sum(total_weight_gain)
+
+            # Prepare data for the table
+            daily_data_for_table = zip(dates, daily_feed_uplifted, total_weight_gain)
+
+            # Pass data to the template
+            return render(request, 'batch_feed_summary.html', {
+                'form': form,
+                'selected_batch': selected_batch,
+                'dates': dates,
+                'daily_feed_uplifted': daily_feed_uplifted,
+                'total_weight_gain': total_weight_gain,
+                'total_feed_used': total_feed_used,
+                'total_weight_gain': total_weight_gain_sum,
+                'daily_data': daily_data_for_table,  # Data for the table
+            })
+    else:
+        form = BatchSelectionForm(user=request.user)
+
+    return render(request, 'batch_feed_summary.html', {'form': form})
+
+
+
+
+
+
+def feed_dashboard_view(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    # For debugging purposes, you can print the user object to see if it's retrieved correctly
+    print(f"User: {user.email}, ID: {user.id}")
+
+    return render(request, 'feed_dashboard.html', {'user': user})
+
+def supplier_list(request):
+    
+    
+    """Display the list of suppliers."""
+    suppliers = Supplier.objects.all()  # Fetch all suppliers from the database
+    return render(request, 'supplier_list_stakeholder.html', {'suppliers': suppliers})
+

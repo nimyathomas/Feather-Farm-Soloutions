@@ -5,16 +5,55 @@
   <button class="back-button">
     <a href="{% url 'stakeholderuser' %}">back</a>
   </button>
-  {% if messages %}
+
+  <style>
+    .close {
+      color: red; /* Red color for the close button */
+      font-size: 20px; /* Adjust the size */
+      font-weight: bold; /* Make it bold */
+      cursor: pointer; /* Pointer on hover */
+  }
+
+  .close:hover {
+      color: darkred; /* Darker red when hovered */
+  }
+
+  /* Optional: Styling for alert messages */
+  .alert {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      position: relative;
+      color: white;
+  }
+
+  .alert-success {
+      background-color: #4CAF50; /* Green for success */
+  }
+
+  .alert-error {
+      background-color: #f44336; /* Red for error */
+  }
+
+  .alert-warning {
+      background-color: #ff9800; /* Orange for warning */
+  }
+
+  .alert-info {
+      background-color: #2196F3; /* Blue for info */
+  }
+  </style>
+   {% if messages %}
     <div class="messages">
         {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
                 {{ message }}
-                <span class="close" onclick="this.parentElement.style.display='none'">&times;</span> <!-- Close button -->
+                <span class="close" onclick="this.parentElement.style.display='none'" aria-label="Close">&times;</span> <!-- Close button -->
             </div>
         {% endfor %}
     </div>
-{% endif %}
+{% endif %} 
+
 
   <h1>Stakeholder Profile</h1>
 
@@ -43,10 +82,10 @@
               <span class="coop-label">Coop Breadth:</span>
               <span class="coop-value">{{ user.breadth }} meters</span>
             </div>
-            <div class="coop-info-item">
+            {% comment %} <div class="coop-info-item">
               <span class="coop-label">Coop Capacity:</span>
               <span class="coop-value">{{ user.coopcapacity }} birds</span>
-            </div>
+            </div> {% endcomment %}
             <div class="coop-info-item">
               <span class="coop-label">Pollution Board Certificate Expiry:</span>
               <span class="coop-value">{{ user.expiry_date }}</span>
@@ -67,36 +106,28 @@
     <div class="right-section">
       <p>Number of birds you can grow: {{ birds_can_accommodate }}</p>
 
-      <form method="POST" action="{% url 'update_chick_count' user.id %}">
-        {% csrf_token %}
-        <div class="chick-count">
+        <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
+          {% csrf_token %}
+          <div class="chick-count">
             <h3>Update Chick Count</h3>
-            <input
-                type="number"
-                name="chick_count"
-                placeholder="Enter number of chicks"
-                class="form-control"
-                id="chickCount"
-                min="0" required
-            />
+            <input type="number" name="initial_chick_count" placeholder="Enter number of chicks" class="form-control" id="chickCount" required />
             <span id="error-msg" style="color: red; display: none;">Chick count cannot be less than zero.</span>
             <button type="submit" class="btn-submit">Submit Chick Count</button>
-        </div>
-    </form>
-    
-    <script>
-        const chickCountInput = document.getElementById('chickCount');
-        const errorMsg = document.getElementById('error-msg');
-    
-        chickCountInput.addEventListener('input', function () {
-            if (chickCountInput.value < 0) {
-                errorMsg.style.display = 'block'; // Show error message if count is less than 0
-            } else {
-                errorMsg.style.display = 'none';  // Hide error message for valid input
-            }
-        });
-    </script>
-    
+          </div> 
+        </form>
+        <script>
+          const chickCountInput = document.getElementById('chickCount');
+          const errorMsg = document.getElementById('error-msg');
+
+          chickCountInput.addEventListener('input', function () {
+              if (chickCountInput.value < 0) {
+                  errorMsg.style.display = 'block'; // Show error message if count is less than 0
+              } else {
+                  errorMsg.style.display = 'none';  // Hide error message for valid input
+              }
+          });
+      </script>
+
 
         <!-- Farm Image Section -->
         <h3>Farm Image</h3>

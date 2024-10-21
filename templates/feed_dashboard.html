@@ -1,0 +1,98 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="dashboard">
+    <h2>Feed Monitoring Dashboard</h2>
+
+    <style>
+
+        body {
+            background-color: #f8f9fa; /* Light background for contrast */
+            font-family: 'Arial', sans-serif; /* Clean font */
+        }
+        
+        .dashboard {
+            padding: 20px;
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between; /* Align cards evenly */
+            margin: 0 -10px; /* Adjust negative margin for consistent spacing */
+        }
+        
+        .card {
+            margin: 10px; /* Space between cards */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            transition: transform 0.2s; /* Smooth hover effect */
+        }
+        
+        .card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+        }
+        
+        .card-body {
+            padding: 15px; /* Inner padding */
+        }
+        
+        .card-title {
+            font-size: 1.25rem; /* Slightly larger font for titles */
+            font-weight: bold; /* Bold titles */
+        }
+        
+        .card-text {
+            font-size: 0.9rem; /* Smaller font for descriptions */
+            color: #6c757d; /* Muted text color */
+        }
+        
+        .btn {
+            margin-top: 10px; /* Space above buttons */
+            border-radius: 5px; /* Rounded buttons */
+            transition: background-color 0.2s; /* Smooth button hover effect */
+        }
+        
+        .btn:hover {
+            opacity: 0.8; /* Dim buttons on hover */
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .col-md-4 {
+                flex: 0 0 100%; /* Stack cards on small screens */
+                max-width: 100%; /* Full width on small screens */
+            }
+        }
+          
+    </style>
+    
+    
+        <!-- Second Card -->
+    
+
+        <!-- Third Card -->
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Batch Feed Summary</h5>
+                    <p class="card-text">View feed summary for batch 1.</p>
+                    <a href="{% url 'batch_feed_summary' %}">View Batch Feed Summary</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fourth Card -->
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Daily Feed Summary</h5>
+                    <p class="card-text">View feed summary for today.</p>
+                    <a href="{% url 'daily_feed_summary' %}" class="btn btn-warning">View Summary</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fifth Card -->
+        
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Are you sure you want to delete this record?</h1>
+  <p>Date: {{ daily_data.date }}</p>
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit">Confirm Deletion</button>
+  </form>
+  <a href="{% url 'stakeholder_dashboard' %}">Cancel</a>
+{% endblock %}

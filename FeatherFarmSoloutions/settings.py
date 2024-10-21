@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google'
+    'allauth.socialaccount.providers.google',
+    'django_celery_beat'
 ]
 
 
@@ -121,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -199,3 +200,30 @@ LOGIN_REDIRECT_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/'
 
 AUTH_USER_MODEL = 'user.User'
+# settings.py
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone
+
+# settings.py
+
+
+from celery.schedules import crontab
+
+
+
+CELERY_BEAT_SCHEDULE = {
+    'send-expiry-alerts': {
+        'task': 'user.tasks.send_expiry_alerts',
+        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM
+    },
+    'deactivate-expired-users-every-day': {
+        'task': 'user.tasks.deactivate_expired_users',
+        'schedule': 86400.0,  # Run once every 24 hours (86400 seconds)
+    },
+}

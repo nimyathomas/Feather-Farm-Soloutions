@@ -19,7 +19,7 @@
                 <li><a href="{% url 'stakeholderuser' %}">Stakeholder Management</a></li>
                 <li><a href="#">Employee Management</a></li>
                 <li><a href="{% url 'customeruser' %}">Customer Management</a></li>
-                <li><a href="#">Finance</a></li>
+                <li><a href="{% url 'supplier_list' %}">Suppliers</a></li>
                 <li><a href="#">Alerts</a></li>
                 <li><a href="#">Sales</a></li>
                 <li><a href="{% url 'feed_admin' %}">Feeds</a></li>
@@ -31,8 +31,6 @@
         <!-- Main Content Area -->
         <main class="content">
             {% block body %}
-
-            
             {% endblock %}
         </main>
     </div>

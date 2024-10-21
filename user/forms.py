@@ -1,14 +1,13 @@
 from .models import User
-from django.contrib import admin
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import SetPasswordForm
-from .models import User, UserType,SupervisorStakeholderAssignment
+from .models import User, UserType
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
+import re 
 
 
 
@@ -101,22 +100,22 @@ class StakeholderUserForm(forms.ModelForm):
 
         model = User
         fields = ['email', 'full_name', 'phone_number', 'farm_image', 'length',
-                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address']
+                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address','plan_file']
         widgets = {
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
         }
         
     def clean(self):
-        cleaned_data = super().clean()
-        length = cleaned_data.get('length')
-        
-    
-        print(length)
-        breadth = cleaned_data.get('breadth')
-        print(type(breadth))
-        
-        if length is not None and breadth is not None and (length <= 0 or breadth <= 0):
-            raise forms.ValidationError("Length and breadth must be positive numbers.")
+         cleaned_data = super().clean()
+         length = cleaned_data.get('length')
+         breadth = cleaned_data.get('breadth')
+
+    # Check if length and breadth are positive numbers
+         if length is not None and breadth is not None and (length <= 0 or breadth <= 0):
+             raise forms.ValidationError("Length and breadth must be positive numbers.")
+
+         return cleaned_data
+
         
         
         
@@ -167,14 +166,46 @@ class StakeholderUserForm(forms.ModelForm):
             raise ValidationError("expiry date cannot be in the past")
         return expiry_date
     
+    def clean_address(self):
+        address = self.cleaned_data.get('address')
+
+        # Split the address by commas
+        parts = [part.strip() for part in address.split(',')]
+        
+        # Validate that there are exactly 3 parts
+        if len(parts) != 3:
+            raise forms.ValidationError("Address must be in the format 'farm name, location, pincode'.")
+
+        farm_name, location, pincode = parts
+
+        # Validate the pincode format (6-digit number)
+        if not re.match(r'^\d{6}$', pincode):
+            raise forms.ValidationError("Pincode must be a 6-digit number.")
+
+        return address
     
-class SupervisorStakeholderAssignmentForm(forms.ModelForm):
+    
+from .models import Supplier
+
+class SupplierForm(forms.ModelForm):
     class Meta:
-        model = SupervisorStakeholderAssignment
-        fields = ['supervisor', 'stakeholders']
-    
-    stakeholders = forms.ModelMultipleChoiceField(
-        queryset=User.objects.filter(user_type__name='stakeholder'),  # Adjust filter if necessary
-        widget=admin.widgets.FilteredSelectMultiple("Stakeholders", is_stacked=False),
-        required=True
-    )
+        model = Supplier
+        fields = ['supplier_code', 'name', 'email', 'phone_number', 'address', 'is_active']  # Include is_active field
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Supplier.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already in use. Please choose a different one.")
+        return email
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if Supplier.objects.filter(phone_number=phone_number).exists():
+            raise forms.ValidationError("This phone number is already in use. Please choose a different one.")
+        return phone_number
+
+    def clean_supplier_code(self):
+        supplier_code = self.cleaned_data.get('supplier_code')
+        if Supplier.objects.filter(supplier_code=supplier_code).exists():
+            raise forms.ValidationError("This supplier code is already in use. Please choose a different one.")
+        return supplier_code

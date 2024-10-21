@@ -10,7 +10,7 @@
     <!-- Logout button -->
     <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
-        <button type="submit">Logout</button>
+        <button type="submit" id="logout">Logout</button>
     </form>
     <!-- Cancel button to stay on the page -->
     <a href="/">Cancel</a>

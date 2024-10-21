@@ -1,30 +1,27 @@
 {% extends 'stakeholder.html' %}
-{% load static %} 
+{% load static %}
+
 {% block body %}
-
 <div class="card profile-card">
-  <!-- Chick Batches Section -->
-  <div class="batch-info">
-    <h3>Chick Batches</h3>
+  <h3>Chick Batches</h3>
 
-    <!-- Display Total Chick Count -->
-    <div class="total-chick-count">
-      <p>Total Chick Count: <strong>{{ total_chick_count }}</strong></p>
-    </div>
-
-    <!-- List of Chick Batches -->
-    <ul class="batch-list">
-      {% for batch in chick_batches %}
-        <li class="batch-item">
-          <strong>{{ batch.batch_date|date:"F j, Y" }}:</strong> 
-          <span>{{ batch.chick_count }} chicks</span>
-        </li>
-      {% empty %}
-        <li class="batch-item no-batches">No chick batches found.</li>
-      {% endfor %}
-    </ul>
+  <div class="total-chick-count">
+    <p>Total Chick Count: <strong>{{ total_chick_count }}</strong></p>
   </div>
+
+  <ul class="batch-list">
+    {% for info in batch_info %}
+      <li class="batch-item">
+        <strong>
+          <a href="{% url 'list_daily_data' info.batch.id %}">
+            {{ info.batch.batch_date|date:"F j, Y" }}
+          </a>:
+        </strong> 
+        <span>{{ info.initial_chick_count }} chicks</span>
+      </li>
+    {% empty %}
+      <li class="batch-item no-batches">No chick batches found.</li>
+    {% endfor %}
+  </ul>
 </div>
-
 {% endblock %}
-
