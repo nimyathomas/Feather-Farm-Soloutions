@@ -32,24 +32,40 @@ class BatchSelectionForm(forms.Form):
 class DailyComparisonForm(forms.Form):
     current_batch = forms.ModelChoiceField(queryset=ChickBatch.objects.none())  # Start with empty queryset
     past_batch = forms.ModelChoiceField(queryset=ChickBatch.objects.none())
-    compare_day = forms.IntegerField()
+    compare_day = forms.IntegerField(
+        min_value=1, 
+        max_value=40,
+        error_messages={
+            'min_value': 'The compare day must be at least 1.',
+            'max_value': 'The compare day must be at most 40.',
+        }
+    )
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
+        
         # Set the queryset for current_batch to include only batches for the user
         self.fields['current_batch'].queryset = ChickBatch.objects.filter(user=user)
-        
-        # If the current_batch is already selected, filter past_batch queryset
-        if 'current_batch' in self.data:
+
+        # Dynamically update past_batch queryset based on current_batch selection
+        if self.is_bound and self.data.get('current_batch'):
             try:
                 current_batch_id = int(self.data.get('current_batch'))
                 self.fields['past_batch'].queryset = ChickBatch.objects.filter(user=user).exclude(id=current_batch_id)
             except (ValueError, TypeError):
-                pass  # Handle invalid input by leaving the queryset empty
+                self.fields['past_batch'].queryset = ChickBatch.objects.filter(user=user)  # Fallback queryset
         else:
             self.fields['past_batch'].queryset = ChickBatch.objects.filter(user=user)  # Default queryset
+
+    def clean_compare_day(self):
+        compare_day = self.cleaned_data.get('compare_day')
+
+        # Ensure that the compare_day is valid (between 1 and 40)
+        if compare_day is None or compare_day < 1 or compare_day > 40:
+            raise forms.ValidationError("The compare day must be between 1 and 40.")
         
+        return compare_day
 from .models import FeedMonitoring
 
 class FeedMonitoringForm(forms.ModelForm):

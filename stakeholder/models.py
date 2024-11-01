@@ -16,6 +16,8 @@ class ChickBatch(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chick_batches')
     initial_chick_count = models.IntegerField()  # Initial chick count
     batch_date = models.DateField(default=timezone.now)  # Date the batch started
+    duration = models.IntegerField(default=40)  # Duration of the batch in days
+
     batch_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')  # Batch status
     
     def check_batch_completion(self):

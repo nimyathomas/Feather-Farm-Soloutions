@@ -4,8 +4,9 @@
 
 <title>User Update Form</title>
 <!-- Bootstrap for styling -->
+
 <section class="content-section">
-    <h2 class="text-center">User Update</h2>
+    <h2 class="text-center">User Profile</h2>
 
 
     <form method="post" enctype="multipart/form-data">
@@ -109,8 +110,19 @@
 
         <div class="form-group">
             <label for="coopcapacity">Coop Capacity</label>
-            {{ form.coopcapacity }}
-        </div> 
+            {{ form.coopcapacity }}  <!-- Render the input field for coop capacity -->
+            {% if form.coopcapacity.errors %}
+                <div class="text-danger">
+                    {% for error in form.coopcapacity.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        
+        
+        
        
         <!-- Farm Address -->
         <div class="form-group">
@@ -126,20 +138,25 @@
         </div>
        
         <div class="form-group">
-            <label for="plan_file">Farm plan</label>
+            <label for="plan_file">Farm Plan</label>
+        
+            <!-- Display a link if a plan file already exists for the user -->
             {% if user_data.plan_file %}
                 <div>
                     <a href="{{ user_data.plan_file.url }}" target="_blank">View Farm Plan</a>
                 </div>
             {% endif %}
+        
+            <!-- File input field -->
             {{ form.plan_file }}
+        
+            <!-- Display error message if there are any validation errors for the plan_file field -->
             {% if form.plan_file.errors %}
-                <div class="text-danger">
+                <div class="text-danger mt-2">
                     {{ form.plan_file.errors }}
                 </div>
             {% endif %}
         </div>
-
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Update</button>

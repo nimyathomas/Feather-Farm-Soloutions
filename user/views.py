@@ -76,15 +76,32 @@ class CustomLoginView(LoginView):
 
 
 def admindash(request):
-    # fetching the usertype with name stakeholder
-    user_type = UserType.objects.get(name='Stakeholder')
-    stakeholder_count = User.objects.filter(user_type=user_type)
+    # Fetching the usertype with name 'Stakeholder'
+    stakeholder_user_type = UserType.objects.get(name='Stakeholder')
+    
+    # Counting total stakeholders
+    total_stakeholders = User.objects.filter(user_type=stakeholder_user_type).count()
 
-    # fetching the usertype with name stakeholder
-    user_type = UserType.objects.get(name='Customer')
-    customer_count = User.objects.filter(user_type=user_type)
+    # Counting active stakeholders
+    active_stakeholders = User.objects.filter(user_type=stakeholder_user_type, is_active=True).count()
 
-    return render(request, 'dashboard.html', {'stakeholder_count': stakeholder_count.count(), 'customer_count': customer_count.count()})
+    # Fetching the usertype with name 'Customer'
+    customer_user_type = UserType.objects.get(name='Customer')
+    customer_count = User.objects.filter(user_type=customer_user_type).count()
+    
+    # Counting total farms
+    total_farm = total_stakeholders  # Assuming User model represents farms (in this case, stakeholders are farms)
+    
+    # Counting active farms (which are essentially active stakeholders)
+    farmactive_count = active_stakeholders
+
+    return render(request, 'dashboard.html', {
+        'stakeholder_count': total_stakeholders,
+        'customer_count': customer_count,
+        'farmactive_count': farmactive_count,
+        'total_farm': total_farm
+    })
+
 
 
 def stakeholderuser(request):
@@ -123,19 +140,23 @@ def stakeholderuserprofile(request, id):
     
     if request.method == 'POST':
         
+        if not user.is_active:
+            messages.error(request, "You cannot add chicks because the user account is disabled.")
+            return redirect('stakeholderuserprofile', id=id)
+
         initial_chick_count = request.POST.get('initial_chick_count')
         
         
         # Backend validation: Chick count must not be less than zero
         try:
-            initial_chick_count = int(initial_chick_count)
+            initial_chick_count = int(initial_chick_count)  # Ensure integer conversion
             if initial_chick_count < 0:
                 messages.error(request, "Chick count cannot be less than zero.")
                 return redirect('stakeholderuserprofile', id=id)
-        except ValueError:
-            messages.error(request, "Invalid chick count entered.")
+        except (ValueError, TypeError):
+            # Catch any errors where the input cannot be converted to an integer
+            messages.error(request, "Invalid chick count entered. Please enter a valid number.")
             return redirect('stakeholderuserprofile', id=id)
-        
         # Check if the new chick count exceeds capacity
         
 
@@ -188,6 +209,19 @@ def stakeholder_registration(request, id):
 
     return render(request, 'stakeholder_profile.html', {'form': form})
 
+
+def toggle_user_status(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+        # Toggle the user's active status
+        user.is_active = not user.is_active
+        user.save()
+        
+        status = "enabled" if user.is_active else "disabled"
+        messages.success(request, f"User has been {status} successfully.")
+    
+    return redirect('stakeholderuser') 
 
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)

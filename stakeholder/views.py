@@ -222,6 +222,8 @@ from datetime import timedelta
 
 
 
+
+
 def add_daily_data(request):
     selected_batch = None
     initial_alive_count = 0
@@ -231,7 +233,7 @@ def add_daily_data(request):
     # Filter batches based on the logged-in user
     all_batches = ChickBatch.objects.filter(user=request.user)
 
-    # Initialize selected_batch_id
+    # Initialize selected_batch_id from the session
     selected_batch_id = request.session.get('selected_batch', None)
 
     # Check if a batch was submitted and store it in the session
@@ -266,42 +268,23 @@ def add_daily_data(request):
             temperature = float(temperature_list[i]) if temperature_list[i] else 0.0
 
             # Validation checks
-            if sick_chicks < 0:
-                messages.error(request, "Sick chicks cannot be negative.")
-                return redirect('add_daily_data')
-
-            if feed_uplifted < 0:
-                messages.error(request, "Feed uplifted cannot be negative.")
-                return redirect('add_daily_data')
-
-            if water_consumption < 0:
-                messages.error(request, "Water consumption cannot be negative.")
-                return redirect('add_daily_data')
-
-            if weight_gain < 0:
-                messages.error(request, "Weight gain cannot be negative.")
-                return redirect('add_daily_data')
-
-            if mortality_count < 0:
-                messages.error(request, "Mortality count cannot be negative.")
+            if sick_chicks < 0 or feed_uplifted < 0 or water_consumption < 0 or weight_gain < 0 or mortality_count < 0:
+                messages.error(request, "Input values cannot be negative.")
                 return redirect('add_daily_data')
 
             # Calculate updated alive count before checking mortality
             updated_alive_count = initial_alive_count - updated_mortality_count
-            
-            # Check if mortality count exceeds updated alive count
+
+            # Check if mortality count exceeds updated alive count or initial chick count
             if mortality_count > updated_alive_count:
                 messages.error(request, "Mortality count cannot exceed the updated alive count.")
                 return redirect('add_daily_data')
-
-            # Check if mortality count exceeds initial chick count
             if mortality_count > initial_alive_count:
                 messages.error(request, "Mortality count cannot exceed the initial chick count.")
                 return redirect('add_daily_data')
 
             # Check if a record already exists for the same batch and date
             existing_record = DailyData.objects.filter(batch=selected_batch, date=date).exists()
-
             if existing_record:
                 messages.error(request, f"Data for {date} already exists for this batch.")
                 return redirect('add_daily_data')  # Redirect back to the form
@@ -368,9 +351,16 @@ def calculate_weeks(batch_date):
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import ChickBatch, DailyData  # Adjust based on your models
+from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from django.utils import timezone
+from .models import ChickBatch, DailyData
 
 def list_daily_data(request, batch_id):
     batch = get_object_or_404(ChickBatch, id=batch_id)
+
+    # Initialize the error message
+    error_message = None
 
     # Get the selected filters from the GET request
     selected_category = request.GET.get('category')
@@ -378,6 +368,27 @@ def list_daily_data(request, batch_id):
     max_value = request.GET.get('max_value')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+
+    # Validate start_date and end_date
+    if start_date and end_date:
+        start_date_obj = timezone.datetime.strptime(start_date, '%Y-%m-%d')
+        end_date_obj = timezone.datetime.strptime(end_date, '%Y-%m-%d')
+
+        if start_date_obj < batch.start_date:
+            error_message = f"Start date cannot be before the batch start date ({batch.start_date.date()})."
+            start_date = None  # Reset the invalid start date
+        if end_date_obj < batch.start_date:
+            error_message = f"End date cannot be before the batch start date ({batch.start_date.date()})."
+            end_date = None  # Reset the invalid end date
+
+    # Check for negative min_value and max_value
+    if min_value is not None and min_value.isdigit() and int(min_value) < 0:
+        error_message = "Minimum value cannot be negative."
+        min_value = None  # Reset the invalid min_value
+
+    if max_value is not None and max_value.isdigit() and int(max_value) < 0:
+        error_message = "Maximum value cannot be negative."
+        max_value = None  # Reset the invalid max_value
 
     # Fetch daily data for the batch
     daily_data_records = DailyData.objects.filter(batch=batch).order_by('date')
@@ -414,9 +425,7 @@ def list_daily_data(request, batch_id):
 
     # Check if any records are found
     if not daily_data_records.exists():
-        error_message = "No records found for the given filters."
-    else:
-        error_message = None
+        error_message = "No records found for the given filters." if error_message is None else error_message
 
     # Calculate totals and averages
     total_sick_chicks = sum(record.sick_chicks for record in daily_data_records)
@@ -453,8 +462,6 @@ def list_daily_data(request, batch_id):
     }
 
     return render(request, 'list_daily_data.html', context)
-
-
 
 
 

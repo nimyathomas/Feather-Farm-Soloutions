@@ -6,13 +6,10 @@
     <header class="topbar">
         <h1>Admin Dashboard</h1>
     </header>
+    
     <div class="dashboard-content-area">
         <div class="dashboard-flex-container">
-            <!-- Current Sales Status -->
-            <div class="dashboard-item">
-                <h2>Current Sales Status</h2>
-                <p>Sales information goes here...</p>
-            </div>
+
 
             <!-- Stakeholders and Customers Status -->
             <div class="dashboard-item">
@@ -21,33 +18,42 @@
                     <p>Number of active farms: <strong>{{ farmactive_count }}</strong></p>
                 </div>
                 <div class="overview-card">
-                    <h2>Assigned Farms</h2>
-                    <p>Total assigned farms: <strong>{{ total_farm }}</strong></p>
+                    <h2>Total Farms</h2>
+                    <p>Total farms: <strong>{{ total_farm }}</strong></p>
                 </div>
             </div>
 
-            <!-- Profit Graph -->
-            <div class="dashboard-item">
-                <h2>Profit Graph</h2>
-                <div class="profit-graph-placeholder">
-                    Graph will be displayed here
-                </div>
-            </div>
+          
 
-            <!-- Recent Activities -->
+            <!-- Stakeholder & Customer Status -->
             <div class="dashboard-item">
-                
-                <ul>
                 <h2>Stakeholder & Customer Status</h2>
                 <p>Stakeholders: {{ stakeholder_count }}</p>
                 <p>Customers: {{ customer_count }}</p>
+            </div>
+
+            <!-- Feed Stock Levels -->
+            <div class="dashboard-item">
+                <h2>Current Feed Stock Levels</h2>
+                <ul>
+                    {% for feed in feeds %}
+                        <li>{{ feed.name }}: <strong>{{ feed.current_stock }} kg</strong> {% if feed.check_low_stock %} (Low Stock Alert) {% endif %}</li>
+                    {% endfor %}
                 </ul>
             </div>
 
             <!-- Alerts -->
             <div class="dashboard-item">
                 <h2>Alerts</h2>
-                <p>No new alerts at the moment.</p>
+                {% if low_stock_alerts %}
+                    <ul>
+                        {% for feed in low_stock_alerts %}
+                            <li>{{ feed.name }} is low on stock!</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No new alerts at the moment.</p>
+                {% endif %}
             </div>
 
             <!-- Quick Actions -->

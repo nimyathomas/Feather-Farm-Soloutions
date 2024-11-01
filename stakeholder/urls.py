@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, delete_user,vaccine_admin,feed_admin,renew_pollution_certificate,supplier_list,add_supplier,enable_supplier,disable_supplier,edit_supplier
+from user.views import register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, delete_user,vaccine_admin,feed_admin,renew_pollution_certificate,supplier_list,add_supplier,enable_supplier,disable_supplier,edit_supplier,toggle_user_status
 from .import views
 
 
@@ -42,6 +42,8 @@ urlpatterns = [
 
     path('enable_supplier/<int:supplier_id>/',enable_supplier, name='enable_supplier'),  # Add this
     path('disable_supplier/<int:supplier_id>/',disable_supplier, name='disable_supplier'),  # Add this
+    path('toggle_user_status/<int:user_id>/', toggle_user_status, name='toggle_user_status'),
+
     
     path('supplier_list', views.supplier_list, name='supplier_list'),
 

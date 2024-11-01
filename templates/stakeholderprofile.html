@@ -42,6 +42,10 @@
   .alert-info {
       background-color: #2196F3; /* Blue for info */
   }
+  .status-red {
+    color: red;
+}
+
   </style>
    {% if messages %}
     <div class="messages">
@@ -53,6 +57,9 @@
         {% endfor %}
     </div>
 {% endif %} 
+
+<p>User Status: <strong class="status-red">{% if user.is_active %}Active{% else %}Disabled{% endif %}</strong></p>
+
 
 
   <h1>Stakeholder Profile</h1>
@@ -106,27 +113,52 @@
     <div class="right-section">
       <p>Number of birds you can grow: {{ birds_can_accommodate }}</p>
 
-        <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
+      {% if user.is_active %}
+      <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
           {% csrf_token %}
           <div class="chick-count">
-            <h3>Update Chick Count</h3>
-            <input type="number" name="initial_chick_count" placeholder="Enter number of chicks" class="form-control" id="chickCount" required />
-            <span id="error-msg" style="color: red; display: none;">Chick count cannot be less than zero.</span>
-            <button type="submit" class="btn-submit">Submit Chick Count</button>
+              <h3>Update Chick Count</h3>
+              <input type="number" name="initial_chick_count" placeholder="Enter number of chicks" class="form-control" id="chickCount" required />
+              <span id="error-msg" style="color: red; display: none;">Chick count cannot be less than zero.</span>
+              <button type="submit" class="btn-submit">Submit Chick Count</button>
           </div> 
-        </form>
-        <script>
-          const chickCountInput = document.getElementById('chickCount');
-          const errorMsg = document.getElementById('error-msg');
+      </form>
+  {% else %}
+      <p style="color: red;">You cannot add chicks because the user account is disabled.</p>
+  {% endif %}
+  
+      <script>
+        const chickCountInput = document.getElementById('chickCount');
+const errorMsg = document.getElementById('error-msg');
+const birdsCanAccommodate = {{ birds_can_accommodate }}; // Get the coop capacity from Django context
 
-          chickCountInput.addEventListener('input', function () {
-              if (chickCountInput.value < 0) {
-                  errorMsg.style.display = 'block'; // Show error message if count is less than 0
-              } else {
-                  errorMsg.style.display = 'none';  // Hide error message for valid input
-              }
-          });
+chickCountInput.addEventListener('input', function () {
+    const chickCountValue = parseInt(chickCountInput.value);
+
+    if (chickCountValue < 0) {
+        errorMsg.textContent = 'Chick count cannot be less than zero.';
+        errorMsg.style.display = 'block';
+    } else if (chickCountValue > birdsCanAccommodate) {
+        errorMsg.textContent = `You can only grow a maximum of ${birdsCanAccommodate} birds.`;
+        errorMsg.style.display = 'block';
+    } else {
+        errorMsg.style.display = 'none'; // Hide error message for valid input
+    }
+});
+const form = document.querySelector('.update-form');
+
+form.addEventListener('submit', function(event) {
+    const chickCountValue = parseInt(chickCountInput.value);
+    if (chickCountValue < 0 || chickCountValue > birdsCanAccommodate) {
+        event.preventDefault(); // Prevent form submission
+        errorMsg.style.display = 'block'; // Show error message
+    }
+});
+
+
+
       </script>
+
 
 
         <!-- Farm Image Section -->
