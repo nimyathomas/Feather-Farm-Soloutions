@@ -1,234 +1,271 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
-
-{% block body %}
-<div class="container mt-5">
-    <style>
-        body {
-            background-color: #f8f9fa; /* Light background */
-            font-family: Arial, sans-serif; /* Font style */
-        }
-        
-        /* Summary section at the top, now in vertical format */
-        .summary {
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #e9ecef; /* Light background color */
-            margin-bottom: 10px;
-            display: flex; /* Display flex for alignment */
-            flex-direction: column; /* Change direction to column for vertical stacking */
-            justify-content: space-between; /* Space items evenly */
-            align-items: center; /* Center align the content vertically */
-        }
-        
-        .summary div {
-            margin-bottom: 10px; /* Add some space between the rows */
-            text-align: center; /* Center align text */
-        }
-
-        .filter-form {
-            margin-bottom: 20px;
-            border: 1px solid #ced4da; /* Border around filter form */
-            border-radius: 5px; /* Rounded corners */
-            padding: 15px; /* Padding around the form */
-            background-color: #ffffff; /* White background */
-            width: 100%; /* Ensure it takes full width in the flexbox */
-        }
-        
-        .table-container {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow-x: auto; /* Allow horizontal scrolling */
-        }
-        
-        .table th, .table td {
-            vertical-align: middle; /* Align items vertically in table cells */
-        }
-        
-        .btn-primary, .btn-warning, .btn-danger {
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        
-        .btn-warning:hover {
-            background-color: #c69500;
-        }
-        
-        .btn-danger:hover {
-            background-color: #b30000;
-        }
-        
-        /* Responsive styling */
-        @media (max-width: 768px) {
-            .filter-form table {
-                width: 100%;
-                display: block;
-            }
-
-            .row-flex {
-                flex-direction: column; /* Stack columns on smaller screens */
-            }
-        
-            .table-container {
-                overflow-x: scroll;
-            }
-        }
-        
-        /* Flexbox for row layout */
-        .row-flex {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        /* Left column */
-        .left-column {
-            flex: 0 0 30%; /* Take 30% of the width */
-            margin-right: 20px; /* Space between columns */
-        }
-        
-        /* Right column */
-        .right-column {
-            flex: 1; /* Take the remaining space */
-        }
-
-    </style>
-
-    <!-- Summary Section (Top of the page) -->
-    <div class="summary">
-        <div><strong>Total Sick Chicks:</strong> {{ total_sick_chicks }}</div>
-        <div><strong>Total Weight Gain (g):</strong> {{ total_weight_gain }}</div>
-        <div><strong>Total Feed Uplifted (kg):</strong> {{ total_feed_uplifted }}</div>
-        <div><strong>Total Water Consumption (L):</strong> {{ total_water_consumption }}</div>
-        <div><strong>Average Temperature (°C):</strong> {{ average_temperature|floatformat:1 }}</div>
-        <div><strong>Total Mortality Count:</strong> {{ total_mortality_count }}</div>
-    </div>
-
-    <div class="row-flex">
-        <!-- Left Side: Filter Form -->
-        <div class="left-column">
-            <div class="filter-form">
-                <form method="GET">
-                    <div class="form-group">
-                        <label for="start_date">Start Date:</label>
-                        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="end_date">End Date:</label>
-                        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="category">Select Category:</label>
-                        <select name="category" id="category" class="form-control">
-                            <option value="">All Categories</option>
-                            <option value="weight_gain" {% if selected_category == 'weight_gain' %}selected{% endif %}>Weight Gain</option>
-                            <option value="sick_chicks" {% if selected_category == 'sick_chicks' %}selected{% endif %}>Sick Chicks</option>
-                            <option value="mortality_count" {% if selected_category == 'mortality_count' %}selected{% endif %}>Mortality Count</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="number" name="min_value" class="form-control" value="{{ min_value }}" placeholder="Min Value">
-                    </div>
-                    <div class="form-group">
-                        <input type="number" name="max_value" class="form-control" value="{{ max_value }}" placeholder="Max Value">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                </form>
-            </div>
+{% extends 'stakeholder.html' %} {% load static %} {% block body %}
+<section class="content-section">
+  <div class="row-flex">
+    <!-- Left Side: Filter Form -->
+    <div class="left-column">
+      <div class="filter-form">
+        <form method="GET">
+          <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input
+              type="date"
+              name="start_date"
+              class="form-control"
+              value="{{ start_date }}"
+            />
+          </div>
+          <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input
+              type="date"
+              name="end_date"
+              class="form-control"
+              value="{{ end_date }}"
+            />
+          </div>
+          <div class="form-group">
+            <label for="category">Select Category:</label>
+            <select name="category" id="category" class="form-control">
+              <option value="">All Categories</option>
+              <option value="weight_gain" {% if selected_category == 'weight_gain' %}selected{% endif %}>Weight Gain
+              <option value="sick_chicks" {% if selected_category == 'sick_chicks'%}selected{% endif %}>Sick Chicks 
+              <option value="mortality_count" {% if selected_category == 'mortality_count' %}selected{% endif %}>Mortality Count
+            </select>
+          </div>
+          <div class="form-group">
+            <input
+              type="number"
+              name="min_value"
+              class="form-control"
+              value="{{ min_value }}"
+              placeholder="Min Value"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              type="number"
+              name="max_value"
+              class="form-control"
+              value="{{ max_value }}"
+              placeholder="Max Value"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+      </div>
+        <!-- Display any non-field errors at the top -->
+        {% if form.non_field_errors %}
+        <div >
+          {% for error in form.non_field_errors %}
+          <p style="color: rgb(235, 60, 60);">{{ error }}</p>
+          {% endfor %}
         </div>
+        {% endif %}
 
-        <!-- Right Side: Table Section -->
-        <div class="right-column">
-            <!-- Display error message if no data is found -->
-            {% if error_message %}
-            <div class="error-message">{{ error_message }}</div>
+        <form method="post">
+          {% csrf_token %} {% if batch.batch_status == 'completed' %}
+          <div class="form-group">
+            <label for="one_kg_count" class="form-label"
+              >1 Kg Chickens Count</label
+            >
+            {{ form.one_kg_count }} {% if form.one_kg_count.errors %}
+            <div class="text-danger">
+              {% for error in form.one_kg_count.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
             {% endif %}
-
-            <div class="table-container">
-                <table class="table table-bordered table-responsive">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Alive Count</th>
-                            <th>Sick Chicks</th>
-                            <th>Weight Gain (g)</th>
-                            <th>Feed Uplifted (kg)</th>
-                            <th>Water Consumption (L)</th>
-                            <th>Temperature (°C)</th>
-                            <th>Mortality Count</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for daily_data in daily_data_records %}
-                        <tr>
-                            <td>{{ daily_data.date }}</td>
-                            <td>{{ daily_data.alive_count }}</td>
-                            <td>{{ daily_data.sick_chicks }}</td>
-                            <td>{{ daily_data.weight_gain }}</td>
-                            <td>{{ daily_data.feed_uplifted }}</td>
-                            <td>{{ daily_data.water_consumption }}</td>
-                            <td>{{ daily_data.temperature }}</td>
-                            <td>{{ daily_data.mortality_count }}</td>
-                            <td>
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'edit_daily_data' daily_data.id %}" class="btn btn-warning btn-sm">Edit</a>
-                                    <form method="POST" action="{% url 'delete_daily_data' daily_data.id %}" onsubmit="return confirmDeletion();" style="margin-left: 5px;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center">No records found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <!-- Pagination Section -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        {% if daily_data_records.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}" aria-label="First">
-                                <span aria-hidden="true">&laquo;&laquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ daily_data_records.previous_page_number }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                        {% endif %}
-
-                        {% for num in daily_data_records.paginator.page_range %}
-                        <li class="page-item {% if daily_data_records.number == num %}active{% endif %}">
-                            <a class="page-link" href="?page={{ num }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}">{{ num }}</a>
-                        </li>
-                        {% endfor %}
-
-                        {% if daily_data_records.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ daily_data_records.next_page_number }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ daily_data_records.paginator.num_pages }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}" aria-label="Last">
-                                <span aria-hidden="true">&raquo;&raquo;</span>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
+          </div>
+          <div class="form-group">
+            <label for="two_kg_count" class="form-label"
+              >2 Kg Chickens Count</label
+            >
+            {{ form.two_kg_count }} {% if form.two_kg_count.errors %}
+            <div class="text-danger">
+              {% for error in form.two_kg_count.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
             </div>
-        </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="three_kg_count" class="form-label"
+              >3 Kg Chickens Count</label
+            >
+            {{ form.three_kg_count }} {% if form.three_kg_count.errors %}
+            <div class="text-danger">
+              {% for error in form.three_kg_count.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <!-- Show the default fields when the batch is not completed -->
+          <div class="form-group">
+            <label for="price_per_kg" class="form-label">Price Per Kg</label>
+            {{ form.price_per_kg }} {% if form.price_per_kg.errors %}
+            <div class="text-danger">
+              {% for error in form.price_per_kg.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="price_per_batch" class="form-label"
+              >Price Per Batch</label
+            >
+            {{ form.price_per_batch }} {% if form.price_per_batch.errors %}
+            <div class="text-danger">
+              {% for error in form.price_per_batch.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="batch_status" class="form-label">Batch Status</label>
+            {{ form.batch_status }} {% if form.batch_status.errors %}
+            <div class="text-danger">
+              {% for error in form.batch_status.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="duration" class="form-label">Duration</label>
+            {{ form.duration }} {% if form.duration.errors %}
+            <div class="text-danger">
+              {% for error in form.duration.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-primary">Update</button>
+        </form>
     </div>
-</div>
+
+    <!-- Right Side: Table Section -->
+    <div class="right-column">
+      <!-- Display error message if no data is found -->
+      {% if error_message %}
+      <div class="error-message">{{ error_message }}</div>
+      {% endif %}
+
+      <div>
+        {% for daily_data in daily_data_records %}
+        <table class="table-container">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Alive Count</th>
+              <th>Sick Chicks</th>
+              <th>Weight Gain (g)</th>
+              <th>Feed Uplifted (kg)</th>
+              <th>Water Consumption (L)</th>
+              <th>Temperature (°C)</th>
+              <th>Mortality Count</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-data">
+              <td>{{ daily_data.date }}</td>
+              <td>{{ daily_data.alive_count }}</td>
+              <td>{{ daily_data.sick_chicks }}</td>
+              <td>{{ daily_data.weight_gain }}</td>
+              <td>{{ daily_data.feed_uplifted }}</td>
+              <td>{{ daily_data.water_consumption }}</td>
+              <td>{{ daily_data.temperature }}</td>
+              <td>{{ daily_data.mortality_count }}</td>
+              <td>
+                <a
+                  href="{% url 'edit_daily_data' daily_data.id %}"
+                  class="btn btn-warning btn-sm"
+                  >Edit</a
+                >
+                <form
+                  method="POST"
+                  action="{% url 'delete_daily_data' daily_data.id %}"
+                  style="display: inline"
+                  onsubmit="return confirmDeletion();"
+                >
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center">No records found.</td>
+            </tr>
+          </tbody>
+        </table>
+        {% endfor %}
+
+        <!-- Pagination Section -->
+        <nav aria-label="Page navigation">
+          <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page=1&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                aria-label="First"
+              >
+                <span aria-hidden="true">&laquo;&laquo;</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ page_obj.previous_page_number }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                aria-label="Previous"
+              >
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            {% endif %} {% for num in page_obj.paginator.page_range %}
+            <li
+              class="page-item {% if page_obj.number == num %}active{% endif %}"
+            >
+              <a
+                class="page-link"
+                href="?page={{ num }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                >{{ num }}</a
+              >
+            </li>
+            {% endfor %} {% if page_obj.has_next %}
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ page_obj.next_page_number }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                aria-label="Next"
+              >
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+            <li class="page-item">
+              <a
+                class="page-link"
+                href="?page={{ page_obj.paginator.num_pages }}&category={{ selected_category }}&min_value={{ min_value }}&max_value={{ max_value }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                aria-label="Last"
+              >
+                <span aria-hidden="true">&raquo;&raquo;</span>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

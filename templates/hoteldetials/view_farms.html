@@ -1,0 +1,72 @@
+{% extends 'hoteldetials/dashboard.html' %} {% block content %}
+<div class="container">
+    <h1>{{ farm.name }}</h1>
+    <span>Owner: {{ farm.full_name }}</span>
+    <br>
+    <span>Location: {{ farm.location }}</span>
+    <br>
+    <span>Address: {{ farm.address }}</span>
+    <br>
+    <img src="{{ farm.farm_image.url }}" alt="{{ farm.full_name }}" class="farm-image" />
+    
+    <hr />
+
+    <h2>Available Batches for Ordering</h2>
+    
+    {% if batches %}
+        {% for batch in batches %}
+        <div class="batch-card">
+            <h3>Batch from {{ batch.batch_date }}</h3>
+            <span>Status: {{ batch.batch_status }}</span>
+            <h5>Chicken Type: {{ batch.batch_type }}</h5>
+            <br>
+            <span>1 kg chickens available: {{ batch.one_kg_count }}</span>
+            <br>
+            <span>2 kg chickens available: {{ batch.two_kg_count }}</span>
+            <br>
+            <span>3 kg chickens available: {{ batch.three_kg_count }}</span>
+            <br>
+            <!-- Order Form for this Batch -->
+            <form method="POST" class="order-form">
+                {% csrf_token %}
+                
+                <!-- Hidden input to pass the batch ID -->
+                <input type="hidden" name="batch_id" value="{{ batch.id }}">
+
+                <div class="form-group">
+                    <label for="id_one_kg_count_{{ batch.id }}">below 1 kg chickens:</label>
+                    {{ order_form.one_kg_count }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_two_kg_count_{{ batch.id }}">1-2 kg chickens:</label>
+                    {{ order_form.two_kg_count }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_three_kg_count_{{ batch.id }}">2-3 kg chickens:</label>
+                    {{ order_form.three_kg_count }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Order from this Batch</button>
+                
+                {% if order_form.errors %}
+                <div class="error">
+                    {% for field in order_form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </form>
+            
+            <hr />
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No completed batches are available for ordering.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

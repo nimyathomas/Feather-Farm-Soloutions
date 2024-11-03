@@ -1,84 +1,90 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
+{% extends 'stakeholder.html' %} {% load static %} {% block body %}
+<section class="content-section">
+  <h3>Daily Updates</h3>
+  {% if messages %}
+  <div class="alert alert-info" role="alert">
+    {% for message in messages %} {{ message }}<br />
+    {% endfor %}
+  </div>
+  {% endif %}
 
-{% block body %}
-    <div class="container mt-5">
-    
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <form method="POST" id="daily-data-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="batch-select">Select Batch:</label>
-                <select name="batch" id="batch-select" class="form-control" required>
-                    <option value="" disabled {% if not selected_batch %}selected{% endif %}>Select a batch</option>
-                    {% for b in all_batches %}
-                        <option value="{{ b.id }}" 
-                                data-initial-chick-count="{{ b.initial_chick_count }}" 
-                                data-live-chick-count="{{ b.live_chick_count }}" 
-                                data-mortality-count="{{ b.total_mortality_count }}"
-                                {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}>
-                            {{ b.batch_date|date:"F j, Y" }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div id="counts-display">
-                <p>Initial Chick Count: <span id="initial-chick-count">{{ initial_chick_count }}</span></p>
-                <p>Updated Alive Count: <span id="updated-alive-count">{{ updated_alive_count }}</span></p>
-                <p>Updated Mortality Count: <span id="updated-mortality-count">{{ updated_mortality_count }}</span></p>
-            </div>
-            
-
-            <table id="daily-entries" class="table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Alive Count</th>
-                        <th>Sick Chicks</th>
-                        <th>Mortality Count</th>
-                        <th>Feed Uplifted (kg)</th>
-                        <th>Water Consumption (L)</th>
-                        <th>Weight Gain (g)</th>
-                        <th>Temperature (°C)</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="daily-entry">
-                        <td><input type="date" name="date[]" class="form-control date-input" required></td>
-                        <td><input type="number" name="alive_count[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="sick_chicks[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="mortality_count[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="feed_uplifted[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="water_consumption[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="weight_gain[]" class="form-control positive-input" required></td>
-                        <td><input type="number" name="temperature[]" class="form-control" required></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <button type="submit" class="btn btn-primary mt-3">Submit Daily Data</button>
-        </form>
+  <form method="POST" id="daily-data-form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="batch-select">Select Batch:</label>
+      <select name="batch" id="batch-select" class="form-control" required>
+        <option
+          value=""
+          disabled
+          {%
+          if
+          not
+          selected_batch
+          %}selected{%
+          endif
+          %}
+        >
+          Select a batch
+        </option>
+        {% for b in all_batches %}
+        <option value="{{ b.id }}"
+        data-initial-chick-count="{{ b.initial_chick_count }}"
+        data-live-chick-count="{{ b.live_chick_count }}"
+        data-mortality-count="{{ b.total_mortality_count }}" 
+        {% if selected_batch and selected_batch.id == b.id %} selected {% endif %}> 
+        {{b.batch_date|date:"F j, Y" }}
+         
+      </select>
     </div>
 
-    <style>
-        .table th, .table td {
-            border: 1px solid #dee2e6;
-            padding: 8px;
-            text-align: left;
-        }
-        .table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-    </style>
+    <div id="counts-display">
+      <p>
+        Initial Chick Count:
+        <span id="initial-chick-count">{{ b.initial_chick_count }}</span>
+      </p>
+      <p>
+        Updated Alive Count:
+        <span id="updated-alive-count">{{ b.available_chickens }}</span>
+      </p>
+      <p>
+        Chicken Type:
+        <span id="updated-mortality-count">{{ b.batch_type }}</span>
+      </p>
+    </div>
+    {% endfor %}
+    <!-- Wrapper div with a fixed height for scrollable table -->
+    <div class="scrollable-table-wrapper">
+        <table id="daily-entries" class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Alive Count</th>
+                    <th>Sick Chicks</th>
+                    <th>Mortality Count</th>
+                    <th>Feed Uplifted (kg)</th>
+                    <th>Water Consumption (L)</th>
+                    <th>Weight Gain (g)</th>
+                    <th>Temperature (°C)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="daily-entry">
+                    <td><input type="date" name="date[]" class="form-control date-input" required></td>
+                    <td><input type="number" name="alive_count[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="sick_chicks[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="mortality_count[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="feed_uplifted[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="water_consumption[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="weight_gain[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="temperature[]" class="form-control" required></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <button type="submit" class="btn btn-primary mt-3">
+      Submit Daily Data
+    </button>
+  </form>
+</section>
 {% endblock %}

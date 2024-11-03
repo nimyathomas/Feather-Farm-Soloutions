@@ -1,166 +1,155 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
+{% extends 'stakeholder.html' %} 
+{% load static %} 
 {% block body %}
 
 <title>User Update Form</title>
 <!-- Bootstrap for styling -->
 
 <section class="content-section">
-    <h2 class="text-center">User Profile</h2>
+  <h2 class="text-center">User Profile</h2>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- User Email (readonly) -->
+    <div class="form-group">
+      <label for="email" class="form-label">Email</label>
+      <input
+        type="email"
+        class="form-control"
+        name="email"
+        value="{{ user_form.email.value }}"
+        readonly
+      />
+    </div>
+
+    <!-- User Full Name -->
+    <div class="form-group">
+      <label for="full_name" class="form-label">Full Name</label>
+      {{ user_form.full_name }}
+    </div>
+
+    <!-- User Phone Number -->
+    <div class="form-group">
+      <label for="phone_number" class="form-label">Phone Number</label>
+      {{ user_form.phone_number }}
+    </div>
+
+    <!-- Farm Image -->
+<div class="form-group">
+  <label for="farm_image" class="form-label">Farm Image</label>
+  {% if user.farm_image and user.farm_image.url %}
+  <div class="current-image mb-2">
+    <img
+      src="{{ user.farm_image.url }}"
+      alt="Farm Image"
+      class="img-thumbnail"
+      style="max-width: 200px; max-height: 200px"
+    />
+  </div>
+  {% endif %}
+  {{ user_form.farm_image }}
+  {% if user_form.farm_image.errors %}
+  <div class="text-danger">
+    {% for error in user_form.farm_image.errors %}
+    <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
 
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-       
+    <!-- Coop Length -->
+    <div class="form-group">
+      <label for="length" class="form-label">Coop Length</label>
+      {{ user_form.length }} 
+      {% if user_form.length.errors %}
+      <div class="text-danger">{{ user_form.length.errors }}</div>
+      {% endif %}
+    </div>
 
-        <!-- Email field (readonly) -->
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" class="form-control" name="email" value="{{ form.email.value }}" readonly>
-        </div>
+    <!-- Coop Breadth -->
+    <div class="form-group">
+      <label for="breadth" class="form-label">Coop Breadth</label>
+      {{ user_form.breadth }} 
+      {% if user_form.breadth.errors %}
+      <div class="text-danger">{{ user_form.breadth.errors }}</div>
+      {% endif %}
+    </div>
 
-        <!-- Full Name -->
-        <div class="form-group">
-            <label for="full_name">Full Name</label>
-            {{ form.full_name }}
-        </div>
+    <!-- Pollution Certificate Expiry Date -->
+    <div class="form-group">
+      <label for="expiry_date" class="form-label">Pollution Certificate Expiry Date</label>
+      {{ user_form.expiry_date }} 
+      {% if user_form.expiry_date.errors %}
+      <div class="text-danger">{{ user_form.expiry_date.errors }}</div>
+      {% endif %}
+    </div>
 
-        <!-- Phone Number -->
-        <div class="form-group">
-            <label for="phone_number">Phone Number</label>
-            {{ form.phone_number }}
-        </div>
-        <div class="form-group">
-            <label for="farm_image">Farm Image</label>
-            {% if user_data.farm_image %}
-                <div class="current-image">
-                    <img src="{{ user_data.farm_image.url }}" alt="Farm Image" style="max-width: 200px; max-height: 200px;">
-                </div>
-            {% endif %}
-            {{ form.farm_image }}
-            {% if form.farm_image.errors %}
-                <div class="text-danger">
-                    {% for error in form.farm_image.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        
+    <!-- Pollution Certificate -->
+    <div class="form-group">
+      <label for="pollution_certificate" class="form-label">Pollution Certificate</label>
+      {% if user_form.pollution_certificate %}
+      <div>
+        <a href="{{ user.pollution_certificate }}" target="_blank">View Current Pollution Certificate</a>
+      </div>
+      {% endif %} 
+      {{ user_form.pollution_certificate }} 
+      {% if user_form.pollution_certificate.errors %}
+      <div class="text-danger">{{ user_form.pollution_certificate.errors }}</div>
+      {% endif %}
+    </div>
 
+    <!-- Farm Name -->
+    <div class="form-group">
+      <label for="name" class="form-label">Farm Name</label>
+      {{ user_form.name }}
+    </div>
 
+    <!-- Farm Address -->
+    <div class="form-group">
+      <label for="address" class="form-label">Farm Address</label>
+      {{ user_form.address }} 
+      {% if user_form.address.errors %}
+      <div class="text-danger">
+        {% for error in user_form.address.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
 
-        <div class="form-group">
-            <label for="length">Coop Length</label>
-            {{ form.length }}
-            {% if form.length.errors %}
-                <div class="text-danger">
-                    {{ form.length.errors }}
-                </div>
-            {% endif %}
-        </div>
+    <!-- Farm Location -->
+    <div class="form-group">
+      <label for="location" class="form-label">Farm Location</label>
+      {{ user_form.location }} 
+      {% if user_form.location.errors %}
+      <div class="text-danger">
+        {% for error in user_form.location.errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
 
-        <!-- Breadth of the farm -->
-        <div class="form-group">
-            <label for="breadth">Coop Breadth</label>
-            {{ form.breadth }}
-            {% if form.breadth.errors %}
-                <div class="text-danger">
-                    {{ form.breadth.errors }}
-                </div>
-            {% endif %}
-        </div>
-        {% if form.non_field_errors %}
-        <div class="alert alert-danger" style="font-size: small; color: red;">
-            <ul>
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-         </div>
-         {% endif %}
+    <!-- Farm Plan -->
+    <div class="form-group">
+      <label for="plan_file" class="form-label">Farm Plan</label>
+      {% if user_form.plan_file %}
+      <div>
+        <a href="{{ user_form.plan_file.url }}" target="_blank">View Farm Plan</a>
+      </div>
+      {% endif %}
+      {{ user_form.plan_file }}
+      {% if user_form.plan_file.errors %}
+      <div class="text-danger mt-2">{{ user_form.plan_file.errors }}</div>
+      {% endif %}
+    </div>
+    
 
-
-        <div class="form-group">
-            <label for="expiry_date">Pollution Certificate Expiry Date</label>
-            {{ form.expiry_date }}
-            {% if form.expiry_date.errors %}
-                <div class="text-danger">
-                    {{ form.expiry_date.errors }}
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Pollution Certificate -->
-        <div class="form-group">
-            <label for="plan_file">Pollution Certificate</label>
-            {% if user_data.pollution_certificate %}
-                <div>
-                    <a href="{{ user_data.pollution_certificate.url }}" target="_blank">View Current Pollution Certificate</a>
-                </div>
-            {% endif %}
-            {{ form.pollution_certificate }}
-            {% if form.pollution_certificate.errors %}
-                <div class="text-danger">
-                    {{ form.pollution_certificate.errors }}
-                </div>
-            {% endif %}
-        </div>
-
-
-        <div class="form-group">
-            <label for="coopcapacity">Coop Capacity</label>
-            {{ form.coopcapacity }}  <!-- Render the input field for coop capacity -->
-            {% if form.coopcapacity.errors %}
-                <div class="text-danger">
-                    {% for error in form.coopcapacity.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        
-        
-        
-        
-       
-        <!-- Farm Address -->
-        <div class="form-group">
-            <label for="address">Farm Address</label>
-            {{ form.address }}
-            {% if form.address.errors %}
-                <div class="text-danger">
-                    {% for error in form.address.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-       
-        <div class="form-group">
-            <label for="plan_file">Farm Plan</label>
-        
-            <!-- Display a link if a plan file already exists for the user -->
-            {% if user_data.plan_file %}
-                <div>
-                    <a href="{{ user_data.plan_file.url }}" target="_blank">View Farm Plan</a>
-                </div>
-            {% endif %}
-        
-            <!-- File input field -->
-            {{ form.plan_file }}
-        
-            <!-- Display error message if there are any validation errors for the plan_file field -->
-            {% if form.plan_file.errors %}
-                <div class="text-danger mt-2">
-                    {{ form.plan_file.errors }}
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary">Update</button>
-    </form>
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary">Update</button>
+  </form>
 </section>
 
 {% endblock %}

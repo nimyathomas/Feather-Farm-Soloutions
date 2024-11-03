@@ -1,4 +1,5 @@
 
+from celery.schedules import crontab
 from pathlib import Path, os
 
 
@@ -31,6 +32,8 @@ INSTALLED_APPS = [
 
     'stakeholder.apps.StakeholderConfig',
     'user',
+    'hoteldetails',
+
     'crispy_forms',
     'crispy_bootstrap5',
 
@@ -95,6 +98,7 @@ DATABASES = {
         }
     }
 }
+
 
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -211,10 +215,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone
 
 # settings.py
-
-
-from celery.schedules import crontab
-
 
 
 CELERY_BEAT_SCHEDULE = {

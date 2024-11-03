@@ -160,6 +160,56 @@ h2 {
     margin-bottom: 10px;
 }
 
+/* stakeholder page */
+.close {
+    color: red;
+    /* Red color for the close button */
+    font-size: 20px;
+    /* Adjust the size */
+    font-weight: bold;
+    /* Make it bold */
+    cursor: pointer;
+    /* Pointer on hover */
+}
+
+.close:hover {
+    color: darkred;
+    /* Darker red when hovered */
+}
+
+/* Optional: Styling for alert messages */
+.alert {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    position: relative;
+    color: white;
+}
+
+.alert-success {
+    background-color: #4caf50;
+    /* Green for success */
+}
+
+.alert-error {
+    background-color: #f44336;
+    /* Red for error */
+}
+
+.alert-warning {
+    background-color: #ff9800;
+    /* Orange for warning */
+}
+
+.alert-info {
+    background-color: #2196f3;
+    /* Blue for info */
+}
+
+.status-red {
+    color: red;
+}
+
 /* Table Styling */
 .user-list-table {
     width: 100%;
@@ -245,15 +295,6 @@ h2 {
 }
 
 /* Card Styles */
-.card {
-    padding: 20px;
-}
-
-.profile-container {
-    width: 90%;
-    margin: 0 auto;
-    padding: 20px;
-}
 
 .flex-container {
     display: flex;
@@ -270,18 +311,10 @@ h2 {
 }
 
 .right-section {
-    max-width: 400px;
+    max-width: 550px;
     /* Adjust the width as needed */
 }
 
-.info-section,
-.coop-info {
-    margin-bottom: 20px;
-}
-
-.coop-info {
-    margin-bottom: 20px;
-}
 
 .coop-info-item {
     display: flex;
@@ -313,7 +346,7 @@ h2 {
 
 .farm-image,
 .certificate-image {
-    width: 100%;
+    width: 20%;
     height: auto;
     margin-bottom: 10px;
 }
@@ -323,19 +356,32 @@ h2 {
     margin-top: 10px;
 }
 
-.update-form {
-    margin-bottom: 20px;
-}
-
-.chick-count {
-    display: flex;
-    flex-direction: column;
+.form-group {
+    margin-bottom: 15px;
 }
 
 .form-control {
+    width: 80%;
     padding: 8px;
-    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
 }
+
+.form-text {
+    font-size: 0.9em;
+    color: #6c757d;
+    display: block;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 
 .btn-submit {
     padding: 10px 20px;
@@ -348,19 +394,160 @@ h2 {
 .btn-submit:hover {
     background-color: #0056b3;
 }
-.back-button{
-    display: inline-block;
-    background-color: #3ce7ea;
-    padding: 7px;
-    border-radius: 2px;
-    border: none;
-}
-.back-button a {
-    text-decoration: none;
-    color: #333;
-    
+
+
+
+
+/* Profile and Purchase History Container */
+.profile-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
+.back-button {
+    text-decoration: none;
+    color: #fff;
+    background-color: #007bff;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+/* Purchase List */
+.purchase-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.purchase-item {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    height: 170px;
+}
+
+
+.order-header {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+.order-info {
+   margin: 0;
+   padding: 0;
+}
+
+.payment-method.cod {
+    color: #007bff;
+}
+
+.payment-method.online {
+    color: #28a745;
+}
+
+.payment-method.upi {
+    color: #ff5733;
+}
+
+/* Status Colors */
+.order-status.pending {
+    color: #ffc107;
+}
+
+.order-status.completed {
+    color: #28a745;
+}
+
+.order-status.cancelled {
+    color: #dc3545;
+}
+
+/* Approve Button */
+.approve-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.approve-button:hover {
+    background-color: #218838;
+}
+
+
+
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    background-color: #007bff;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+    th, td {
+        display: block;
+        text-align: right;
+    }
+
+    tr {
+        margin-bottom: 15px;
+        display: block;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        position: absolute;
+        left: -9999px;
+    }
+}
 
 
 /* Responsive Design */

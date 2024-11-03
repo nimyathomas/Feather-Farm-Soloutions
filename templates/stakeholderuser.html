@@ -6,6 +6,25 @@
     <div class="header">
         <h2>Stakeholder List</h2>
     </div>
+    {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div
+      class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}"
+      role="alert"
+    >
+      {{ message }}
+      <span
+        class="close"
+        onclick="this.parentElement.style.display='none'"
+        aria-label="Close"
+        >&times;</span
+      >
+      <!-- Close button -->
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
     <div class="table-container">
         <table class="user-list-table">
             <thead>
@@ -28,7 +47,7 @@
                         <a href="{% url 'stakeholderuserprofile' user.id %}" class="view-btn">View</a>
                         <form action="{% url 'toggle_user_status' user.id %}" method="POST" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-warning">
+                            <button type="submit" class="delete-btn">
                                 {% if user.is_active %}Disable{% else %}Enable{% endif %}
                             </button>
                         </form>

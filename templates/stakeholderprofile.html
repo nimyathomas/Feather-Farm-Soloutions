@@ -1,78 +1,48 @@
-{% extends 'admindash.html' %}
-{% load static %}
+{% extends 'admindash.html' %} 
+{% load static %} 
 {% block body %}
 <div class="profile-container">
-  <button class="back-button">
-    <a href="{% url 'stakeholderuser' %}">back</a>
-  </button>
-
-  <style>
-    .close {
-      color: red; /* Red color for the close button */
-      font-size: 20px; /* Adjust the size */
-      font-weight: bold; /* Make it bold */
-      cursor: pointer; /* Pointer on hover */
-  }
-
-  .close:hover {
-      color: darkred; /* Darker red when hovered */
-  }
-
-  /* Optional: Styling for alert messages */
-  .alert {
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 5px;
-      position: relative;
-      color: white;
-  }
-
-  .alert-success {
-      background-color: #4CAF50; /* Green for success */
-  }
-
-  .alert-error {
-      background-color: #f44336; /* Red for error */
-  }
-
-  .alert-warning {
-      background-color: #ff9800; /* Orange for warning */
-  }
-
-  .alert-info {
-      background-color: #2196F3; /* Blue for info */
-  }
-  .status-red {
-    color: red;
-}
-
-  </style>
-   {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
-                {{ message }}
-                <span class="close" onclick="this.parentElement.style.display='none'" aria-label="Close">&times;</span> <!-- Close button -->
-            </div>
-        {% endfor %}
+  <a class="back-button" href="{% url 'stakeholderuser' %}">back</a>
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div
+      class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}"
+      role="alert"
+    >
+      {{ message }}
+      <span
+        class="close"
+        onclick="this.parentElement.style.display='none'"
+        aria-label="Close"
+        >&times;</span
+      >
+      <!-- Close button -->
     </div>
-{% endif %} 
+    {% endfor %}
+  </div>
+  {% endif %}
 
-<p>User Status: <strong class="status-red">{% if user.is_active %}Active{% else %}Disabled{% endif %}</strong></p>
-
-
-
-  <h1>Stakeholder Profile</h1>
+  <p>
+    User Status:
+    <strong class="status-red"
+      >{% if user.is_active %}Active{% else %}Disabled{% endif %}</strong
+    >
+  </p>
+  <!-- Farm Image Section -->
+  <h4>{{ user.name }}</h4>
+  {% if user.farm_image %}
+  <img src="{{ user.farm_image.url }}" alt="image of farm" class="farm-image" />
+  {% else %}
+  <p>No farm image available</p>
+  {% endif %}
 
   <div class="card profile-card">
     <!-- Flex Container for two columns -->
     <div class="flex-container">
-   
-
       <!-- Left Column: Profile and Coop Info -->
       <div class="left-section">
         <div class="info-section">
-          <h2>{{ user.name }}</h2>
           <p>Name: <span>{{ user.full_name }}</span></p>
           <p>Email: <span>{{ user.email }}</span></p>
           <p>Address: <span>{{ user.address }}</span></p>
@@ -80,104 +50,181 @@
         </div>
 
         <div class="coop-info">
-            <h3>Coop Information</h3>
-            <div class="coop-info-item">
-              <span class="coop-label">Coop Length:</span>
-              <span class="coop-value">{{ user.length }} meters</span>
-            </div>
-            <div class="coop-info-item">
-              <span class="coop-label">Coop Breadth:</span>
-              <span class="coop-value">{{ user.breadth }} meters</span>
-            </div>
-            {% comment %} <div class="coop-info-item">
-              <span class="coop-label">Coop Capacity:</span>
-              <span class="coop-value">{{ user.coopcapacity }} birds</span>
-            </div> {% endcomment %}
-            <div class="coop-info-item">
-              <span class="coop-label">Pollution Board Certificate Expiry:</span>
-              <span class="coop-value">{{ user.expiry_date }}</span>
-            </div>
-            <div class="coop-info-item">
-              <span class="coop-label">Chicken Count:</span>
-              <span class="coop-value">{{ total_chick_count}} </span>
-            </div>
-            <div class="coop-info-item">
-              <strong class="coop-label">Area:</strong>
-              <span class="coop-value">{{ user.length }} x {{ user.breadth }} = {{sqr_feet}} sq ft</span>
-            </div>
+          <h3>Coop Information</h3>
+          <div class="coop-info-item">
+            <span class="coop-label">Coop Length:</span>
+            <span class="coop-value">{{ user.length }} meters</span>
           </div>
-          
-      </div>
-      
-      <!-- Right Column: Farm Image, Certificate, and Chick Count -->
-    <div class="right-section">
-      <p>Number of birds you can grow: {{ birds_can_accommodate }}</p>
-
-      {% if user.is_active %}
-      <form action="{% url 'update_chick_count' user.id %}" method="POST" class="update-form">
-          {% csrf_token %}
-          <div class="chick-count">
-              <h3>Update Chick Count</h3>
-              <input type="number" name="initial_chick_count" placeholder="Enter number of chicks" class="form-control" id="chickCount" required />
-              <span id="error-msg" style="color: red; display: none;">Chick count cannot be less than zero.</span>
-              <button type="submit" class="btn-submit">Submit Chick Count</button>
-          </div> 
-      </form>
-  {% else %}
-      <p style="color: red;">You cannot add chicks because the user account is disabled.</p>
-  {% endif %}
-  
-      <script>
-        const chickCountInput = document.getElementById('chickCount');
-const errorMsg = document.getElementById('error-msg');
-const birdsCanAccommodate = {{ birds_can_accommodate }}; // Get the coop capacity from Django context
-
-chickCountInput.addEventListener('input', function () {
-    const chickCountValue = parseInt(chickCountInput.value);
-
-    if (chickCountValue < 0) {
-        errorMsg.textContent = 'Chick count cannot be less than zero.';
-        errorMsg.style.display = 'block';
-    } else if (chickCountValue > birdsCanAccommodate) {
-        errorMsg.textContent = `You can only grow a maximum of ${birdsCanAccommodate} birds.`;
-        errorMsg.style.display = 'block';
-    } else {
-        errorMsg.style.display = 'none'; // Hide error message for valid input
-    }
-});
-const form = document.querySelector('.update-form');
-
-form.addEventListener('submit', function(event) {
-    const chickCountValue = parseInt(chickCountInput.value);
-    if (chickCountValue < 0 || chickCountValue > birdsCanAccommodate) {
-        event.preventDefault(); // Prevent form submission
-        errorMsg.style.display = 'block'; // Show error message
-    }
-});
-
-
-
-      </script>
-
-
-
-        <!-- Farm Image Section -->
-        <h3>Farm Image</h3>
-        {% if user.farm_image %}
-        <img src="{{ user.farm_image.url }}" alt="image of farm" class="farm-image" />
-        {% else %}
-        <p>No farm image available</p>
-        {% endif %}
-
+          <div class="coop-info-item">
+            <span class="coop-label">Coop Breadth:</span>
+            <span class="coop-value">{{ user.breadth }} meters</span>
+          </div>
+          {% comment %}
+          <div class="coop-info-item">
+            <span class="coop-label">Coop Capacity:</span>
+            <span class="coop-value">{{ user.coopcapacity }} birds</span>
+          </div>
+          {% endcomment %}
+          <div class="coop-info-item">
+            <span class="coop-label">Pollution Board Certificate Expiry:</span>
+            <span class="coop-value">{{ user.expiry_date }}</span>
+          </div>
+          <div class="coop-info-item">
+            <span class="coop-label">Chicken Count:</span>
+            <span class="coop-value">{{ total_chick_count}} </span>
+          </div>
+          <div class="coop-info-item">
+            <strong class="coop-label">Area:</strong>
+            <span class="coop-value"
+              >{{ user.length }} x {{ user.breadth }} = {{sqr_feet}} sq ft</span
+            >
+          </div>
+        </div>
         <!-- Certificate Section -->
         <h3>Pollution Board Certificate</h3>
         {% if user.pollution_certificate %}
-        <a href="{{ user.pollution_certificate.url }}" download class="download-link">Download Certificate</a>
+        <a
+          href="{{ user.pollution_certificate.url }}"
+          download
+          class="download-link"
+          >Download Certificate</a
+        >
         {% else %}
         <p>No certificate available</p>
+        {% endif %}
+      </div>
+
+      <!-- Right Column: Farm Image, Certificate, and Chick Count -->
+      <div class="right-section">
+        <a class="back-button" href="{% url 'view_stakeholder_view' user.id %}">View batches</a>
+        {% if user.is_active %}
+        <form
+          action="{% url 'update_chick_count' user.id %}"
+          method="POST"
+          class="update-form"
+        >
+          {% csrf_token %}
+          <h5>Provide Chickens</h5>
+          <div class="form-group">
+            <label for="batch_type">Type of Chickens</label>
+            <select
+              name="batch_type"
+              id="batch_type"
+              class="form-control"
+              required
+            >
+              <option value="broiler" {% if batch_type == 'broiler' %}selected{% endif %}>Broiler</option>
+              <option value="organic" {% if batch_type == 'organic' %}selected{% endif %}>Organic</option>
+              <option value="kada" {% if batch_type == 'kada' %}selected{% endif %}>Kada</option>
+            </select>
+            <small class="form-text text-muted">Select the type of chickens for this batch</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="initial_chick_count">Chicken Count</label>
+            <input
+              type="number"
+              name="initial_chick_count"
+              placeholder="Enter number of chicks"
+              class="form-control"
+              id="chickCount"
+              required
+            />
+
+            <span id="error-msg" style="color: red; display: none"
+              >Chick count cannot be less than zero.</span
+            >
+          </div>
+          <div class="form-group">
+            <label for="batch_size">Batch Size (kg)</label>
+            <input
+              type="number"
+              step="0.1"
+              name="batch_size"
+              id="batch_size"
+              class="form-control"
+              placeholder="Enter standard batch size"
+              required
+              value="{{ batch_size|default:50.0 }}"
+            />
+            <small class="form-text text-muted"
+              >Standard weight of a batch (in kg)</small
+            >
+          </div>
+
+          <!-- Price Per Kg Field -->
+          <div class="form-group">
+            <label for="price_per_kg" style="display: block"
+              >Price per kg
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              name="price_per_kg"
+              id="price_per_kg"
+              class="form-control"
+              placeholder="Enter price per kg"
+              required
+              value="{{ price_per_kg }}"
+            />
+            <small class="form-text text-muted">Price per kg of chicken</small>
+          </div>
+
+          <!-- Price Per Batch Field -->
+          <div class="form-group">
+            <label for="price_per_batch">Price per Batch </label>
+            <input
+              type="number"
+              step="0.01"
+              name="price_per_batch"
+              id="price_per_batch"
+              class="form-control"
+              placeholder="Enter price per batch"
+              required
+              value="{{ price_per_batch }}"
+            />
+            <small class="form-text text-muted"
+              >Price per batch of chicken</small
+            >
+          </div>
+
+          <button type="submit" class="btn-submit">Submit Chick Count</button>
+        </form>
+        {% else %}
+        <p style="color: red">
+          You cannot add chicks because the user account is disabled.
+        </p>
         {% endif %}
       </div>
     </div>
   </div>
 </div>
+<script>
+    const chickCountInput = document.getElementById('chickCount');
+  const errorMsg = document.getElementById('error-msg');
+  const birdsCanAccommodate = {{ birds_can_accommodate }}; // Get the coop capacity from Django context
+
+  chickCountInput.addEventListener('input', function () {
+  const chickCountValue = parseInt(chickCountInput.value);
+
+  if (chickCountValue < 0) {
+    errorMsg.textContent = 'Chick count cannot be less than zero.';
+    errorMsg.style.display = 'block';
+  } else if (chickCountValue > birdsCanAccommodate) {
+    errorMsg.textContent = `You can only grow a maximum of ${birdsCanAccommodate} birds.`;
+    errorMsg.style.display = 'block';
+  } else {
+    errorMsg.style.display = 'none'; // Hide error message for valid input
+  }
+  });
+  const form = document.querySelector('.update-form');
+
+  form.addEventListener('submit', function(event) {
+  const chickCountValue = parseInt(chickCountInput.value);
+  if (chickCountValue < 0 || chickCountValue > birdsCanAccommodate) {
+    event.preventDefault(); // Prevent form submission
+    errorMsg.style.display = 'block'; // Show error message
+  }
+  });
+</script>
 {% endblock %}

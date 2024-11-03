@@ -2,46 +2,84 @@
 
 {% block body %}
 <div class="profile-container">
-    <button class="back-button"><a href="{% url 'customeruser' %}">back</a></button>
-    <h1>Customer Profile</h1>
-
-    <div class="card">
-       <!-- Profile and Info Section -->
-<div class="profile-container">
-    <!-- Profile Image -->
-    <!-- <div class="image-section">
-        <img src="{{ user.image.url }}" alt="{{ user.name }}" class="profile-pic">
-    </div> --
-    <!-- Stakeholder Information -->
-    <div class="info-section">
-        <h2>{{ user.name }}</h2>
-        <p>Name: <span>{{ user.full_name }}</span></p>
-        <p>Email: <span>{{ user.email }}</span></p>
-        <p>Address: <span>{{ user.address }}</span></p>
-        <p>Phone: <span>{{ user.phone_number }}</span></p>
+  <a class="back-button" href="{% url 'customeruser' %}">Back</a>
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div
+      class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}"
+      role="alert"
+    >
+      {{ message }}
+      <span
+        class="close"
+        onclick="this.parentElement.style.display='none'"
+        aria-label="Close"
+        >&times;</span
+      >
+      <!-- Close button -->
     </div>
-</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <h1>Customer Profile</h1>
 
+  <div class="card">
+    <!-- Profile Information -->
+    <div class="info-section">
+      <h2>{{ user.name }}</h2>
+      <p>Name: <span>{{ user.full_name }}</span></p>
+      <p>Email: <span>{{ user.email }}</span></p>
+      <p>Address: <span>{{ user.address }}</span></p>
+      <p>Phone: <span>{{ user.phone_number }}</span></p>
+    </div>
 
-     
+    <hr class="divider" />
 
-        <!-- Divider -->
-        <hr class="divider">
-
-           <!-- Coop and Certification Info -->
-           <div class="coop-info">
-            <h3>Purchase History</h3>
-        <ul class="purchase-list">
-            {% for purchase in customer.purchase_history %}
-                <li>{{ purchase.item }} - {{ purchase.date }} - ${{ purchase.amount }}</li>
-            {% empty %}
-                <li>No purchases yet</li>
-            {% endfor %}
-        </ul>
+    <!-- Purchase History Section -->
+    <div class="coop-info">
+      <h3>Purchase History</h3>
+      <ul class="purchase-list">
+        {% for order in orders %}
+        <div class="purchase-item">
+            <div class="order-header">
+              <strong>Order #{{ order.id }}</strong> - {{ order.order_date|date:"Y-m-d" }}
+              <h6><strong>Items Ordered:</strong></h6>
+      
+                <span>1 kg chickens: {{ order.one_kg_count }}</span>
+                <br>
+                <span>2 kg chickens: {{ order.two_kg_count }}</span>
+                <br>
+                <span>3 kg chickens: {{ order.three_kg_count }}</span>
+  
+            </div>
+            <div class="order-info">
+              <p><strong>Total Amount:</strong> ${{ order.price }}</p>
+              
+              <p>
+                <strong>Payment Method:</strong>
+                <span class="payment-method {{ order.payment_method }}">{{ order.payment_method|capfirst }}</span>
+              </p>
+    
+              <p>
+                <strong>Status:</strong>
+                <span class="order-status {{ order.status }}">{{ order.status|capfirst }}</span>
+              </p>
+              
+              <!-- Approve Button (shows only if status is pending) -->
+              {% if order.status == 'pending' %}
+              <form method="post" action="{% url 'approve_order' order.id %}">
+                {% csrf_token %}
+                <button type="submit" class="approve-button">Approve</button>
+              </form>
+              {% endif %}
+            </div>
         </div>
-
+        {% empty %}
+        <li>No purchases yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
 </div>
 {% endblock %}
-
-
-

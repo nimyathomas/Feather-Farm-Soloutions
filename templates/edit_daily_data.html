@@ -1,51 +1,99 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
-
-{% block body %}
-<div class="container mt-5">
-    
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="date">Date:</label>
-            <input type="date" class="form-control" name="date" value="{{ form.date.value|default:'' }}" required>
-        </div>
-        <div class="form-group">
-            <label for="alive_count">Alive Count:</label>
-            <input type="number" class="form-control" name="alive_count" value="{{ form.alive_count.value|default:'' }}" min="0" required>
-        </div>
-        <div class="form-group">
-            <label for="sick_chicks">Sick Chicks:</label>
-            <input type="number" class="form-control" name="sick_chicks" value="{{ form.sick_chicks.value|default:'' }}" min="0" required>
-        </div>
-        <div class="form-group">
-            <label for="weight_gain">Weight Gain (g):</label>
-            <input type="number" class="form-control" name="weight_gain" value="{{ form.weight_gain.value|default:'' }}" min="0" required>
-        </div>
-        <div class="form-group">
-            <label for="feed_uplifted">Feed Uplifted (kg):</label>
-            <input type="number" class="form-control" name="feed_uplifted" value="{{ form.feed_uplifted.value|default:'' }}" min="0" required>
-        </div>
-        <div class="form-group">
-            <label for="water_consumption">Water Consumption (L):</label>
-            <input type="number" class="form-control" name="water_consumption" value="{{ form.water_consumption.value|default:'' }}" min="0" required>
-        </div>
-        <div class="form-group">
-            <label for="temperature">Temperature (°C):</label>
-            <input type="number" class="form-control" name="temperature" value="{{ form.temperature.value|default:'' }}" step="0.1" required>
-        </div>
-        <div class="form-group">
-            <label for="mortality_count">Mortality Count:</label>
-            <input type="number" class="form-control" name="mortality_count" value="{{ form.mortality_count.value|default:'' }}" min="0" required>
-        </div>
-        <div class="btn-container">
-            <button type="submit" class="btn btn-save">Save Changes</button>
-            <a href="{% url 'stakeholder' %}" class="btn btn-cancel">Cancel</a>
-        </div>
-    </form>
-                </div>
-            </div>
-        </div>
+{% extends 'stakeholder.html' %} {% load static %} {% block body %}
+<section class="content-section">
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="date">Date:</label>
+      {{form.date}}
     </div>
-</div>
+    <div class="form-group">
+      <label for="alive_count">Alive Count:</label>
+      <input
+        type="number"
+        class="form-control"
+        name="alive_count"
+        value="{{ form.alive_count.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="sick_chicks">Sick Chicks:</label>
+      <input
+        type="number"
+        class="form-control"
+        name="sick_chicks"
+        value="{{ form.sick_chicks.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="weight_gain">Weight Gain (g):</label>
+      <input
+        type="number"
+        class="form-control"
+        name="weight_gain"
+        value="{{ form.weight_gain.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="feed_uplifted">Feed Uplifted (kg):</label>
+      <input
+        type="number"
+        class="form-control"
+        name="feed_uplifted"
+        value="{{ form.feed_uplifted.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="water_consumption">Water Consumption (L):</label>
+      <input
+        type="number"
+        class="form-control"
+        name="water_consumption"
+        value="{{ form.water_consumption.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="temperature">Temperature (°C):</label>
+      <input
+        type="number"
+        class="form-control"
+        name="temperature"
+        value="{{ form.temperature.value|default:'' }}"
+        step="0.1"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="mortality_count">Mortality Count:</label>
+      <input
+        type="number"
+        class="form-control"
+        name="mortality_count"
+        value="{{ form.mortality_count.value|default:'' }}"
+        min="0"
+        required
+      />
+    </div>
+    <div class="btn-container">
+      <button type="submit" class="btn btn-save">Save Changes</button>
+      <a href="{% url 'stateholder_batch' %}" class="btn btn-cancel">Cancel</a>
+    </div>
+  </form>
+</section>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dateInput = document.getElementById("dateInput");
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    });
+</script>
 {% endblock %}

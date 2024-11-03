@@ -32,10 +32,10 @@
 
   <!-- Dashboard Content -->
   <div class="content">
-    <h1>Welcome !{{user.full_name}} to FeatherFarm</h1>
+    <h1>Welcome! {{user.full_name}} to FeatherFarm</h1>
 
     {% if user_data %} 
-    {% if not user_data.farm_image or not user_data.length or not user_data.breadth or not user_data.expiry_date or not user_data.pollution_certificate or not user_data.coopcapacity or not user_data.address %}
+    {% if not user_data.farm_image or not user_data.length or not user_data.breadth or not user_data.expiry_date or not user_data.pollution_certificate  or not user_data.address %}
     <div class="alert alert-warning" role="alert">
       Please complete your profile by filling in the missing information.
     </div>
@@ -235,10 +235,5 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   }
 });
-
-
-
-
-
 </script>
 {% endblock %}

@@ -17,6 +17,46 @@
         "documentation": {}
     },
     {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "unicode_literals",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "Celery",
+        "importPath": "celery",
+        "description": "celery",
+        "isExtraImport": true,
+        "detail": "celery",
+        "documentation": {}
+    },
+    {
+        "label": "shared_task",
+        "importPath": "celery",
+        "description": "celery",
+        "isExtraImport": true,
+        "detail": "celery",
+        "documentation": {}
+    },
+    {
+        "label": "crontab",
+        "importPath": "celery.schedules",
+        "description": "celery.schedules",
+        "isExtraImport": true,
+        "detail": "celery.schedules",
+        "documentation": {}
+    },
+    {
         "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
@@ -42,6 +82,38 @@
     },
     {
         "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "messages",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "messages",
         "importPath": "django.contrib",
         "description": "django.contrib",
         "isExtraImport": true,
@@ -89,11 +161,83 @@
         "documentation": {}
     },
     {
+        "label": "reverse",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "reverse",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
         "label": "reverse_lazy",
         "importPath": "django.urls",
         "description": "django.urls",
         "isExtraImport": true,
         "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
         "documentation": {}
     },
     {
@@ -130,6 +274,14 @@
     },
     {
         "label": "views",
+        "importPath": "django.contrib.auth",
+        "description": "django.contrib.auth",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth",
+        "documentation": {}
+    },
+    {
+        "label": "get_user_model",
         "importPath": "django.contrib.auth",
         "description": "django.contrib.auth",
         "isExtraImport": true,
@@ -177,148 +329,612 @@
         "documentation": {}
     },
     {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
         "label": "django.db.models.deletion",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "django.db.models.deletion",
         "description": "django.db.models.deletion",
         "detail": "django.db.models.deletion",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "IntegrityError",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
         "documentation": {}
     },
     {
@@ -331,27 +947,35 @@
         "documentation": {}
     },
     {
-        "label": "ChickBatch",
-        "importPath": "stakeholder.models",
-        "description": "stakeholder.models",
+        "label": "now",
+        "importPath": "django.utils.timezone",
+        "description": "django.utils.timezone",
         "isExtraImport": true,
-        "detail": "stakeholder.models",
+        "detail": "django.utils.timezone",
         "documentation": {}
     },
     {
-        "label": "ChickBatch",
-        "importPath": "stakeholder.models",
-        "description": "stakeholder.models",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "stakeholder.models",
+        "detail": "decimal",
         "documentation": {}
     },
     {
-        "label": "ChickBatch",
-        "importPath": "stakeholder.models",
-        "description": "stakeholder.models",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "stakeholder.models",
+        "detail": "decimal",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
         "documentation": {}
     },
     {
@@ -371,23 +995,39 @@
         "documentation": {}
     },
     {
-        "label": "timezone",
-        "importPath": "django.utils",
-        "description": "django.utils",
+        "label": "forms",
+        "importPath": "django",
+        "description": "django",
         "isExtraImport": true,
-        "detail": "django.utils",
+        "detail": "django",
         "documentation": {}
     },
     {
-        "label": "timezone",
-        "importPath": "django.utils",
-        "description": "django.utils",
+        "label": "forms",
+        "importPath": "django",
+        "description": "django",
         "isExtraImport": true,
-        "detail": "django.utils",
+        "detail": "django",
+        "documentation": {}
+    },
+    {
+        "label": "forms",
+        "importPath": "django",
+        "description": "django",
+        "isExtraImport": true,
+        "detail": "django",
         "documentation": {}
     },
     {
         "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserType",
         "importPath": "user.models",
         "description": "user.models",
         "isExtraImport": true,
@@ -400,6 +1040,102 @@
         "description": "user.models",
         "isExtraImport": true,
         "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "Supplier",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "Supplier",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "user.models",
+        "description": "user.models",
+        "isExtraImport": true,
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "DailyData",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickBatch",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "DailyData",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "isExtraImport": true,
+        "detail": "stakeholder.models",
         "documentation": {}
     },
     {
@@ -416,6 +1152,422 @@
         "description": "django.test",
         "isExtraImport": true,
         "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "Paginator",
+        "importPath": "django.core.paginator",
+        "description": "django.core.paginator",
+        "isExtraImport": true,
+        "detail": "django.core.paginator",
+        "documentation": {}
+    },
+    {
+        "label": "Paginator",
+        "importPath": "django.core.paginator",
+        "description": "django.core.paginator",
+        "isExtraImport": true,
+        "detail": "django.core.paginator",
+        "documentation": {}
+    },
+    {
+        "label": "Q",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Sum",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Avg",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Sum",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Cart",
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "isExtraImport": true,
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "CartItem",
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "isExtraImport": true,
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "Order",
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "isExtraImport": true,
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "Order",
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "isExtraImport": true,
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "BaseCommand",
+        "importPath": "django.core.management.base",
+        "description": "django.core.management.base",
+        "isExtraImport": true,
+        "detail": "django.core.management.base",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "Client",
+        "importPath": "twilio.rest",
+        "description": "twilio.rest",
+        "isExtraImport": true,
+        "detail": "twilio.rest",
+        "documentation": {}
+    },
+    {
+        "label": "approve_order",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "download_daily_log",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
         "documentation": {}
     },
     {
@@ -483,7 +1635,7 @@
         "documentation": {}
     },
     {
-        "label": "delete_user",
+        "label": "vaccine_admin",
         "importPath": "user.views",
         "description": "user.views",
         "isExtraImport": true,
@@ -491,67 +1643,91 @@
         "documentation": {}
     },
     {
-        "label": "timedelta",
-        "importPath": "datetime",
-        "description": "datetime",
+        "label": "feed_admin",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "datetime",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "date",
-        "importPath": "datetime",
-        "description": "datetime",
+        "label": "renew_pollution_certificate",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "datetime",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "get_object_or_404",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "supplier_list",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "render",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "add_supplier",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "redirect",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "enable_supplier",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "render",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "disable_supplier",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "redirect",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "edit_supplier",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "get_object_or_404",
-        "importPath": "django.shortcuts",
-        "description": "django.shortcuts",
+        "label": "toggle_user_status",
+        "importPath": "user.views",
+        "description": "user.views",
         "isExtraImport": true,
-        "detail": "django.shortcuts",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "view_stakeholder_view",
+        "importPath": "user.views",
+        "description": "user.views",
+        "isExtraImport": true,
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "OWM",
+        "importPath": "pyowm",
+        "description": "pyowm",
+        "isExtraImport": true,
+        "detail": "pyowm",
+        "documentation": {}
+    },
+    {
+        "label": "HttpResponse",
+        "importPath": "django.http",
+        "description": "django.http",
+        "isExtraImport": true,
+        "detail": "django.http",
         "documentation": {}
     },
     {
@@ -571,37 +1747,11 @@
         "documentation": {}
     },
     {
-        "label": "django.contrib.auth.models",
-        "kind": 6,
+        "label": "login_required",
+        "importPath": "django.contrib.auth.decorators",
+        "description": "django.contrib.auth.decorators",
         "isExtraImport": true,
-        "importPath": "django.contrib.auth.models",
-        "description": "django.contrib.auth.models",
-        "detail": "django.contrib.auth.models",
-        "documentation": {}
-    },
-    {
-        "label": "AbstractUser",
-        "importPath": "django.contrib.auth.models",
-        "description": "django.contrib.auth.models",
-        "isExtraImport": true,
-        "detail": "django.contrib.auth.models",
-        "documentation": {}
-    },
-    {
-        "label": "BaseUserManager",
-        "importPath": "django.contrib.auth.models",
-        "description": "django.contrib.auth.models",
-        "isExtraImport": true,
-        "detail": "django.contrib.auth.models",
-        "documentation": {}
-    },
-    {
-        "label": "django.contrib.auth.validators",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "django.contrib.auth.validators",
-        "description": "django.contrib.auth.validators",
-        "detail": "django.contrib.auth.validators",
+        "detail": "django.contrib.auth.decorators",
         "documentation": {}
     },
     {
@@ -629,14 +1779,6 @@
         "documentation": {}
     },
     {
-        "label": "forms",
-        "importPath": "django",
-        "description": "django",
-        "isExtraImport": true,
-        "detail": "django",
-        "documentation": {}
-    },
-    {
         "label": "AuthenticationForm",
         "importPath": "django.contrib.auth.forms",
         "description": "django.contrib.auth.forms",
@@ -661,6 +1803,73 @@
         "documentation": {}
     },
     {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "AbstractUser",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "BaseUserManager",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "send_mail",
+        "importPath": "django.core.mail",
+        "description": "django.core.mail",
+        "isExtraImport": true,
+        "detail": "django.core.mail",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "PeriodicTask",
+        "importPath": "django_celery_beat.models",
+        "description": "django_celery_beat.models",
+        "isExtraImport": true,
+        "detail": "django_celery_beat.models",
+        "documentation": {}
+    },
+    {
+        "label": "CrontabSchedule",
+        "importPath": "django_celery_beat.models",
+        "description": "django_celery_beat.models",
+        "isExtraImport": true,
+        "detail": "django_celery_beat.models",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
         "label": "LoginView",
         "importPath": "django.contrib.auth.views",
         "description": "django.contrib.auth.views",
@@ -669,11 +1878,20 @@
         "documentation": {}
     },
     {
-        "label": "Sum",
-        "importPath": "django.db.models",
-        "description": "django.db.models",
+        "label": "pandas",
+        "kind": 6,
         "isExtraImport": true,
-        "detail": "django.db.models",
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "floor",
+        "importPath": "math",
+        "description": "math",
+        "isExtraImport": true,
+        "detail": "math",
         "documentation": {}
     },
     {
@@ -692,6 +1910,15 @@
         "description": "FeatherFarmSoloutions.asgi",
         "peekOfCode": "application = get_asgi_application()",
         "detail": "FeatherFarmSoloutions.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.celery",
+        "description": "FeatherFarmSoloutions.celery",
+        "peekOfCode": "app = Celery('FeatherFarmSoloutions')\n# Using a string here means the worker doesn't need to serialize\n# the configuration object to child processes.\n# namespace='CELERY' means all celery-related config keys should have a `CELERY_` prefix.\napp.config_from_object('django.conf:settings', namespace='CELERY')\n# Load task modules from all registered Django app configs.\n# app.autodiscover_tasks()\napp.autodiscover_tasks(['user'])",
+        "detail": "FeatherFarmSoloutions.celery",
         "documentation": {}
     },
     {
@@ -816,7 +2043,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -825,7 +2052,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "TIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type",
+        "peekOfCode": "TIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -870,7 +2097,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "MEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (",
+        "peekOfCode": "MEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -879,7 +2106,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',",
+        "peekOfCode": "MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -888,7 +2115,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',",
+        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -897,7 +2124,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',",
+        "peekOfCode": "EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\nEMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -906,7 +2133,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)",
+        "peekOfCode": "EMAIL_HOST = 'smtp.gmail.com'\nEMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -915,7 +2142,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'",
+        "peekOfCode": "EMAIL_PORT = 587\nEMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -924,7 +2151,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True",
+        "peekOfCode": "EMAIL_USE_TLS = True\nEMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -933,7 +2160,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False",
+        "peekOfCode": "EMAIL_HOST_USER = 'nimyathomas3@gmail.com'\nEMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -942,7 +2169,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "EMAIL_HOST_PASSWORD = 'ProjectCollege@123'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None",
+        "peekOfCode": "EMAIL_HOST_PASSWORD = 'isfa lred wfxt ujws'\nAUTHENTICATION_BACKENDS = (\n    'django.contrib.auth.backends.ModelBackend',\n    'user.backends.EmailBackend',\n    'allauth.account.auth_backends.AuthenticationBackend',\n)\nACCOUNT_AUTHENTICATION_METHOD = 'email'\nACCOUNT_EMAIL_REQUIRED = True\nACCOUNT_USERNAME_REQUIRED = False\nACCOUNT_USER_MODEL_USERNAME_FIELD = None",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1068,7 +2295,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "SITE_ID = 2\nLOGIN_REDIRECT_URL = '/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "peekOfCode": "SITE_ID = 2\nLOGIN_REDIRECT_URL = '/login/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'\n# settings.py\nCELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1077,7 +2304,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "LOGIN_REDIRECT_URL = '/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "peekOfCode": "LOGIN_REDIRECT_URL = '/login/'\nLOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'\n# settings.py\nCELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1086,7 +2313,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "LOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'",
+        "peekOfCode": "LOGOUT_REDIRECT_URL = '/'\nAUTH_USER_MODEL = 'user.User'\n# settings.py\nCELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1095,7 +2322,70 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "AUTH_USER_MODEL = 'user.User'",
+        "peekOfCode": "AUTH_USER_MODEL = 'user.User'\n# settings.py\nCELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_BROKER_URL",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis URL\nCELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_RESULT_BACKEND",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'\nCELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_TASK_SERIALIZER",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_TASK_SERIALIZER = 'json'\nCELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM\n    },",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_ACCEPT_CONTENT",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_ACCEPT_CONTENT = ['json']\nCELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM\n    },\n    'deactivate-expired-users-every-day': {",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_RESULT_SERIALIZER",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_RESULT_SERIALIZER = 'json'\nCELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM\n    },\n    'deactivate-expired-users-every-day': {\n        'task': 'user.tasks.deactivate_expired_users',",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_TIMEZONE",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_TIMEZONE = 'Asia/Kolkata'  # Use your timezone\n# settings.py\nCELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM\n    },\n    'deactivate-expired-users-every-day': {\n        'task': 'user.tasks.deactivate_expired_users',\n        'schedule': 86400.0,  # Run once every 24 hours (86400 seconds)",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CELERY_BEAT_SCHEDULE",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "CELERY_BEAT_SCHEDULE = {\n    'send-expiry-alerts': {\n        'task': 'user.tasks.send_expiry_alerts',\n        'schedule': crontab(hour=23, minute=7),  # Daily at 3:03 PM\n    },\n    'deactivate-expired-users-every-day': {\n        'task': 'user.tasks.deactivate_expired_users',\n        'schedule': 86400.0,  # Run once every 24 hours (86400 seconds)\n    },\n}",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1104,7 +2394,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.urls",
         "description": "FeatherFarmSoloutions.urls",
-        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('', include('stakeholder.urls')),\n    path('accounts/', include('allauth.urls')),\n    path('logout/', logout_view, name='logout'),\n    path('password_reset/', auth_views.PasswordResetView.as_view(),\n         name='password_reset'),\n    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(),\n         name='password_reset_done'),\n    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(),",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('', include('stakeholder.urls')),\n    path('hotel/', include('hoteldetails.urls')),\n    path('accounts/', include('allauth.urls')),\n    path('logout/', logout_view, name='logout'),\n    path('password_reset/', auth_views.PasswordResetView.as_view(),\n         name='password_reset'),\n    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(),\n         name='password_reset_done'),",
         "detail": "FeatherFarmSoloutions.urls",
         "documentation": {}
     },
@@ -1120,19 +2410,415 @@
     {
         "label": "Migration",
         "kind": 6,
+        "importPath": "hoteldetails.migrations.0001_initial",
+        "description": "hoteldetails.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('stakeholder', '0017_alter_chickbatch_price_per_batch_and_more'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Cart',\n            fields=[",
+        "detail": "hoteldetails.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
+        "description": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='cartitem',\n            name='quantity_kg',\n            field=models.FloatField(help_text='Quantity in kilograms', null=True),\n        ),",
+        "detail": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0003_order_quantity_kg",
+        "description": "hoteldetails.migrations.0003_order_quantity_kg",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0002_alter_cartitem_quantity_kg'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='quantity_kg',\n            field=models.FloatField(help_text='Quantity in kilograms', null=True),\n        ),",
+        "detail": "hoteldetails.migrations.0003_order_quantity_kg",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0004_alter_order_cart",
+        "description": "hoteldetails.migrations.0004_alter_order_cart",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0003_order_quantity_kg'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='order',\n            name='cart',\n            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='hoteldetails.cart'),\n        ),",
+        "detail": "hoteldetails.migrations.0004_alter_order_cart",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
+        "description": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0004_alter_order_cart'),\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='cartitem',\n            name='cart',",
+        "detail": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
+        "description": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0005_remove_cartitem_cart_remove_order_cart_and_more'),\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='created_at',",
+        "detail": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0007_cartitem_item_type",
+        "description": "hoteldetails.migrations.0007_cartitem_item_type",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0006_order_created_at_order_payment_method_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='cartitem',\n            name='item_type',\n            field=models.CharField(choices=[('live', 'Live'), ('processed', 'Processed')], default='live', help_text='Specify if the item is live or processed', max_length=10),\n        ),",
+        "detail": "hoteldetails.migrations.0007_cartitem_item_type",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0008_order_delivery_date",
+        "description": "hoteldetails.migrations.0008_order_delivery_date",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0007_cartitem_item_type'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='delivery_date',\n            field=models.DateField(blank=True, help_text='Expected delivery date', null=True),\n        ),",
+        "detail": "hoteldetails.migrations.0008_order_delivery_date",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "hoteldetails.migrations.0009_order_price",
+        "description": "hoteldetails.migrations.0009_order_price",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0008_order_delivery_date'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='price',\n            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='Total order price', max_digits=10),\n        ),",
+        "detail": "hoteldetails.migrations.0009_order_price",
+        "documentation": {}
+    },
+    {
+        "label": "HoteldetailsConfig",
+        "kind": 6,
+        "importPath": "hoteldetails.apps",
+        "description": "hoteldetails.apps",
+        "peekOfCode": "class HoteldetailsConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'hoteldetails'",
+        "detail": "hoteldetails.apps",
+        "documentation": {}
+    },
+    {
+        "label": "CustomerUserForm",
+        "kind": 6,
+        "importPath": "hoteldetails.forms",
+        "description": "hoteldetails.forms",
+        "peekOfCode": "class CustomerUserForm(forms.ModelForm):\n    class Meta:\n        model = User\n        fields = ['email', 'name', 'phone_number', 'address','hotel_license']\nclass OrderForm(forms.Form):\n    one_kg_count = forms.IntegerField(min_value=0, required=False, label=\"1 kg chickens\", initial=0)\n    two_kg_count = forms.IntegerField(min_value=0, required=False, label=\"2 kg chickens\", initial=0)\n    three_kg_count = forms.IntegerField(min_value=0, required=False, label=\"3 kg chickens\", initial=0)",
+        "detail": "hoteldetails.forms",
+        "documentation": {}
+    },
+    {
+        "label": "OrderForm",
+        "kind": 6,
+        "importPath": "hoteldetails.forms",
+        "description": "hoteldetails.forms",
+        "peekOfCode": "class OrderForm(forms.Form):\n    one_kg_count = forms.IntegerField(min_value=0, required=False, label=\"1 kg chickens\", initial=0)\n    two_kg_count = forms.IntegerField(min_value=0, required=False, label=\"2 kg chickens\", initial=0)\n    three_kg_count = forms.IntegerField(min_value=0, required=False, label=\"3 kg chickens\", initial=0)",
+        "detail": "hoteldetails.forms",
+        "documentation": {}
+    },
+    {
+        "label": "Order",
+        "kind": 6,
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "peekOfCode": "class Order(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)\n    # Quantities ordered by the hotel for different weights\n    one_kg_count = models.IntegerField(\n        default=0, help_text=\"Number of 1 kg chickens ordered\")\n    two_kg_count = models.IntegerField(\n        default=0, help_text=\"Number of 2 kg chickens ordered\")\n    three_kg_count = models.IntegerField(\n        default=0, help_text=\"Number of 3 kg chickens ordered\")",
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "Cart",
+        "kind": 6,
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "peekOfCode": "class Cart(models.Model):\n    user = models.ForeignKey(\n        User, on_delete=models.CASCADE, related_name='cart')\n    created_at = models.DateTimeField(auto_now_add=True)\n    def __str__(self):\n        return f\"cart of {self.user.name}\"\nclass CartItem(models.Model):\n    ITEM_TYPE_CHOICES = [\n        ('live', 'Live'),\n        ('processed', 'Processed')",
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "CartItem",
+        "kind": 6,
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "peekOfCode": "class CartItem(models.Model):\n    ITEM_TYPE_CHOICES = [\n        ('live', 'Live'),\n        ('processed', 'Processed')\n    ]\n    cart = models.ForeignKey(\n        Cart, on_delete=models.CASCADE, related_name='items')\n    chick_batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)\n    # New fields for weight categories\n    one_kg_count = models.IntegerField(",
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "kind": 5,
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "peekOfCode": "User = get_user_model()\nclass Order(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE)\n    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)\n    # Quantities ordered by the hotel for different weights\n    one_kg_count = models.IntegerField(\n        default=0, help_text=\"Number of 1 kg chickens ordered\")\n    two_kg_count = models.IntegerField(\n        default=0, help_text=\"Number of 2 kg chickens ordered\")\n    three_kg_count = models.IntegerField(",
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "hoteldetails.urls",
+        "description": "hoteldetails.urls",
+        "peekOfCode": "urlpatterns = [\n    path('', hoteldashboard, name=\"hoteldashboard\"),\n    path('view_profile/<int:id>', view_profile, name=\"view_profile\"),\n    path('view_orders', view_orders, name=\"view_orders\"),\n    path('view_farm/<int:farm_id>', view_farm, name='view_farm'),\n    path('cart_view', cart_view, name=\"cart_view\"),\n    path('checkout_view', checkout_view, name=\"checkout_view\"),\n    path('update_cart', update_cart, name=\"update_cart\"),\n]",
+        "detail": "hoteldetails.urls",
+        "documentation": {}
+    },
+    {
+        "label": "hoteldashboard",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def hoteldashboard(request):\n    # fetching the search data from html search box\n    query = request.GET.get('q')\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    if query:\n        # Filter items based on title or description matching the query\n        users = users.filter(\n            Q(full_name__icontains=query) | Q(email__icontains=query)\n        )",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "view_profile",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def view_profile(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = CustomerUserForm(request.POST, instance=user)\n        print(form.errors)\n        if form.is_valid():\n            form.save()\n            return redirect('hoteldashboard')\n    else:\n        form = CustomerUserForm(instance=user)",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "view_farm",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def view_farm(request, farm_id):\n    farm = get_object_or_404(User, id=farm_id)\n    batches = farm.chick_batches.filter(\n        batch_status='completed')  # Only show completed batches\n    order_form = OrderForm()\n    if request.method == 'POST':\n        form = OrderForm(request.POST)\n        batch_id = request.POST.get('batch_id')\n        batch = get_object_or_404(ChickBatch, id=batch_id)\n        if form.is_valid():",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "cart_view",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def cart_view(request):\n    try:\n        cart = Cart.objects.get(user=request.user)\n    except Cart.DoesNotExist:\n        cart = None\n    cartitems = CartItem.objects.filter(cart=cart)\n    total_price = sum(item.total_price() for item in cartitems)\n    total_discounted = sum(item.discounted_price for item in cartitems)\n    is_empty = len(cartitems) == 0\n    return render(request, 'hoteldetials/view_cart.html', {\"cart\": cart, \"items\": cartitems, \"total_price\": total_price, \"total_dicounted_price\": total_discounted,\"is_empty\": is_empty })",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "update_cart",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def update_cart(request):\n    if request.method == 'POST':\n        # Get the current user's cart\n        cart = Cart.objects.filter(user=request.user).first()\n        if not cart:\n            # Handle case if no cart exists\n            return redirect('cart_view')\n        # Update each item based on form data\n        for item in cart.items.all():\n            # Update the type (live or processed)",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "checkout_view",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def checkout_view(request):\n    cart = Cart.objects.get(user=request.user)  # Get user's cart\n    items = cart.items.all()\n    total_price = sum(item.discounted_price for item in items)\n    if request.method == \"POST\":\n        # Handle delivery date and payment method\n        delivery_date = request.POST.get('delivery_date')\n        payment_method = request.POST.get('payment_option')\n        # Update the cart's additional fields if needed\n        print(delivery_date)",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "view_orders",
+        "kind": 2,
+        "importPath": "hoteldetails.views",
+        "description": "hoteldetails.views",
+        "peekOfCode": "def view_orders(request):\n    orders = Order.objects.filter(user=request.user)\n    return render(request, 'hoteldetials/orderview.html', {'orders': orders})",
+        "detail": "hoteldetails.views",
+        "documentation": {}
+    },
+    {
+        "label": "Command",
+        "kind": 6,
+        "importPath": "management.commands.check_user_status",
+        "description": "management.commands.check_user_status",
+        "peekOfCode": "class Command(BaseCommand):\n    help = 'Check all users and deactivate if their pollution certificate has expired'\n    def handle(self, *args, **kwargs):\n        users = User.objects.all()\n        for user in users:\n            user.check_certificate_status()\n            self.stdout.write(f'Checked {user.email}, is_active: {user.is_active}')",
+        "detail": "management.commands.check_user_status",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
         "importPath": "stakeholder.migrations.0001_initial",
         "description": "stakeholder.migrations.0001_initial",
-        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('user', '0006_user_chick_count'),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='VaccinationRecord',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='ChickBatch',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
         "detail": "stakeholder.migrations.0001_initial",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
-        "description": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='ChickBatch',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
-        "detail": "stakeholder.migrations.0002_chickbatch_delete_vaccinationrecord",
+        "importPath": "stakeholder.migrations.0002_dailydata",
+        "description": "stakeholder.migrations.0002_dailydata",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='DailyData',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "stakeholder.migrations.0002_dailydata",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
+        "description": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0002_dailydata'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='chickbatch',\n            old_name='chick_count',\n            new_name='initial_chick_count',\n        ),",
+        "detail": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0004_chickbatch_batch_status",
+        "description": "stakeholder.migrations.0004_chickbatch_batch_status",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0003_rename_chick_count_chickbatch_initial_chick_count'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='batch_status',\n            field=models.CharField(choices=[('active', 'Active'), ('completed', 'Completed'), ('inactive', 'Inactive'), ('pending', 'Pending')], default='active', max_length=10),\n        ),",
+        "detail": "stakeholder.migrations.0004_chickbatch_batch_status",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
+        "description": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0004_chickbatch_batch_status'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='dailydata',\n            name='feed_forecast',\n            field=models.FloatField(default=0.0),\n        ),",
+        "detail": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
+        "description": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='dailydata',\n            name='feed_forecast',\n        ),\n        migrations.RemoveField(",
+        "detail": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
+        "description": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0006_remove_dailydata_feed_forecast_and_more'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together=set(),\n        ),\n        migrations.CreateModel(",
+        "detail": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
+        "description": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0007_alter_dailydata_unique_together_feedmonitoring'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AlterModelOptions(\n            name='feedmonitoring',\n            options={'verbose_name': 'Feed Monitoring', 'verbose_name_plural': 'Feed Monitoring'},\n        ),",
+        "detail": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
+        "description": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0008_alter_feedmonitoring_options_feedmonitoring_owner'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='feedmonitoring',\n            name='owner',\n        ),\n    ]",
+        "detail": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0010_alter_dailydata_unique_together",
+        "description": "stakeholder.migrations.0010_alter_dailydata_unique_together",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0009_remove_feedmonitoring_owner'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together={('batch', 'date')},\n        ),\n    ]",
+        "detail": "stakeholder.migrations.0010_alter_dailydata_unique_together",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0011_alter_dailydata_unique_together",
+        "description": "stakeholder.migrations.0011_alter_dailydata_unique_together",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0010_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together=set(),\n        ),\n    ]",
+        "detail": "stakeholder.migrations.0011_alter_dailydata_unique_together",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0012_alter_dailydata_unique_together",
+        "description": "stakeholder.migrations.0012_alter_dailydata_unique_together",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0011_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together={('batch', 'date')},\n        ),\n    ]",
+        "detail": "stakeholder.migrations.0012_alter_dailydata_unique_together",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
+        "description": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0012_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='batch_status',\n            field=models.CharField(choices=[('active', 'Active'), ('completed', 'Completed'), ('uplifted', 'Uplifted'), ('terminated', 'Terminated')], default='active', max_length=10),\n        ),",
+        "detail": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0014_chickbatch_duration",
+        "description": "stakeholder.migrations.0014_chickbatch_duration",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0013_alter_chickbatch_batch_status'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='duration',\n            field=models.IntegerField(default=40),\n        ),",
+        "detail": "stakeholder.migrations.0014_chickbatch_duration",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
+        "description": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0014_chickbatch_duration'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='available_chickens',\n            field=models.FloatField(default=0, help_text='Total weight of chickens available (in kg)'),\n        ),",
+        "detail": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
+        "description": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0015_chickbatch_available_chickens_chickbatch_batch_size_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='batch_date',\n            field=models.DateField(default=django.utils.timezone.now, help_text='Date the batch started'),\n        ),",
+        "detail": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
+        "description": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0016_alter_chickbatch_batch_date_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='price_per_batch',\n            field=models.DecimalField(decimal_places=2, help_text='Price per batch of chicken', max_digits=10, null=True),\n        ),",
+        "detail": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
+        "description": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0017_alter_chickbatch_price_per_batch_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='one_kg_count',\n            field=models.IntegerField(default=0, help_text='Number of 1 kg chickens available'),\n        ),",
+        "detail": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
+        "description": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='available_chickens',\n            field=models.IntegerField(default=0, help_text='Count of live chickens available'),\n        ),",
+        "detail": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "stakeholder.migrations.0020_chickbatch_batch_type",
+        "description": "stakeholder.migrations.0020_chickbatch_batch_type",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='batch_type',\n            field=models.CharField(choices=[('broiler', 'Broiler'), ('organic', 'Organic'), ('kada', 'Kada')], default='broiler', help_text='Type of chickens in the batch', max_length=10),\n        ),",
+        "detail": "stakeholder.migrations.0020_chickbatch_batch_type",
+        "documentation": {}
+    },
+    {
+        "label": "SupplierAdmin",
+        "kind": 6,
+        "importPath": "stakeholder.admin",
+        "description": "stakeholder.admin",
+        "peekOfCode": "class SupplierAdmin(admin.ModelAdmin):\n    list_display = ('supplier_code', 'name', 'email', 'phone_number', 'is_active')  # Fields to display in the admin list\n    search_fields = ('supplier_code', 'name', 'email', 'phone_number')  # Enable search by these fields\n    list_filter = ('is_active',)  # Filter by active/inactive status\n    ordering = ('name',)  # Order by name (note the comma to make it a tuple)\n    actions = ['delete_selected']  # Enable bulk delete\n    def delete_model(self, request, obj):\n        # Custom behavior for single item delete (if needed)\n        obj.is_active = False  # Mark it as inactive instead of deleting\n        obj.save()",
+        "detail": "stakeholder.admin",
         "documentation": {}
     },
     {
@@ -1145,12 +2831,93 @@
         "documentation": {}
     },
     {
+        "label": "DailyDataForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class DailyDataForm(forms.ModelForm):\n    class Meta:\n        model = DailyData\n        fields = [\n            'date', 'alive_count', 'sick_chicks', 'weight_gain',\n            'feed_uplifted', 'water_consumption', 'temperature', 'mortality_count'\n        ]\n    def __init__(self, *args, **kwargs):\n        super(DailyDataForm, self).__init__(*args, **kwargs)\n        for field in self.fields.values():",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
+        "label": "ChickenBatchForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class ChickenBatchForm(forms.ModelForm):\n    class Meta:\n        model = ChickBatch\n        fields = ['price_per_kg',\"price_per_batch\",\"batch_status\",\"duration\"]\nclass CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
+        "label": "CompletedBatchUpdateForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {\n            'one_kg_count': forms.NumberInput(attrs={'min': 0}),\n            'two_kg_count': forms.NumberInput(attrs={'min': 0}),\n            'three_kg_count': forms.NumberInput(attrs={'min': 0}),\n        }",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
+        "label": "BatchSelectionForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class BatchSelectionForm(forms.Form):\n    batch = forms.ModelChoiceField(\n        queryset=ChickBatch.objects.none(), label=\"Select Batch\")\n    def __init__(self, *args, **kwargs):\n        user = kwargs.pop('user')  # Get user from kwargs\n        super().__init__(*args, **kwargs)\n        self.fields['batch'].queryset = ChickBatch.objects.filter(\n            user=user)  # Filter\nclass DailyComparisonForm(forms.Form):\n    current_batch = forms.ModelChoiceField(",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
+        "label": "DailyComparisonForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class DailyComparisonForm(forms.Form):\n    current_batch = forms.ModelChoiceField(\n        queryset=ChickBatch.objects.none())  # Start with empty queryset\n    past_batch = forms.ModelChoiceField(queryset=ChickBatch.objects.none())\n    compare_day = forms.IntegerField(\n        min_value=1,\n        max_value=40,\n        error_messages={\n            'min_value': 'The compare day must be at least 1.',\n            'max_value': 'The compare day must be at most 40.',",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
+        "label": "FeedMonitoringForm",
+        "kind": 6,
+        "importPath": "stakeholder.forms",
+        "description": "stakeholder.forms",
+        "peekOfCode": "class FeedMonitoringForm(forms.ModelForm):\n    class Meta:\n        model = FeedMonitoring\n        fields = ['batch', 'date', 'feed_consumed',\n                  'feed_wastage', 'feed_forecast']\n        widgets = {\n            # Use a date picker for the date field\n            'date': forms.DateInput(attrs={'type': 'date'}),\n            # Allow decimal input\n            'feed_consumed': forms.NumberInput(attrs={'step': '0.01'}),",
+        "detail": "stakeholder.forms",
+        "documentation": {}
+    },
+    {
         "label": "ChickBatch",
         "kind": 6,
         "importPath": "stakeholder.models",
         "description": "stakeholder.models",
-        "peekOfCode": "class ChickBatch(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chick_batches')\n    chick_count = models.IntegerField()\n    batch_date = models.DateField(default=timezone.now)  # Automatically sets the date to the current date when added\n    def __str__(self):\n        return f\"Batch on {self.batch_date} for {self.user.full_name}: {self.chick_count} chicks\"\n    def is_coming_soon(self):\n        \"\"\"\n        Checks if the vaccination date is within 7 days.\n        \"\"\"",
+        "peekOfCode": "class ChickBatch(models.Model):\n    STATUS_CHOICES = [\n        ('active', 'Active'),\n        ('completed', 'Completed'),\n        ('uplifted', 'Uplifted'),\n        ('terminated', 'Terminated')\n    ]\n    TYPE_CHOICES = [\n        ('broiler', 'Broiler'),\n        ('organic', 'Organic'),",
         "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "DailyData",
+        "kind": 6,
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "peekOfCode": "class DailyData(models.Model):\n    batch = models.ForeignKey(\n        ChickBatch, on_delete=models.CASCADE, related_name='daily_data')\n    owner = models.ForeignKey(\n        User, on_delete=models.CASCADE, related_name='daily_data_records')\n    date = models.DateField(default=timezone.now)  # Date for daily record\n    alive_count = models.IntegerField(\n        help_text=\"Number of chicks alive on this day\")\n    sick_chicks = models.IntegerField(\n        default=0, help_text=\"Number of sick chicks\")",
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "FeedMonitoring",
+        "kind": 6,
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "peekOfCode": "class FeedMonitoring(models.Model):\n    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)\n    date = models.DateField()\n    feed_consumed = models.FloatField(default=0.0)\n    feed_forecast = models.FloatField(default=0.0)\n    feed_wastage = models.FloatField(default=0.0)\n    def __str__(self):\n        return f\"Feed Monitoring for Batch {self.batch.batch_date} on {self.date}\"\n    class Meta:\n        verbose_name = \"Feed Monitoring\"",
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "send_whatsapp_message",
+        "kind": 2,
+        "importPath": "stakeholder.notifications",
+        "description": "stakeholder.notifications",
+        "peekOfCode": "def send_whatsapp_message(to, body):\n    # Initialize Twilio client\n    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)\n    # Send a WhatsApp message\n    message = client.messages.create(\n        body=body,\n        from_=settings.TWILIO_WHATSAPP_FROM,\n        to=f'whatsapp:{to}'  # WhatsApp destination number\n    )\n    return message.sid",
+        "detail": "stakeholder.notifications",
         "documentation": {}
     },
     {
@@ -1176,7 +2943,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def about(request):\n    return render(request, 'about.html')\ndef services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):",
+        "peekOfCode": "def about(request):\n    return render(request, 'about.html')\ndef services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\n# views.py",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1185,7 +2952,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()",
+        "peekOfCode": "def services(request):\n    return render(request, 'services.html')\ndef contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\n# views.py\n@login_required\ndef stakeholder(request):",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1194,7 +2961,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')",
+        "peekOfCode": "def contact(request):\n    return render(request, 'contact.html')\ndef logout_view(request):\n    logout(request)\n    return redirect('/')\n# views.py\n@login_required\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1203,7 +2970,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def logout_view(request):\n    logout(request)\n    return redirect('/')\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Calculate the total chick count across all batches\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)",
+        "peekOfCode": "def logout_view(request):\n    logout(request)\n    return redirect('/')\n# views.py\n@login_required\ndef stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch chick batches\n    chick_batches = user.chick_batches.all().order_by('-batch_date')",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1212,7 +2979,16 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch all chick batches for the user and order them by the latest batch_date\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Calculate the total chick count across all batches\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)\n    coming_soon = [batch for batch in chick_batches if 0 <=\n                   (batch.batch_date - today).days <= 7]\n    upcoming = [batch for batch in chick_batches if 7 < (batch.batch_date - today).days <= 40 and batch.batch_date >= today]",
+        "peekOfCode": "def stakeholder(request):\n    user = request.user  # Assuming the user is logged in\n    today = timezone.now().date()\n    # Fetch chick batches\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    total_chick_count = sum(\n        batch.initial_chick_count for batch in chick_batches)\n    # Fetch location from query parameters (not from the User model)\n    latitude = request.GET.get('lat')\n    longitude = request.GET.get('lon')",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_feeders_and_drinkers",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def calculate_feeders_and_drinkers(initial_chick_count):\n    feeders = initial_chick_count // 50  # 1 feeder for every 50 chicks\n    drinkers = initial_chick_count // 50  # 1 drinker for every 50 chicks\n    return feeders, drinkers\ndef stateholder_batch(request):\n    user = request.user  # Assuming the user is logged in\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Prepare to store batch-wise feeders and drinkers\n    batch_info = []\n    for batch in chick_batches:",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1221,7 +2997,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def stateholder_batch(request):\n    user = request.user  # Assuming the user is logged in\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    total_chick_count = sum(batch.chick_count for batch in chick_batches)\n    context = {\n        'chick_batches': chick_batches,\n        'total_chick_count': total_chick_count,\n        'user_data': user\n    }\n    return render(request, 'stakeholderbatch.html', context)",
+        "peekOfCode": "def stateholder_batch(request):\n    user = request.user  # Assuming the user is logged in\n    chick_batches = user.chick_batches.all().order_by('-batch_date')\n    # Prepare to store batch-wise feeders and drinkers\n    batch_info = []\n    for batch in chick_batches:\n        initial_chick_count = batch.initial_chick_count\n        feeders, drinkers = calculate_feeders_and_drinkers(initial_chick_count)\n        batch_info.append({\n            'batch': batch,",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1230,7 +3006,7 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def update_chick_count(request, id):\n    if request.method == 'POST':\n        # Get the chick count from the form\n        chick_count = request.POST.get('chick_count')\n        if chick_count is not None:\n            try:\n                chick_count = int(chick_count)  # Convert to integer if valid\n                # Get the current logged-in user\n                user = User.objects.get(id=id)\n                # Create a new ChickBatch record for the current user",
+        "peekOfCode": "def update_chick_count(request, id):\n    if request.method == 'POST':\n        try:\n            # Get the current logged-in user\n            user = User.objects.get(id=id)\n        except User.DoesNotExist:\n            messages.error(request, \"User not found.\")\n            return redirect(reverse('stakeholderuserprofile', args=[id]))\n        # Get chick count and other details from the form\n        initial_chick_count = request.POST.get('initial_chick_count')",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1239,7 +3015,97 @@
         "kind": 2,
         "importPath": "stakeholder.views",
         "description": "stakeholder.views",
-        "peekOfCode": "def feed_request(request, user_id):\n    user=get_object_or_404(User, id=user_id)\n    return render(request, 'feed_request.html')",
+        "peekOfCode": "def feed_request(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    return render(request, 'feed_request.html')\ndef vaccination(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    return render(request, 'vaccinations.html', {'user': user})\n@login_required  # Ensure only logged-in users can add daily data\ndef add_daily_data(request):\n    selected_batch = None\n    initial_alive_count = 0",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "vaccination",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def vaccination(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    return render(request, 'vaccinations.html', {'user': user})\n@login_required  # Ensure only logged-in users can add daily data\ndef add_daily_data(request):\n    selected_batch = None\n    initial_alive_count = 0\n    updated_alive_count = 0\n    updated_mortality_count = 0\n    # Filter batches based on the logged-in user",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "add_daily_data",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def add_daily_data(request):\n    selected_batch = None\n    initial_alive_count = 0\n    updated_alive_count = 0\n    updated_mortality_count = 0\n    # Filter batches based on the logged-in user\n    all_batches = ChickBatch.objects.filter(user=request.user)\n    # Initialize selected_batch_id from the session\n    selected_batch_id = request.session.get('selected_batch', None)\n    # Check if a batch was submitted and store it in the session",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_weeks",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def calculate_weeks(batch_date):\n    weeks = []\n    for i in range(6):  # Create 6 weeks\n        start_date = batch_date + timedelta(days=i * 7)\n        end_date = start_date + timedelta(days=6)\n        if i == 5:  # For the 6th week, adjust the end date to only go to day 40\n            end_date = batch_date + timedelta(days=39)  # 5 extra days\n        weeks.append((start_date, end_date))\n    return weeks\ndef list_daily_data(request, batch_id):",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "list_daily_data",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def list_daily_data(request, batch_id):\n    batch = get_object_or_404(ChickBatch, id=batch_id)\n    # Initialize the error message\n    error_message = None\n    # Get the selected filters from the GET request\n    selected_category = request.GET.get('category')\n    min_value = request.GET.get('min_value')\n    max_value = request.GET.get('max_value')\n    start_date = request.GET.get('start_date')\n    end_date = request.GET.get('end_date')",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "edit_daily_data",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def edit_daily_data(request, id):\n    # Fetch the specific record or return 404 if not found\n    daily_data = get_object_or_404(DailyData, id=id)\n    if request.method == 'POST':\n        # Bind data to the form to process user input\n        form = DailyDataForm(request.POST, instance=daily_data)\n        if form.is_valid():\n            form.save()  # Save changes\n            # Redirect back to the list page\n            return redirect('list_daily_data', batch_id=daily_data.batch.id)",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "delete_daily_data",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def delete_daily_data(request, daily_data_id):\n    daily_data_entry = get_object_or_404(DailyData, id=daily_data_id)\n    # Get the batch ID to redirect to the correct page\n    batch_id = daily_data_entry.batch_id  # Get the batch ID from the related batch\n    daily_data_entry.delete()\n    messages.success(request, 'Daily data entry deleted successfully.')\n    # Redirect to the list with the batch ID\n    return redirect('list_daily_data', batch_id=batch_id)\ndef daily_feed_summary(request):\n    current_batch = None",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "daily_feed_summary",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def daily_feed_summary(request):\n    current_batch = None\n    past_batch = None\n    compare_day = None\n    current_feed_uplifted = 0\n    current_weight_gain = 0\n    current_water_consumption = 0  # New metric\n    past_feed_uplifted = 0\n    past_weight_gain = 0\n    past_water_consumption = 0  # New metric",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "batch_feed_summary",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def batch_feed_summary(request):\n    if request.method == 'POST':\n        form = BatchSelectionForm(request.POST, user=request.user)\n        if form.is_valid():\n            selected_batch = form.cleaned_data['batch']\n            # Get daily data for the selected batch\n            daily_data = DailyData.objects.filter(\n                batch=selected_batch).order_by('-date')\n            # Prepare data for the chart and table\n            dates = [data.date.strftime('%Y-%m-%d')",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "feed_dashboard_view",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def feed_dashboard_view(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    # For debugging purposes, you can print the user object to see if it's retrieved correctly\n    print(f\"User: {user.email}, ID: {user.id}\")\n    return render(request, 'feed_dashboard.html', {'user': user})\ndef supplier_list(request):\n    \"\"\"Display the list of suppliers.\"\"\"\n    suppliers = Supplier.objects.all()  # Fetch all suppliers from the database\n    return render(request, 'supplier_list_stakeholder.html', {'suppliers': suppliers})",
+        "detail": "stakeholder.views",
+        "documentation": {}
+    },
+    {
+        "label": "supplier_list",
+        "kind": 2,
+        "importPath": "stakeholder.views",
+        "description": "stakeholder.views",
+        "peekOfCode": "def supplier_list(request):\n    \"\"\"Display the list of suppliers.\"\"\"\n    suppliers = Supplier.objects.all()  # Fetch all suppliers from the database\n    return render(request, 'supplier_list_stakeholder.html', {'suppliers': suppliers})",
         "detail": "stakeholder.views",
         "documentation": {}
     },
@@ -1255,55 +3121,82 @@
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0002_alter_user_email",
-        "description": "user.migrations.0002_alter_user_email",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='email',\n            field=models.EmailField(max_length=254, unique=True),\n        ),",
-        "detail": "user.migrations.0002_alter_user_email",
+        "importPath": "user.migrations.0002_alter_user_plan_file",
+        "description": "user.migrations.0002_alter_user_plan_file",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='plan_file',\n            field=models.FileField(blank=True, null=True, upload_to='farm_plan/'),\n        ),",
+        "detail": "user.migrations.0002_alter_user_plan_file",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0003_remove_user_username",
-        "description": "user.migrations.0003_remove_user_username",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0002_alter_user_email'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='user',\n            name='username',\n        ),\n    ]",
-        "detail": "user.migrations.0003_remove_user_username",
+        "importPath": "user.migrations.0003_supplier",
+        "description": "user.migrations.0003_supplier",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0002_alter_user_plan_file'),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Supplier',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),\n                ('name', models.CharField(max_length=255)),",
+        "detail": "user.migrations.0003_supplier",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0004_alter_user_managers",
-        "description": "user.migrations.0004_alter_user_managers",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0003_remove_user_username'),\n    ]\n    operations = [\n        migrations.AlterModelManagers(\n            name='user',\n            managers=[\n            ],\n        ),",
-        "detail": "user.migrations.0004_alter_user_managers",
+        "importPath": "user.migrations.0004_supplier_is_active",
+        "description": "user.migrations.0004_supplier_is_active",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0003_supplier'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='supplier',\n            name='is_active',\n            field=models.BooleanField(default=True),\n        ),",
+        "detail": "user.migrations.0004_supplier_is_active",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
-        "description": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0004_alter_user_managers'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='address',\n            field=models.CharField(default='address', max_length=255),\n            preserve_default=False,",
-        "detail": "user.migrations.0005_user_address_user_breadth_user_coopcapacity_and_more",
+        "importPath": "user.migrations.0005_supplier_supplier_code_supplier_unique_supplier_code",
+        "description": "user.migrations.0005_supplier_supplier_code_supplier_unique_supplier_code",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0004_supplier_is_active'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='supplier',\n            name='supplier_code',\n            field=models.CharField(blank=True, max_length=50, null=True, unique=True),\n        ),",
+        "detail": "user.migrations.0005_supplier_supplier_code_supplier_unique_supplier_code",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0006_user_chick_count",
-        "description": "user.migrations.0006_user_chick_count",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0005_user_address_user_breadth_user_coopcapacity_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='chick_count',\n            field=models.IntegerField(blank=True, default=None, null=True),\n        ),",
-        "detail": "user.migrations.0006_user_chick_count",
+        "importPath": "user.migrations.0006_remove_user_coopcapacity_remove_user_plan_file",
+        "description": "user.migrations.0006_remove_user_coopcapacity_remove_user_plan_file",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0005_supplier_supplier_code_supplier_unique_supplier_code'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='user',\n            name='coopcapacity',\n        ),\n        migrations.RemoveField(",
+        "detail": "user.migrations.0006_remove_user_coopcapacity_remove_user_plan_file",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "user.migrations.0007_remove_user_chick_count",
-        "description": "user.migrations.0007_remove_user_chick_count",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0006_user_chick_count'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='user',\n            name='chick_count',\n        ),\n    ]",
-        "detail": "user.migrations.0007_remove_user_chick_count",
+        "importPath": "user.migrations.0007_user_coopcapacity_user_plan_file",
+        "description": "user.migrations.0007_user_coopcapacity_user_plan_file",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0006_remove_user_coopcapacity_remove_user_plan_file'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='coopcapacity',\n            field=models.IntegerField(blank=True, default=None, null=True),\n        ),",
+        "detail": "user.migrations.0007_user_coopcapacity_user_plan_file",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0008_alter_user_is_active",
+        "description": "user.migrations.0008_alter_user_is_active",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0007_user_coopcapacity_user_plan_file'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='is_active',\n            field=models.BooleanField(default=True),\n        ),",
+        "detail": "user.migrations.0008_alter_user_is_active",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0009_user_location_user_name",
+        "description": "user.migrations.0009_user_location_user_name",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0008_alter_user_is_active'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='location',\n            field=models.CharField(default='america', max_length=200),\n            preserve_default=False,",
+        "detail": "user.migrations.0009_user_location_user_name",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0010_user_hotel_license",
+        "description": "user.migrations.0010_user_hotel_license",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0009_user_location_user_name'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='user',\n            name='hotel_license',\n            field=models.FileField(blank=True, null=True, upload_to='hotel_license/'),\n        ),",
+        "detail": "user.migrations.0010_user_hotel_license",
         "documentation": {}
     },
     {
@@ -1311,7 +3204,7 @@
         "kind": 6,
         "importPath": "user.admin",
         "description": "user.admin",
-        "peekOfCode": "class UserAdmin(DefaultUserAdmin):\n    model = User\n    fieldsets = (\n        (None, {'fields': ('email', 'password')}),\n        (_('Personal info'), {\n         'fields': ('full_name', 'phone_number', 'user_type')}),\n        (_('Coop Information'), {\n         'fields': ('length', 'breadth', 'coopcapacity', 'expiry_date', 'pollution_certificate', 'farm_image')}),\n        (_('Permissions'), {'fields': ('is_active', 'is_staff',\n         'is_superuser', 'groups', 'user_permissions')}),",
+        "peekOfCode": "class UserAdmin(DefaultUserAdmin):\n    model = User\n    fieldsets = (\n        (None, {'fields': ('email', 'password')}),\n        (_('Personal info'), {\n         'fields': ('full_name', 'phone_number', 'user_type')}),\n        (_('Coop Information'), {\n         'fields': ('length', 'breadth', 'coopcapacity', 'expiry_date', 'pollution_certificate', 'farm_image','plan_file')}),\n        (_('Permissions'), {'fields': ('is_active', 'is_staff',\n         'is_superuser', 'groups', 'user_permissions')}),",
         "detail": "user.admin",
         "documentation": {}
     },
@@ -1320,7 +3213,16 @@
         "kind": 6,
         "importPath": "user.apps",
         "description": "user.apps",
-        "peekOfCode": "class UserConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'user'",
+        "peekOfCode": "class UserConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'user'\ndef ready(self):\n        from .tasks import schedule_expiry_notification_task\n        schedule_expiry_notification_task()",
+        "detail": "user.apps",
+        "documentation": {}
+    },
+    {
+        "label": "ready",
+        "kind": 2,
+        "importPath": "user.apps",
+        "description": "user.apps",
+        "peekOfCode": "def ready(self):\n        from .tasks import schedule_expiry_notification_task\n        schedule_expiry_notification_task()",
         "detail": "user.apps",
         "documentation": {}
     },
@@ -1365,7 +3267,70 @@
         "kind": 6,
         "importPath": "user.forms",
         "description": "user.forms",
-        "peekOfCode": "class StakeholderUserForm(forms.ModelForm):\n    class Meta:\n        model = User\n        fields = ['email', 'full_name', 'phone_number', 'farm_image', 'length',\n                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address']\n        widgets = {\n            'expiry_date': forms.DateInput(attrs={'type': 'date'}),\n        }",
+        "peekOfCode": "class StakeholderUserForm(forms.ModelForm):\n    class Meta:\n        model = User\n        fields = ['email', 'full_name', 'phone_number', 'farm_image', 'length',\n                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address', 'plan_file']\n        widgets = {\n            'expiry_date': forms.DateInput(attrs={'type': 'date'}),\n        }\n    from .models import User\nclass CustomUserCreationForm(UserCreationForm):",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "CustomUserCreationForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class CustomUserCreationForm(UserCreationForm):\n    error_messages = {\n        'password_mismatch': 'The two password fields didn’t match.',\n    }\n    # user_type = forms.ModelChoiceField(queryset=UserType.objects.all())\n    user_type = forms.ModelChoiceField(\n        queryset=UserType.objects.all(),\n        required=False,\n        label=\"User Type\",\n        help_text=\"Select the type of user.\"",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "EmailAuthenticationForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class EmailAuthenticationForm(AuthenticationForm):\n    username = forms.EmailField(label=\"Email\", max_length=254)\n    def clean(self):\n        email = self.cleaned_data.get('username')\n        password = self.cleaned_data.get('password')\n        if email and password:\n            self.user_cache = authenticate(\n                self.request, email=email, password=password)\n            if self.user_cache is None:\n                raise self.get_invalid_login_error()",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "CustomSetPasswordForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class CustomSetPasswordForm(SetPasswordForm):\n    new_password1 = forms.CharField(\n        label=\"New Password\",\n        widget=forms.PasswordInput,\n        help_text=\"Your new password must be at least 8 characters long.\"\n    )\n    new_password2 = forms.CharField(\n        label=\"Confirm New Password\",\n        widget=forms.PasswordInput,\n        help_text=\"Enter the same password as above, for verification.\"",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "StakeholderUserForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class StakeholderUserForm(forms.ModelForm):\n    class Meta:\n        model = User\n        fields = ['email', 'full_name', 'phone_number', 'name', 'farm_image', 'length',\n                  'breadth', 'expiry_date', 'pollution_certificate', 'address', 'location', 'plan_file']\n        widgets = {\n            'expiry_date': forms.DateInput(attrs={'type': 'date'}),\n        }\n    def clean(self):\n        cleaned_data = super().clean()",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "SupplierForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class SupplierForm(forms.ModelForm):\n    class Meta:\n        model = Supplier\n        fields = ['supplier_code', 'name', 'email', 'phone_number',\n                  'address', 'is_active']  # Include is_active field\n    def clean_email(self):\n        email = self.cleaned_data.get('email')\n        if Supplier.objects.filter(email=email).exists():\n            raise forms.ValidationError(\n                \"This email is already in use. Please choose a different one.\")",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "SupplierForm",
+        "kind": 6,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "class SupplierForm(forms.ModelForm):\n    class Meta:\n        model = Supplier\n        fields = ['supplier_code', 'name', 'email', 'phone_number',\n                  'address', 'is_active']  # Include is_active field\n    def clean_email(self):\n        email = self.cleaned_data.get('email')\n        if Supplier.objects.filter(email=email).exists():\n            raise forms.ValidationError(\n                \"This email is already in use. Please choose a different one.\")",
+        "detail": "user.forms",
+        "documentation": {}
+    },
+    {
+        "label": "clean_plan_file",
+        "kind": 2,
+        "importPath": "user.forms",
+        "description": "user.forms",
+        "peekOfCode": "def clean_plan_file(self):\n    file = self.cleaned_data.get('plan_file')\n    if file:\n        # Validate file type\n        if not (file.name.endswith('.pdf') or file.name.endswith('.jpg') or file.name.endswith('.jpeg') or file.name.endswith('.png')):\n            raise ValidationError(\n                \"Only PDF, JPG, JPEG, and PNG files are allowed.\")\n        # Validate file size (e.g., max 5 MB)\n        if file.size > 5 * 1024 * 1024:  # 5 MB limit\n            raise ValidationError(\"File size must be under 5 MB.\")",
         "detail": "user.forms",
         "documentation": {}
     },
@@ -1392,8 +3357,62 @@
         "kind": 6,
         "importPath": "user.models",
         "description": "user.models",
-        "peekOfCode": "class User(AbstractUser):\n    username = None  # Remove the username field\n    email = models.EmailField(unique=True)\n    user_type = models.ForeignKey(\n        UserType, on_delete=models.SET_NULL, null=True, blank=True)\n    full_name = models.CharField(max_length=255)\n    phone_number = models.CharField(max_length=15, blank=True, null=True)\n    # ImageField for image uploads\n    farm_image = models.ImageField(upload_to='images/', null=True, blank=True)\n    length = models.IntegerField(default=None, blank=True, null=True)",
+        "peekOfCode": "class User(AbstractUser):\n    username = None  # Remove the username field\n    email = models.EmailField(unique=True)\n    user_type = models.ForeignKey(\n        UserType, on_delete=models.SET_NULL, null=True, blank=True)\n    full_name = models.CharField(max_length=255)\n    phone_number = models.CharField(max_length=15, blank=True, null=True)\n    # ImageField for image uploads\n    farm_image = models.ImageField(upload_to='images/', null=True, blank=True)\n    length = models.FloatField(default=None, blank=True, null=True)",
         "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "Supplier",
+        "kind": 6,
+        "importPath": "user.models",
+        "description": "user.models",
+        "peekOfCode": "class Supplier(models.Model):\n    supplier_code = models.CharField(\n        max_length=50, unique=True, blank=True, null=True)  # Unique supplier code\n    name = models.CharField(max_length=255)\n    email = models.EmailField()\n    phone_number = models.CharField(max_length=15)\n    address = models.CharField(max_length=255, blank=True, null=True)\n    # New field to track active status\n    is_active = models.BooleanField(default=True)\n    class Meta:",
+        "detail": "user.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "kind": 6,
+        "importPath": "user.signals",
+        "description": "user.signals",
+        "peekOfCode": "class User(AbstractUser):\n    # Your existing fields...\n    def check_certificate_status(self):\n        \"\"\"Check if the pollution certificate is still valid.\"\"\"\n        if self.expiry_date and self.expiry_date < timezone.now().date():\n            # Expiry date has passed, make the user inactive\n            self.is_active = False\n        else:\n            # Expiry date is valid, make the user active\n            self.is_active = True",
+        "detail": "user.signals",
+        "documentation": {}
+    },
+    {
+        "label": "deactivate_expired_users",
+        "kind": 2,
+        "importPath": "user.tasks",
+        "description": "user.tasks",
+        "peekOfCode": "def deactivate_expired_users():\n    today = timezone.now().date()\n    users_to_deactivate = User.objects.filter(expiry_date__lt=today, is_active=True)\n    for user in users_to_deactivate:\n        user.is_active = False\n        user.save()\n        print(f\"Deactivated user: {user.email}\")\n    return f\"{len(users_to_deactivate)} users deactivated.\"\n@shared_task\ndef send_expiry_alerts():",
+        "detail": "user.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "send_expiry_alerts",
+        "kind": 2,
+        "importPath": "user.tasks",
+        "description": "user.tasks",
+        "peekOfCode": "def send_expiry_alerts():\n    logger.info(\"Sending expiry alerts...\")\n    today = date.today()\n    tomorrow = today + timedelta(days=1)\n    # Retrieve users whose certificates are expiring today and tomorrow\n    users_expiring_today = User.objects.filter(expiry_date=today)\n    users_expiring_tomorrow = User.objects.filter(expiry_date=tomorrow)\n    # Loop through users expiring today\n    for user in users_expiring_today:\n        if user.email:",
+        "detail": "user.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "schedule_expiry_alerts",
+        "kind": 2,
+        "importPath": "user.tasks",
+        "description": "user.tasks",
+        "peekOfCode": "def schedule_expiry_alerts():\n    # Create or get the Crontab schedule (runs daily at 11:43 AM)\n    task_name = 'Send Pollution Certificate Expiry Alerts'\n    # Get or create the periodic task\n    task, created = PeriodicTask.objects.get_or_create(\n        crontab=schedule,\n        name=task_name,\n        task='user.tasks.send_expiry_alerts',\n        defaults={\n            'kwargs': json.dumps({})  # Pass any arguments if needed",
+        "detail": "user.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "user.tasks",
+        "description": "user.tasks",
+        "peekOfCode": "logger = logging.getLogger(__name__)\n@shared_task\ndef deactivate_expired_users():\n    today = timezone.now().date()\n    users_to_deactivate = User.objects.filter(expiry_date__lt=today, is_active=True)\n    for user in users_to_deactivate:\n        user.is_active = False\n        user.save()\n        print(f\"Deactivated user: {user.email}\")\n    return f\"{len(users_to_deactivate)} users deactivated.\"",
+        "detail": "user.tasks",
         "documentation": {}
     },
     {
@@ -1419,7 +3438,7 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def admindash(request):\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Stakeholder')\n    stakeholder_count = User.objects.filter(user_type=user_type)\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Customer')\n    customer_count = User.objects.filter(user_type=user_type)\n    return render(request, 'dashboard.html', {'stakeholder_count': stakeholder_count.count(), 'customer_count': customer_count.count()})\ndef stakeholderuser(request):\n    # fetching the usertype with name stakeholder",
+        "peekOfCode": "def admindash(request):\n    # Fetching the usertype with name 'Stakeholder'\n    stakeholder_user_type = UserType.objects.get(name='Stakeholder')\n    # Counting total stakeholders\n    total_stakeholders = User.objects.filter(\n        user_type=stakeholder_user_type).count()\n    # Counting active stakeholders\n    active_stakeholders = User.objects.filter(\n        user_type=stakeholder_user_type, is_active=True).count()\n    # Fetching the usertype with name 'Customer'",
         "detail": "user.views",
         "documentation": {}
     },
@@ -1428,7 +3447,7 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def stakeholderuser(request):\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    context = {'users': users}\n    return render(request, 'stakeholderuser.html', context)\ndef stakeholderuserprofile(request, id):  # id is for getting a user\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(",
+        "peekOfCode": "def stakeholderuser(request):\n    # fetching the usertype with name stakeholder\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    context = {'users': users}\n    return render(request, 'stakeholderuser.html', context)\ndef stakeholderuserprofile(request, id):\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))[",
         "detail": "user.views",
         "documentation": {}
     },
@@ -1437,7 +3456,25 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def stakeholderuserprofile(request, id):  # id is for getting a user\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(\n        Sum('chick_count'))['chick_count__sum'] or 0\n    today=date.today()\n    if user.expiry_date:\n        day_expiry=(user.expiry_date-today).days\n        print(day_expiry)\n    else:",
+        "peekOfCode": "def stakeholderuserprofile(request, id):\n    user = User.objects.get(id=id)\n    chick_batches = ChickBatch.objects.filter(user=user)\n    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))[\n        'initial_chick_count__sum'] or 0\n    today = date.today()\n    day_expiry = None\n    if user.expiry_date:\n        day_expiry = (user.expiry_date - today).days\n    # Calculate square feet based on length and breadth (assuming they're in the User model)",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "view_stakeholder_view",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def view_stakeholder_view(request, id):\n    chick_batches = ChickBatch.objects.filter(\n        user_id=id)  # Adjust the queryset as needed\n    return render(request, 'chick_batches_list.html', {'chick_batches': chick_batches,\"user\":id})\ndef download_daily_log(request, batch_id):\n    try:\n        # Retrieve the DailyData records for the specific batch\n        batch = ChickBatch.objects.get(id=batch_id)\n        daily_data_records = DailyData.objects.filter(batch=batch)\n        # Create a DataFrame for the daily log",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "download_daily_log",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def download_daily_log(request, batch_id):\n    try:\n        # Retrieve the DailyData records for the specific batch\n        batch = ChickBatch.objects.get(id=batch_id)\n        daily_data_records = DailyData.objects.filter(batch=batch)\n        # Create a DataFrame for the daily log\n        data = {\n            'Date': [record.date for record in daily_data_records],\n            'Alive Count': [record.alive_count for record in daily_data_records],\n            'Sick Chicks': [record.sick_chicks for record in daily_data_records],",
         "detail": "user.views",
         "documentation": {}
     },
@@ -1455,7 +3492,16 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def customeruserprofile(request, id):\n    user = User.objects.get(id=id)\n    return render(request, 'customerprofile.html', {'user': user})\ndef stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = StakeholderUserForm(request.POST, request.FILES, instance=user)\n        if form.is_valid():\n            form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need",
+        "peekOfCode": "def customeruserprofile(request, id):\n    user = User.objects.get(id=id)\n    orders = Order.objects.filter(user=id)\n    return render(request, 'customerprofile.html', {'user': user, 'orders': orders})\n@login_required\ndef approve_order(request, order_id):\n    # Fetch the order and update its status\n    order = get_object_or_404(Order, id=order_id)\n    if request.method == 'POST':\n        # Check if the order can be fulfilled",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "approve_order",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def approve_order(request, order_id):\n    # Fetch the order and update its status\n    order = get_object_or_404(Order, id=order_id)\n    if request.method == 'POST':\n        # Check if the order can be fulfilled\n        if not order.can_fulfill_order():\n            messages.error(\n                request, \"Not enough chickens available to fulfill this order.\")\n            return redirect('customeruserprofile', id=order.user.id)\n        # Confirm the order",
         "detail": "user.views",
         "documentation": {}
     },
@@ -1464,16 +3510,88 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = StakeholderUserForm(request.POST, request.FILES, instance=user)\n        if form.is_valid():\n            form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need\n            return redirect('stakeholder')\n    else:\n        form = StakeholderUserForm(instance=user)",
+        "peekOfCode": "def stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        user_form = StakeholderUserForm(\n            request.POST, request.FILES, instance=user)\n        if user_form.is_valid():\n            user_form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need\n            return redirect('stakeholder')\n    else:",
         "detail": "user.views",
         "documentation": {}
     },
     {
-        "label": "delete_user",
+        "label": "toggle_user_status",
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def delete_user(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    user.delete()  # Delete the user\n    return redirect('stakeholderuser')",
+        "peekOfCode": "def toggle_user_status(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    if request.method == \"POST\":\n        # Toggle the user's active status\n        user.is_active = not user.is_active\n        user.save()\n        status = \"enabled\" if user.is_active else \"disabled\"\n        messages.success(request, f\"User has been {status} successfully.\")\n        if user.user_type.name.lower() == \"customer\":\n            return redirect('customeruser')",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "vaccine_admin",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def vaccine_admin(request):\n    # Assuming you're trying to retrieve a VaccineAdmin object by its ID (pk)\n    return render(request, 'vaccination.html')\ndef feed_admin(request):\n    return render(request, 'feedadmin.html')\n# user/views.py\ndef renew_pollution_certificate(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    if request.method == 'POST':\n        new_expiry_date = request.POST.get('expiry_date')",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "feed_admin",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def feed_admin(request):\n    return render(request, 'feedadmin.html')\n# user/views.py\ndef renew_pollution_certificate(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    if request.method == 'POST':\n        new_expiry_date = request.POST.get('expiry_date')\n        if new_expiry_date:\n            user.expiry_date = new_expiry_date  # Update the expiry date\n            user.is_active = True  # Reactivate the user",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "renew_pollution_certificate",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def renew_pollution_certificate(request, user_id):\n    user = get_object_or_404(User, id=user_id)\n    if request.method == 'POST':\n        new_expiry_date = request.POST.get('expiry_date')\n        if new_expiry_date:\n            user.expiry_date = new_expiry_date  # Update the expiry date\n            user.is_active = True  # Reactivate the user\n            user.save()\n            messages.success(\n                request, \"Pollution certificate renewed successfully.\")",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "supplier_list",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def supplier_list(request):\n    \"\"\"Display the list of suppliers.\"\"\"\n    suppliers = Supplier.objects.all()\n    return render(request, 'supplier_list.html', {'suppliers': suppliers})\ndef add_supplier(request):\n    \"\"\"Add a new supplier.\"\"\"\n    if request.method == 'POST':\n        form = SupplierForm(request.POST)\n        if form.is_valid():\n            form.save()",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "add_supplier",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def add_supplier(request):\n    \"\"\"Add a new supplier.\"\"\"\n    if request.method == 'POST':\n        form = SupplierForm(request.POST)\n        if form.is_valid():\n            form.save()\n            # Success message\n            messages.success(request, 'Supplier added successfully.')\n            # Redirect to supplier list after adding\n            return redirect('supplier_list')",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "edit_supplier",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def edit_supplier(request, supplier_id):\n    \"\"\"Edit an existing supplier.\"\"\"\n    supplier = get_object_or_404(Supplier, id=supplier_id)\n    if request.method == 'POST':\n        form = SupplierForm(request.POST, instance=supplier)\n        if form.is_valid():\n            form.save()\n            # Redirect to supplier list after editing\n            return redirect('supplier_list')\n    else:",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "enable_supplier",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def enable_supplier(request, supplier_id):\n    \"\"\"Enable a supplier.\"\"\"\n    supplier = get_object_or_404(Supplier, id=supplier_id)\n    supplier.is_active = True\n    supplier.save()\n    # Redirect to supplier list after enabling\n    return redirect('supplier_list')\ndef disable_supplier(request, supplier_id):\n    \"\"\"Disable a supplier.\"\"\"\n    supplier = get_object_or_404(Supplier, id=supplier_id)",
+        "detail": "user.views",
+        "documentation": {}
+    },
+    {
+        "label": "disable_supplier",
+        "kind": 2,
+        "importPath": "user.views",
+        "description": "user.views",
+        "peekOfCode": "def disable_supplier(request, supplier_id):\n    \"\"\"Disable a supplier.\"\"\"\n    supplier = get_object_or_404(Supplier, id=supplier_id)\n    supplier.is_active = False\n    supplier.save()\n    # Redirect to supplier list after disabling\n    return redirect('supplier_list')",
         "detail": "user.views",
         "documentation": {}
     },

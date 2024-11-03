@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('stakeholder.urls')),
+    path('hotel/', include('hoteldetails.urls')),
     path('accounts/', include('allauth.urls')),
     path('logout/', logout_view, name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(),
@@ -23,6 +24,5 @@ urlpatterns = [
 
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    
-    
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

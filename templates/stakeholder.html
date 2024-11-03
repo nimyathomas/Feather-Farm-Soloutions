@@ -7,8 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Feather Farm - Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/stakeholder.css' %}" />
-  
+
     <header class="header">
+      <div class="logo">
+        <h2>🪶 Feather Farm</h2>
+      </div>
       <div class="profile">
         <div class="profile-details">
           <span class="profile-name">{{ request.user.full_name }}</span>
@@ -18,46 +21,50 @@
       </div>
     </header>
 
-    
     <link
       href="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css'%}"
       rel="stylesheet"
     />
     <script src="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'%}"></script>
-    {% comment %} <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> {% endcomment %}
-
+    {% comment %}
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    {% endcomment %}
   </head>
   <body>
     <div class="container">
       <!-- Sidebar Section -->
       <aside class="sidebar">
-        <div class="logo">
-          <h2>🪶 Feather Farm</h2>
-        </div>
         <nav class="nav-menu">
           <ul>
             <li>
-              <a href="{% url 'stakeholder' %}" class="active">Dashboard</a>
-            </li> 
-            <a href="{% url 'add_daily_data'%}">Daily logs</a>
-
-            <li><a href="{% url 'stateholder_batch' %}">🚑Chicken Batches</a></li>
-            {% comment %} <li><a href="{% url  %}">🚑Feeds</a></li> {% endcomment %}
-            <li><a href="{% url 'feed_dashboard_view' user_id=user.id %}">🚑feeds</a></li>
-            <li><a href="{% url 'vaccination'  user.id %}">🚑Vaccinations</a></li>
-
-
-            
-
-            <li><a href="#">🐥Upliftments</a></li>
-            <li>
-              <a href="{% url 'stakeholder_registration' request.user.id %}"
-                >🏦profile</a
-              >
+                <a href="{% url 'stakeholder' %}" class="{% if request.path == 'stakeholder' %}active{% endif %}">🏦 Dashboard</a>
             </li>
-            <li><a href="#">💳Transactions</a></li>
-            <li><a href="#">📝Feedback</a></li>
-          </ul>
+            <li>
+                <a href="{% url 'stakeholder_registration' request.user.id %}" class="{% if request.path == 'stakeholder_registration' %}active{% endif %}">👤 Profile</a>
+            </li>
+            <li>
+                <a href="{% url 'add_daily_data' %}" class="{% if request.path == 'add_daily_data' %}active{% endif %}">📝 Daily logs</a>
+            </li>
+            <li>
+                <a href="{% url 'stateholder_batch' %}" class="{% if request.path ==  'stateholder_batch' %}active{% endif %}">🚑 Chicken Batches</a>
+            </li>
+            <li>
+                <a href="{% url 'feed_dashboard_view' user_id=request.user.id %}" class="{% if request.path ==  'feed_dashboard_view' %}active{% endif %}">🚑 Feeds</a>
+            </li>
+            <li>
+                <a href="{% url 'vaccination' user.id %}" class="{% if request.path ==  'vaccination'  %}active{% endif %}">🚑 Vaccinations</a>
+            </li>
+            <li>
+                <a href="#" class="{% if request.path == '#' %}active{% endif %}">🐥 Upliftments</a>
+            </li>
+            <li>
+                <a href="#" class="{% if request.path == '#' %}active{% endif %}">💳 Transactions</a>
+            </li>
+        </ul>
+        
         </nav>
       </aside>
 
@@ -65,32 +72,4 @@
       <main class="content">{% block body %} {% endblock %}</main>
     </div>
   </body>
-
-  <script>
-    var idleTime = 0;
-    var sessionTimeout = {{ request.session.get_expiry_age }};
-    var warningTime = sessionTimeout - 60;  // Show warning 1 minute before timeout
-
-    function resetIdleTime() {
-        idleTime = 0;
-    }
-
-    setInterval(function () {
-        idleTime++;
-        if (idleTime >= warningTime) {
-            alert('Your session is about to expire.');
-        }
-        if (idleTime >= sessionTimeout) {
-            window.location.href = "{% url 'login' %}";
-        }
-    }, 1000);
-
-    window.onload = resetIdleTime;
-    window.onmousemove = resetIdleTime;
-    window.onkeypress = resetIdleTime;
-</script>
-
-
-
-
 </html>

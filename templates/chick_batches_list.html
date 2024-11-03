@@ -1,0 +1,36 @@
+{% extends 'admindash.html' %} 
+{% load static %} 
+{% block body %}
+<div class="profile-container">
+    <a class="back-button" href="{% url 'stakeholderuserprofile' user %}">back</a>
+    <h2>Chick Batches</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Batch Date</th>
+                <th>Initial Chick Count</th>
+                <th>Available Chickens</th>
+                <th>Batch Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for batch in chick_batches %}
+            <tr>
+                <td>{{ batch.batch_date }}</td>
+                <td>{{ batch.initial_chick_count }}</td>
+                <td>{{ batch.available_chickens }}</td>
+                <td>{{ batch.batch_status }}</td>
+                <td>
+                    <a href="{% url 'download_daily_log' batch.id %}" class="btn btn-primary">Download Daily Log</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No chick batches available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

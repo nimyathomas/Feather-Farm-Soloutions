@@ -1,184 +1,112 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
+{% extends 'stakeholder.html' %} {% load static %} {% block body %}
 
-{% block body %}
+<!-- Vaccine Information Section -->
+<div class="vaccine-info">
+  <div class="card">
+    <img src="{% static 'images/VAChickVac_HR.jpg' %}" alt="Vaccine Image 1" />
+    <h2>V.A. ChickVac</h2>
+    <p class="date">Day Administered: Day 7</p>
+    <p>
+      V.A. ChickVac™ is a modified-live virus vaccine for the immunization of
+      chickens against viral arthritis.
+    </p>
+    <h3 class="red">Storage:</h3>
+    <ul>
+      <li>
+        Prolonged exposure to higher temperatures and/or direct sunlight may
+        affect potency.
+      </li>
+      <li>Do not freeze.</li>
+      <li>Store diluent at or below 80°F (27°C).</li>
+    </ul>
+    <h3 class="red">Precautions:</h3>
+    <ul>
+      <li>Rehydrate with Zoetis diluent only.</li>
+      <li>Vaccinate only healthy birds.</li>
+      <li>Do not vaccinate birds in egg production.</li>
+      <li>Use vaccine within one hour after rehydrating.</li>
+    </ul>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
+    <h3 class="red">Administration:</h3>
+    <ul>
+      <li>
+        This vaccine can be administered by Intraocular instillation or via
+        drinking water..
+      </li>
+    </ul>
+  </div>
 
-        .container {
-            margin: 50px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 1200px; /* Wider container to accommodate larger images */
-            text-align: center;
-        }
+  <div class="card">
+    <img
+      src="{% static 'images/62b69cd878a13d1e2995ef41_Gumboro I 1000 Doses-p-500.jpeg' %}"
+      alt="Vaccine Image 2"
+    />
+    <h2>Gumboro I Vaccine</h2>
+    <p class="date">Day Administered: Day 14</p>
+    <p>
+      Gumboro I vaccine is used to protect against infectious bursal disease in
+      poultry.
+    </p>
+    <h3 class="red">Storage:</h3>
+    <ul>
+      <li>
+        Prolonged exposure to higher temperatures and/or direct sunlight may
+        affect potency.
+      </li>
+      <li>Do not freeze.</li>
+      <li>Store diluent at or below 80°F (27°C).</li>
+    </ul>
+    <h3 class="red">Precautions:</h3>
+    <ul>
+      <li>Rehydrate with Zoetis diluent only.</li>
+      <li>Vaccinate only healthy birds.</li>
+      <li>Do not vaccinate birds in egg production.</li>
+      <li>Use vaccine within one hour after rehydrating.</li>
+    </ul>
+    <h3 class="red">Administration:</h3>
+    <ul>
+      <li>
+        This vaccine can be administered by Intraocular instillation or via
+        drinking water..
+      </li>
+    </ul>
+  </div>
 
-        h1, h2 {
-            text-align: center;
-            color: #2C3E50;
-            margin-bottom: 20px;
-        }
-
-        /* Flexbox for vaccine cards */
-        .vaccine-info {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-            flex-wrap: wrap; /* Ensures wrapping on smaller screens */
-        }
-
-        .card {
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 30%; /* Three cards align horizontally */
-            text-align: center;
-        }
-
-        .card img {
-            width: 100%; /* Make image take up most of the card width */
-            height: auto;
-            max-height: 300px; /* Control image height */
-            object-fit: cover;
-            margin-bottom: 10px; /* Space between image and text */
-        }
-
-        .card h2 {
-            font-size: 20px; /* Reduce text size */
-            margin-bottom: 10px;
-        }
-
-        .card p.date {
-            font-size: 16px;
-            color: #34495E;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            font-size: 14px; /* Reduce paragraph text size */
-            color: #34495E;
-            margin-bottom: 10px;
-        }
-
-        .card ul {
-            font-size: 14px; /* Reduce list text size */
-            text-align: left;
-        }
-
-        .card h3 {
-            font-size: 16px; /* Smaller headers */
-            margin-bottom: 5px;
-        }
-
-        .card ul {
-            list-style-type: none; /* Removes bullet points */
-            padding: 0;
-        }
-
-        .card ul li {
-            margin-bottom: 5px;
-        }
-
-        .card h3.red {
-            color: red;
-        }
-
-    </style>
-
-    <div class="container">
-        <!-- Vaccine Information Section -->
-        <div class="vaccine-info">
-            <div class="card">
-                <img src="{% static 'images/VAChickVac_HR.jpg' %}" alt="Vaccine Image 1">
-                <h2>V.A. ChickVac</h2>
-                <p class="date">Day Administered: Day 7</p>
-                <p>
-                    V.A. ChickVac™ is a modified-live virus vaccine for the immunization of chickens against viral arthritis.
-                </p>
-                <h3 class="red">Storage:</h3>
-                <ul>
-                    <li>Prolonged exposure to higher temperatures and/or direct sunlight may affect potency.</li>
-                    <li>Do not freeze.</li>
-                    <li>Store diluent at or below 80°F (27°C).</li>
-                </ul>
-                <h3 class="red">Precautions:</h3>
-                <ul>
-                    <li>Rehydrate with Zoetis diluent only.</li>
-                    <li>Vaccinate only healthy birds.</li>
-                    <li>Do not vaccinate birds in egg production.</li>
-                    <li>Use vaccine within one hour after rehydrating.</li>
-                </ul>
-
-                <h3  class="red ">Administration:</h3>
-                <ul>
-                    <li>This vaccine can be administered by Intraocular instillation or via drinking water..</li>
-                
-                </ul>
-            </div>
-
-            <div class="card">
-                <img src="{% static 'images/62b69cd878a13d1e2995ef41_Gumboro I 1000 Doses-p-500.jpeg' %}" alt="Vaccine Image 2">
-                <h2>Gumboro I Vaccine</h2>
-                <p class="date">Day Administered: Day 14</p>
-                <p>
-                    Gumboro I vaccine is used to protect against infectious bursal disease in poultry.
-                </p>
-                <h3 class="red">Storage:</h3>
-                <ul>
-                    <li>Prolonged exposure to higher temperatures and/or direct sunlight may affect potency.</li>
-                    <li>Do not freeze.</li>
-                    <li>Store diluent at or below 80°F (27°C).</li>
-                </ul>
-                <h3 class="red">Precautions:</h3>
-                <ul>
-                    <li>Rehydrate with Zoetis diluent only.</li>
-                    <li>Vaccinate only healthy birds.</li>
-                    <li>Do not vaccinate birds in egg production.</li>
-                    <li>Use vaccine within one hour after rehydrating.</li>
-                </ul>
-                <h3  class="red ">Administration:</h3>
-                <ul>
-                    <li>This vaccine can be administered by Intraocular instillation or via drinking water..</li>
-                
-                </ul>
-            </div>
-
-            <div class="card">
-                <img src="{% static 'images/62b69c75c1cc2d49eb3d9757_Live B1-M48 1000 Doses-p-500.jpeg' %}" alt="Vaccine Image 3">
-                <h2>Live B1-M48 Vaccine</h2>
-                <p class="date">Day Administered: Day 21</p>
-                <p>
-                    Live B1-M48 protects against Newcastle disease and infectious bronchitis in poultry.
-                </p>
-                <h3 class="red">Storage:</h3>
-                <ul>
-                    <li>Prolonged exposure to higher temperatures and/or direct sunlight may affect potency.</li>
-                    <li>Do not freeze.</li>
-                    <li>Store diluent at or below 80°F (27°C).</li>
-                </ul>
-                <h3 class="red">Precautions:</h3>
-                <ul>
-                    <li>Rehydrate with Zoetis diluent only.</li>
-                    <li>Vaccinate only healthy birds.</li>
-                    <li>Do not vaccinate birds in egg production.</li>
-                    <li>Use vaccine within one hour after rehydrating.</li>
-                </ul>
-                <h3  class="red ">Administration:</h3>
-                <ul>
-                    <li>This vaccine can be administered by Intraocular instillation or via drinking water..</li>
-                
-                </ul>
-            </div>
-        </div>
-    </div>
+  <div class="card">
+    <img
+      src="{% static 'images/62b69c75c1cc2d49eb3d9757_Live B1-M48 1000 Doses-p-500.jpeg' %}"
+      alt="Vaccine Image 3"
+    />
+    <h2>Live B1-M48 Vaccine</h2>
+    <p class="date">Day Administered: Day 21</p>
+    <p>
+      Live B1-M48 protects against Newcastle disease and infectious bronchitis
+      in poultry.
+    </p>
+    <h3 class="red">Storage:</h3>
+    <ul>
+      <li>
+        Prolonged exposure to higher temperatures and/or direct sunlight may
+        affect potency.
+      </li>
+      <li>Do not freeze.</li>
+      <li>Store diluent at or below 80°F (27°C).</li>
+    </ul>
+    <h3 class="red">Precautions:</h3>
+    <ul>
+      <li>Rehydrate with Zoetis diluent only.</li>
+      <li>Vaccinate only healthy birds.</li>
+      <li>Do not vaccinate birds in egg production.</li>
+      <li>Use vaccine within one hour after rehydrating.</li>
+    </ul>
+    <h3 class="red">Administration:</h3>
+    <ul>
+      <li>
+        This vaccine can be administered by Intraocular instillation or via
+        drinking water..
+      </li>
+    </ul>
+  </div>
+</div>
 
 {% endblock %}

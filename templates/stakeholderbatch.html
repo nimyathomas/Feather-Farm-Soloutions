@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block body %}
-<div class="card profile-card">
+<section class="content-section">
   <h3>Chick Batches</h3>
 
   <div class="total-chick-count">
@@ -17,6 +17,7 @@
             {{ info.batch.batch_date|date:"F j, Y" }}
           </a>:
         </strong> 
+        Chicken Type &nbsp:&nbsp {{info.batch.batch_type}}
         <span>{{ info.initial_chick_count }} chicks</span>
       </li>
     {% empty %}
@@ -24,4 +25,5 @@
     {% endfor %}
   </ul>
 </div>
+</section>
 {% endblock %}

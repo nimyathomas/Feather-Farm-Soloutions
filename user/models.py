@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 
+
 class CustomUserManager(BaseUserManager):
 
     def create_user(self, email, full_name, password=None, **extra_fields):
@@ -50,8 +51,11 @@ class User(AbstractUser):
     pollution_certificate = models.FileField(
         upload_to='certificates/', blank=True, null=True)
     coopcapacity = models.IntegerField(default=None, blank=True, null=True)
+    name = models.CharField(max_length=100)
+    location = models.CharField(max_length=200)
     address = models.CharField(max_length=255)
     plan_file = models.FileField(upload_to='farm_plan/', blank=True, null=True)
+    hotel_license = models.FileField(upload_to='hotel_license/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'  # Use email to login
@@ -63,24 +67,51 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+    def farm_area(self):
+        """Calculate the farm area."""
+        if self.length and self.breadth:
+            return self.length * self.breadth
+        return None
 
-    
+    def get_live_chick_counts_and_weights(self):
+        """
+        Retrieves live chick counts and total weight gain for all ChickBatch instances
+        associated with this user.
+        """
+        batches = self.chick_batches.all()
+        results = []
+        
+        for batch in batches:
+            live_count = batch.live_chick_count  # Get live chick count
+            total_weight = batch.total_weight  # Get total weight
+            
+            results.append({
+                'batch_date': batch.batch_date,
+                'batch_id':batch.id,
+                'live_chick_count': live_count,
+                'total_weight': total_weight,
+                'batch_status': batch.batch_status,
+            })
+        
+        return results
+
 class Supplier(models.Model):
-    supplier_code = models.CharField(max_length=50, unique=True, blank=True, null=True)  # Unique supplier code
+    supplier_code = models.CharField(
+        max_length=50, unique=True, blank=True, null=True)  # Unique supplier code
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone_number = models.CharField(max_length=15)
     address = models.CharField(max_length=255, blank=True, null=True)
-    is_active = models.BooleanField(default=True)  # New field to track active status
-    
-    
+    # New field to track active status
+    is_active = models.BooleanField(default=True)
+
     class Meta:
         constraints = [
-            
-            models.UniqueConstraint(fields=['supplier_code'], name='unique_supplier_code')  # Unique supplier code
-        ]
-        
 
+            # Unique supplier code
+            models.UniqueConstraint(
+                fields=['supplier_code'], name='unique_supplier_code')
+        ]
 
     def __str__(self):
         return self.name

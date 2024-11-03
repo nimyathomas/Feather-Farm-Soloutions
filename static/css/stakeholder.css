@@ -1,29 +1,17 @@
 /* Base styles */
-body, html {
+* {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     box-sizing: border-box;
-    height: 100%;
 }
 
 /* Container for layout */
 .container {
-    display: flex; /* Use flexbox for layout */
-    min-height: 100vh; /* Full height for the sidebar */
-}
-
-/* Sidebar styles */
-.sidebar {
-    width: 200px; /* Fixed width for sidebar */
-    background-color: #2C3E50;
-    color: #ECF0F1;
-    padding: 5px;
-}
-
-.sidebar h2 {
-    text-align: center;
-    color: #ffffff;
+    display: flex;
+    /* Use flexbox for layout */
+    min-height: 100vh;
+    /* Full height for the sidebar */
 }
 
 /* Navigation menu styles */
@@ -40,38 +28,30 @@ body, html {
     color: #ECF0F1;
     text-decoration: none;
     font-size: 16px;
-    display: flex;
-    align-items: center; /* Align text with icons */
 }
 
 .nav-menu li a.active {
     font-weight: bold;
 }
 
-/* Icon styling */
-.menu-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-}
+
 
 /* Main content area styling */
 .content {
-    flex: 1; /* Take remaining space for content */
+    flex: 1;
+    /* Take remaining space for content */
     padding: 20px;
     background-color: #f4f4f4;
 }
 
 /* Header styles */
-/* Header styles */
 .header {
     display: flex;
-    justify-content: flex-end; /* Align items to the right */
+    justify-content: space-between;
     align-items: center;
     background-color: #2C3E50;
-    padding: 25px 20px;
+    padding: 20px 20px;
     color: #ECF0F1;
-    margin-bottom: 10px;
 }
 
 /* Profile styles */
@@ -88,7 +68,8 @@ body, html {
 .profile-details {
     display: flex;
     flex-direction: column;
-    text-align: right; /* Align text to the right */
+    text-align: right;
+    /* Align text to the right */
 }
 
 .profile-name {
@@ -101,10 +82,24 @@ body, html {
 }
 
 .logout {
-    font-size: 12px;
+    font-size: 14px;
     color: #ECF0F1;
     text-decoration: none;
-    margin-top: 5px;
+    margin-top: 13px;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #2C3E50;
+    color: #ECF0F1;
+    padding: 5px;
+    padding-left: 5px;
+    padding-left: 23px;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #ffffff;
 }
 
 /* Alert styles */
@@ -150,52 +145,157 @@ body, html {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Form Section Styles */
 .content-section {
     padding: 20px;
-    background-color: #ffffff; /* White background for contrast */
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px; /* Spacing below the section */
+    margin-bottom: 20px;
 }
 
 h2.text-center {
     text-align: center;
-    margin-bottom: 20px; /* Space below the heading */
+    margin-bottom: 20px;
+    /* Space below the heading */
+}
+
+/* daily update */
+/* Wrapper to enable scrolling */
+.scrollable-table-wrapper {
+    max-height: 400px;
+    /* Adjust as needed */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+/* Table styling */
+#daily-entries {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    background-color: #fff;
+}
+
+#daily-entries thead th {
+    position: sticky;
+    top: 0;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd;
+}
+
+#daily-entries tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Style rows for readability */
+#daily-entries tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#daily-entries tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Input field styling */
+#daily-entries input[type="date"],
+#daily-entries input[type="number"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+/* Focus state for inputs */
+#daily-entries input[type="date"]:focus,
+#daily-entries input[type="number"]:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.table-container {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    background-color: #fff;
+}
+
+
+.table-data{
+    background-color: #f9f9f9;
+}
+.error-message{
+    color: red;
+    padding: 10px;
 }
 
 .form-group {
-    margin-bottom: 15px; /* Space between form groups */
+    padding: 10px;
+    /* Space between form groups */
 }
 
-.form-control {
-    width: 100%; /* Full width for inputs and textarea */
-    padding: 10px; /* Padding for better touch targets */
-    border: 1px solid #ccc; /* Border styling */
-    border-radius: 4px; /* Rounded corners */
-    font-size: 14px; /* Font size for inputs */
+.form-label {
+    display: block;
+}
+
+.form-group input {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.form-group input:focus {
+    border: 1px solid grey
 }
 
 .form-control:readonly {
-    background-color: #f9f9f9; /* Light background for readonly fields */
-    cursor: not-allowed; /* Indicate field is not editable */
+    background-color: #f9f9f9;
+    /* Light background for readonly fields */
+    cursor: not-allowed;
+    /* Indicate field is not editable */
+}
+
+.left-column{
+    display: flex;
+    justify-content: space-between;
+}
+.id_batch{
+    padding: 5px;
 }
 
 .current-image {
-    margin-bottom: 10px; /* Space below the image */
+    margin-bottom: 10px;
+    /* Space below the image */
 }
 
 .btn {
-    background-color: #1ABC9C; /* Primary button color */
-    color: #fff; /* Text color for button */
-    padding: 10px 20px; /* Button padding */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
+    background-color: #1ABC9C;
+    /* Primary button color */
+    color: #fff;
+    /* Text color for button */
+    padding: 10px 20px;
+    /* Button padding */
+    border: none;
+    /* Remove default border */
+    border-radius: 5px;
+    /* Rounded corners */
+    cursor: pointer;
+    /* Pointer cursor on hover */
 }
 
 .btn:hover {
-    background-color: #16A085; /* Darker shade on hover */
+    background-color: #16A085;
+    /* Darker shade on hover */
 }
 
 
@@ -204,7 +304,7 @@ h2.text-center {
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
- 
+
     margin-top: 10px;
 }
 
@@ -249,123 +349,230 @@ h2.text-center {
     background-color: #d1f0dd;
     transition: background-color 0.3s ease;
 }
+
 /* General Card Styling */
-.card.profile-card {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    width: 80%;
-    margin: 20px auto;
-  }
-  
-  /* Batch Info Section */
-  .batch-info h3 {
+
+/* Batch Info Section */
+.batch-info h3 {
     font-size: 1.6rem;
     margin-bottom: 15px;
-  }
-  
-  .total-chick-count {
+}
+
+.total-chick-count {
     font-size: 1.2rem;
     margin-bottom: 10px;
     color: #4CAF50;
-  }
-  
-  .total-chick-count strong {
+}
+
+.total-chick-count strong {
     font-size: 1.4rem;
-  }
-  
-  /* Batch List Styling */
-  .batch-list {
+}
+
+/* Batch List Styling */
+.batch-list {
     list-style-type: none;
     padding: 0;
-  }
-  
-  .batch-item {
+}
+
+.batch-item {
     padding: 10px;
     border-bottom: 1px solid #ddd;
     display: flex;
     justify-content: space-between;
-  }
-  
-  .batch-item strong {
+}
+
+.batch-item strong {
     font-size: 1.1rem;
-  }
-  
-  .batch-item span {
+}
+
+.batch-item span {
     font-size: 1.1rem;
     color: #333;
-  }
-  
-  .no-batches {
+}
+
+.no-batches {
     font-size: 1.1rem;
     color: #999;
     text-align: center;
-  }
-  
-  /* Add some hover effect to list items */
-  .batch-item:hover {
+}
+
+/* Add some hover effect to list items */
+.batch-item:hover {
     background-color: #f9f9f9;
-  }
-  .icon-class {
-    width: 45px;  /* Set the desired width */
-    height: 45px; /* Set the desired height */
-    vertical-align: middle;  /* Aligns the icon with the text */
-    margin-right: 5px;  /* Optional: Adds some space between the icon and the text */
-}  
+}
+
+.icon-class {
+    width: 45px;
+    /* Set the desired width */
+    height: 45px;
+    /* Set the desired height */
+    vertical-align: middle;
+    /* Aligns the icon with the text */
+    margin-right: 5px;
+    /* Optional: Adds some space between the icon and the text */
+}
 
 .text-danger {
-    color: red; /* Change text color to red */
-    font-size: 12px; /* Set a smaller font size */
-    margin-top: 5px; /* Add some space above the error message */
+    color: red;
+    /* Change text color to red */
+    font-size: 12px;
+    /* Set a smaller font size */
+    margin-top: 5px;
+    /* Add some space above the error message */
 }
+
 .feed-monitoring {
-    margin-top: 20px; /* Space above the feed section */
+    margin-top: 20px;
+    /* Space above the feed section */
 }
 
 .feed-card {
-    background-color: #f9f9f9; /* Light background for cards */
-    border: 1px solid #e0e0e0; /* Border color */
-    border-radius: 8px; /* Rounded corners */
-    padding: 15px; /* Padding inside the card */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    margin-bottom: 20px; /* Space below each card */
+    background-color: #f9f9f9;
+    /* Light background for cards */
+    border: 1px solid #e0e0e0;
+    /* Border color */
+    border-radius: 8px;
+    /* Rounded corners */
+    padding: 15px;
+    /* Padding inside the card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    margin-bottom: 20px;
+    /* Space below each card */
 }
 
 .feed-card h2 {
-    font-size: 1.5rem; /* Larger font size for the title */
-    margin-bottom: 15px; /* Space below the title */
-    color: #333; /* Dark color for the title */
+    font-size: 1.5rem;
+    /* Larger font size for the title */
+    margin-bottom: 15px;
+    /* Space below the title */
+    color: #333;
+    /* Dark color for the title */
 }
 
 .feed-card p {
-    font-size: 1.1rem; /* Slightly larger font size for paragraphs */
-    margin: 5px 0; /* Space above and below paragraphs */
-    color: #555; /* Gray color for text */
+    font-size: 1.1rem;
+    /* Slightly larger font size for paragraphs */
+    margin: 5px 0;
+    /* Space above and below paragraphs */
+    color: #555;
+    /* Gray color for text */
 }
 
 .feed-card a {
-    display: inline-block; /* Allows for margin and padding */
-    margin-top: 10px; /* Space above the button */
-    padding: 10px 15px; /* Padding inside the button */
-    border-radius: 5px; /* Rounded corners for buttons */
-    text-decoration: none; /* Remove underline */
-    color: #fff; /* White text color */
-    background-color: #007bff; /* Primary button color */
-    transition: background-color 0.3s; /* Transition for hover effect */
+    display: inline-block;
+    /* Allows for margin and padding */
+    margin-top: 10px;
+    /* Space above the button */
+    padding: 10px 15px;
+    /* Padding inside the button */
+    border-radius: 5px;
+    /* Rounded corners for buttons */
+    text-decoration: none;
+    /* Remove underline */
+    color: #fff;
+    /* White text color */
+    background-color: #007bff;
+    /* Primary button color */
+    transition: background-color 0.3s;
+    /* Transition for hover effect */
 }
 
 .feed-card a:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
+    /* Darker blue on hover */
 }
 
 .alert-container {
-    background-color: #fff3cd; /* Light yellow background for alerts */
-    border: 1px solid #ffeeba; /* Yellow border */
-    border-radius: 5px; /* Rounded corners */
-    padding: 10px; /* Padding inside the alert */
-    color: #856404; /* Dark yellow text color */
-    margin-top: 20px; /* Space above the alert */
+    background-color: #fff3cd;
+    /* Light yellow background for alerts */
+    border: 1px solid #ffeeba;
+    /* Yellow border */
+    border-radius: 5px;
+    /* Rounded corners */
+    padding: 10px;
+    /* Padding inside the alert */
+    color: #856404;
+    /* Dark yellow text color */
+    margin-top: 20px;
+    /* Space above the alert */
 }
-   
+
+<style>
+
+.container {
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* Wider container to accommodate larger images */
+    text-align: center;
+}
+
+/* Flexbox for vaccine cards */
+.vaccine-info {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Ensures wrapping on smaller screens */
+}
+
+.card {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 30%; /* Three cards align horizontally */
+    text-align: center;
+}
+
+.card img {
+    width: 100%; /* Make image take up most of the card width */
+    height: auto;
+    max-height: 300px; /* Control image height */
+    object-fit: cover;
+    margin-bottom: 10px; /* Space between image and text */
+}
+
+.card h2 {
+    font-size: 20px; /* Reduce text size */
+    margin-bottom: 10px;
+}
+
+.card p.date {
+    font-size: 16px;
+    color: #34495E;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 14px; /* Reduce paragraph text size */
+    color: #34495E;
+    margin-bottom: 10px;
+}
+
+.card ul {
+    font-size: 14px; /* Reduce list text size */
+    text-align: left;
+}
+
+.card h3 {
+    font-size: 16px; /* Smaller headers */
+    margin-bottom: 5px;
+}
+
+.card ul {
+    list-style-type: none; /* Removes bullet points */
+    padding: 0;
+}
+
+.card ul li {
+    margin-bottom: 5px;
+}
+
+.card h3.red {
+    color: red;
+}
+
+</style>

@@ -1,89 +1,88 @@
-{% extends 'stakeholder.html' %}
-
+{% extends 'stakeholder.html' %} 
 {% block body %}
+<section class="content-section">
 <h2>Batch Feed and Weight Summary</h2>
 
 <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit</button>
+  {% csrf_token %} {{ form.as_p }}
+  <button type="submit">Submit</button>
 </form>
 
 {% if selected_batch %}
-    <h3>Selected Batch: {{ selected_batch.id }}</h3>
-    
-    <!-- Line Graph for Feed and Weight Summary -->
-    <canvas id="batchFeedWeightChart"></canvas>
+<h3>Selected Batch: {{ selected_batch.id }}</h3>
 
-    <!-- Table for Daily Feed Entries and Weight Gain -->
-    <h4>Daily Feed and Weight Gain Summary</h4>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Feed Uplifted (kg)</th>
-                <th>Weight Gain (kg)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for date, feed, weight in daily_data %}
-            <tr>
-                <td>{{ date }}</td>
-                <td>{{ feed }}</td>
-                <td>{{ weight }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <th>Total</th>
-                <th>{{ total_feed_used }} kg</th>
-                <th>{{ total_weight_gain }} kg</th>
-            </tr>
-        </tfoot>
-    </table>
+<!-- Line Graph for Feed and Weight Summary -->
+<canvas id="batchFeedWeightChart"></canvas>
+
+<!-- Table for Daily Feed Entries and Weight Gain -->
+<h4>Daily Feed and Weight Gain Summary</h4>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Feed Uplifted (kg)</th>
+      <th>Weight Gain (kg)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for date, feed, weight in daily_data %}
+    <tr>
+      <td>{{ date }}</td>
+      <td>{{ feed }}</td>
+      <td>{{ weight }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <th>Total</th>
+      <th>{{ total_feed_used }} kg</th>
+      <th>{{ total_weight_gain }} kg</th>
+    </tr>
+  </tfoot>
+</table>
 {% endif %}
-
+</section>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    var ctx = document.getElementById('batchFeedWeightChart').getContext('2d');
-    var chart = new Chart(ctx, {
-        type: 'line',  // Use line chart
-        data: {
-            labels: {{ dates|safe }},  // Dates for the x-axis
-            datasets: [
-                {
-                    label: 'Daily Feed Uplifted (kg)',
-                    data: {{ daily_feed_uplifted|safe }},
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: false
-                },
-                {
-                    label: 'Total Weight Gain (kg)',
-                    data: {{ total_weight_gain|safe }},
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    fill: false
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Value (kg)'
-                    }
-                }
-            }
-        }
-    });
+  var ctx = document.getElementById('batchFeedWeightChart').getContext('2d');
+  var chart = new Chart(ctx, {
+      type: 'line',  // Use line chart
+      data: {
+          labels: {{ dates|safe }},  // Dates for the x-axis
+          datasets: [
+              {
+                  label: 'Daily Feed Uplifted (kg)',
+                  data: {{ daily_feed_uplifted|safe }},
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                  fill: false
+              },
+              {
+                  label: 'Total Weight Gain (kg)',
+                  data: {{ total_weight_gain|safe }},
+                  borderColor: 'rgba(153, 102, 255, 1)',
+                  fill: false
+              }
+          ]
+      },
+      options: {
+          responsive: true,
+          scales: {
+              x: {
+                  title: {
+                      display: true,
+                      text: 'Date'
+                  }
+              },
+              y: {
+                  title: {
+                      display: true,
+                      text: 'Value (kg)'
+                  }
+              }
+          }
+      }
+  });
 </script>
 {% endblock %}

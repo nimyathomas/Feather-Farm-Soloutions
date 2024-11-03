@@ -1,0 +1,99 @@
+{% extends 'hoteldetials/dashboard.html' %} {% block content %}
+<div class="container">
+  <h2>Checkout</h2>
+  <form id="order-form" method="POST">
+      {% csrf_token %}
+      <h3>Hotelier Information</h3>
+      <label>Name:</label>
+      {{cart.user.name}}
+      <label>Contact:</label>
+      {{cart.user.phone_number}}
+      {{cart.user.email}}
+      <label>Delivery Address:</label>
+      {{cart.user.address}}
+      {% for item in cart.items.all %}
+      {% if item.is_processed %}
+      <label>Other Service:</label>
+      $50 per KG
+      {% else %}
+      {% endif %}
+      {% endfor %}
+      <div class="form-group">
+        <label for="delivery_date">Delivery Date:</label>
+        <input type="date" id="delivery_date" name="delivery_date" required>
+      </div>
+  
+      
+      <h3>Delivery Method:</h3>
+      <label>
+          <input type="radio" name="delivery_method" value="standard" checked> Standard
+      </label>
+      <label>
+          <input type="radio" name="delivery_method" value="express"> Express
+      </label>
+  
+      <h3>Payment Option:</h3>
+      <label>
+          <input type="radio" name="payment_option" value="cod" checked> Cash on Delivery
+      </label>
+      <label>
+          <input type="radio" name="payment_option" value="online"> Online Transfer
+      </label>
+      <label>
+          <input type="radio" name="payment_option" value="upi"> UPI
+      </label>
+  
+      <h3>Total Price (after discount): ${{ total_price|floatformat:2 }}</h3>
+      
+      <button type="submit">Confirm Order</button>
+  </form>
+  
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById('order-form').addEventListener('submit', function(event) {
+      // Prevent the default form submission
+      event.preventDefault();
+      
+      // Get the selected payment option
+      const paymentOption = document.querySelector('input[name="payment_option"]:checked').value;
+
+      if (paymentOption === 'online' || paymentOption === 'upi') {
+          // Initialize Razorpay payment
+          const totalPrice = {{ total_price|floatformat:2 }};
+          const options = {
+              key: 'rzp_test_i1eV0ftB0HVfyt', // Replace with your Razorpay key
+              amount: totalPrice * 100, // Amount in paise
+              currency: 'INR', // Currency code
+              name: 'FATHER FARM SOLUTIONS', // Your company name
+              description: 'Order Payment',
+              handler: function (response) {
+                  // Handle payment success
+                  // You can send the payment ID and order details to your backend here
+                  alert('Payment Successful: ' + response.razorpay_payment_id);
+                  // Optionally, you can submit the form via AJAX to complete the order process
+                  this.submit(); // Submit the form if you want to finalize the order
+              }.bind(this),
+              prefill: {
+                  name: '{{ cart.user.name }}',
+                  email: '{{ cart.user.email }}',
+                  contact: '{{ cart.user.phone_number }}'
+              },
+              notes: {
+                  address: '{{ cart.user.address }}'
+              },
+              theme: {
+                  color: '#F37254' // Change to your brand color
+              }
+          };
+
+          const razorpay = new Razorpay(options);
+          razorpay.open(); // Open the Razorpay payment popup
+      } else {
+          // If Cash on Delivery, submit the form normally
+          this.submit();
+      }
+  });
+</script>
+
+{% endblock %}

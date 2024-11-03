@@ -1,0 +1,25 @@
+{% extends 'hoteldetials/dashboard.html' %} 
+
+{% block content %}
+<div class="row">
+    <form method="POST">
+        {% csrf_token %}
+        <fieldset>
+            <label for="name">Hotel Name</label>
+            {{form.name}}
+            
+            <label for="email">Email</label>
+            {{form.email}}
+
+            <label for="phone_number">Phone</label>
+            {{form.phone_number}}
+            <label for="address">Address </label>
+            {{form.address}}    
+            <label for="address">Hotel License </label>
+            {{form.hotel_license}}    
+        </fieldset>
+
+        <button type="submit" class="button-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,3 +1,9 @@
+from hoteldetails.models import Order
+from django.contrib.auth.decorators import login_required
+from .forms import SupplierForm
+from .models import Supplier
+from .models import User
+from django.shortcuts import get_object_or_404, redirect
 from datetime import date
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView
@@ -6,14 +12,14 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.db.models import Sum
 
-from stakeholder.models import ChickBatch
+from stakeholder.models import ChickBatch, DailyData
 from .forms import EmailAuthenticationForm
 from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
 from .models import UserType, User
 from django.shortcuts import get_object_or_404
-import math
-from math import floor  
-
+from django.http import HttpResponse
+import pandas as pd
+from math import floor
 
 
 def register(request):
@@ -65,33 +71,38 @@ class CustomLoginView(LoginView):
         user = self.request.user
         if user.user_type != None and hasattr(user, 'user_type') and user.user_type.name.lower() == 'stakeholder':
             return reverse_lazy('stakeholder')
-        
-        if user.expiry_date and user.expiry_date < date.today():
+
+        elif user.expiry_date and user.expiry_date < date.today():
             # Redirect the user to an 'expiry notification' page if the certificate has expired
-            return reverse_lazy('expiry_notification') 
+            return reverse_lazy('expiry_notification')
 
         elif user.user_type != None and user.user_type.name.lower() == 'admin':
             return reverse_lazy('admindash')
+        elif user.user_type != None and user.user_type.name.lower() == 'customer':
+            return reverse_lazy('hoteldashboard')
         return self.success_url
 
 
 def admindash(request):
     # Fetching the usertype with name 'Stakeholder'
     stakeholder_user_type = UserType.objects.get(name='Stakeholder')
-    
+
     # Counting total stakeholders
-    total_stakeholders = User.objects.filter(user_type=stakeholder_user_type).count()
+    total_stakeholders = User.objects.filter(
+        user_type=stakeholder_user_type).count()
 
     # Counting active stakeholders
-    active_stakeholders = User.objects.filter(user_type=stakeholder_user_type, is_active=True).count()
+    active_stakeholders = User.objects.filter(
+        user_type=stakeholder_user_type, is_active=True).count()
 
     # Fetching the usertype with name 'Customer'
     customer_user_type = UserType.objects.get(name='Customer')
     customer_count = User.objects.filter(user_type=customer_user_type).count()
-    
+
     # Counting total farms
-    total_farm = total_stakeholders  # Assuming User model represents farms (in this case, stakeholders are farms)
-    
+    # Assuming User model represents farms (in this case, stakeholders are farms)
+    total_farm = total_stakeholders
+
     # Counting active farms (which are essentially active stakeholders)
     farmactive_count = active_stakeholders
 
@@ -103,7 +114,6 @@ def admindash(request):
     })
 
 
-
 def stakeholderuser(request):
     # fetching the usertype with name stakeholder
     user_type = UserType.objects.get(name='Stakeholder')
@@ -112,60 +122,62 @@ def stakeholderuser(request):
     return render(request, 'stakeholderuser.html', context)
 
 
-from django.db.models import Sum
-from datetime import date
-
-def stakeholderuserprofile(request, id):  
+def stakeholderuserprofile(request, id):
     user = User.objects.get(id=id)
     chick_batches = ChickBatch.objects.filter(user=user)
-    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))['initial_chick_count__sum'] or 0
-    
-    
+    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))[
+        'initial_chick_count__sum'] or 0
 
     today = date.today()
     day_expiry = None
     if user.expiry_date:
         day_expiry = (user.expiry_date - today).days
-    
+
     # Calculate square feet based on length and breadth (assuming they're in the User model)
-    sqr_feet = 0  
+    sqr_feet = 0
     if user.length and user.breadth:
         sqr_feet = user.length * user.breadth
-        
     sqr_feet_rounded = round(sqr_feet, 0)
-    
+
     # Calculate number of birds that can be accommodated
-    birds_per_square_feet =2
-    birds_can_accommodate = floor(sqr_feet * birds_per_square_feet)  # Use floor to round down
-    
+    birds_per_square_feet = 2
+    birds_can_accommodate = floor(
+        sqr_feet * birds_per_square_feet)  # Use floor to round down
+
     if request.method == 'POST':
-        
+
         if not user.is_active:
-            messages.error(request, "You cannot add chicks because the user account is disabled.")
+            messages.error(
+                request, "You cannot add chicks because the user account is disabled.")
             return redirect('stakeholderuserprofile', id=id)
 
         initial_chick_count = request.POST.get('initial_chick_count')
-        
-        
+        batch_size = request.POST.get('batch_size')
+        price_per_kg = request.POST.get('price_per_kg')
+        price_per_batch = request.POST.get('price_per_batch')
+
         # Backend validation: Chick count must not be less than zero
         try:
-            initial_chick_count = int(initial_chick_count)  # Ensure integer conversion
+            # Ensure integer conversion
+            initial_chick_count = int(initial_chick_count)
             if initial_chick_count < 0:
-                messages.error(request, "Chick count cannot be less than zero.")
+                messages.error(
+                    request, "Chick count cannot be less than zero.")
                 return redirect('stakeholderuserprofile', id=id)
         except (ValueError, TypeError):
             # Catch any errors where the input cannot be converted to an integer
-            messages.error(request, "Invalid chick count entered. Please enter a valid number.")
+            messages.error(
+                request, "Invalid chick count entered. Please enter a valid number.")
             return redirect('stakeholderuserprofile', id=id)
         # Check if the new chick count exceeds capacity
-        
 
         # Save the chick count to the user's chick batches or user model (depending on your logic)
         # Assuming you want to update chick batches:
-        ChickBatch.objects.create(user=user, initial_chick_count=initial_chick_count)
+        ChickBatch.objects.create(
+            user=user, initial_chick_count=initial_chick_count, batch_size=batch_size, price_per_kg=price_per_kg, price_per_batch=price_per_batch)
         messages.success(request, "Chick count updated successfully.")
         return redirect('stakeholderuserprofile', id=id)
-    
+
     context = {
         'user': user,
         'total_chick_count': total_chick_count,
@@ -176,6 +188,47 @@ def stakeholderuserprofile(request, id):
 
     return render(request, 'stakeholderprofile.html', context)
 
+
+def view_stakeholder_view(request, id):
+    chick_batches = ChickBatch.objects.filter(
+        user_id=id)  # Adjust the queryset as needed
+    return render(request, 'chick_batches_list.html', {'chick_batches': chick_batches,"user":id})
+
+
+def download_daily_log(request, batch_id):
+    try:
+        # Retrieve the DailyData records for the specific batch
+        batch = ChickBatch.objects.get(id=batch_id)
+        daily_data_records = DailyData.objects.filter(batch=batch)
+
+        # Create a DataFrame for the daily log
+        data = {
+            'Date': [record.date for record in daily_data_records],
+            'Alive Count': [record.alive_count for record in daily_data_records],
+            'Sick Chicks': [record.sick_chicks for record in daily_data_records],
+            'Weight Gain (g)': [record.weight_gain for record in daily_data_records],
+            'Feed Uplifted (kg)': [record.feed_uplifted for record in daily_data_records],
+            'Water Consumption (L)': [record.water_consumption for record in daily_data_records],
+            'Temperature': [record.temperature for record in daily_data_records],
+            'Mortality Count': [record.mortality_count for record in daily_data_records],
+        }
+
+        df = pd.DataFrame(data)
+
+        # Create an HTTP response with the appropriate Excel content type
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="daily_log_{
+            batch_id}.xlsx"'
+
+        # Write the DataFrame to the response using ExcelWriter
+        with pd.ExcelWriter(response, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Daily Log')
+
+        return response
+
+    except ChickBatch.DoesNotExist:
+        return HttpResponse("Batch not found", status=404)
 
 
 def customeruser(request):
@@ -190,24 +243,48 @@ def customeruser(request):
 
 def customeruserprofile(request, id):
     user = User.objects.get(id=id)
-    sqr_feet = 0
-    return render(request, 'customerprofile.html', {'user': user})
+    orders = Order.objects.filter(user=id)
+    return render(request, 'customerprofile.html', {'user': user, 'orders': orders})
+
+
+@login_required
+def approve_order(request, order_id):
+    # Fetch the order and update its status
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST':
+        # Check if the order can be fulfilled
+        if not order.can_fulfill_order():
+            messages.error(
+                request, "Not enough chickens available to fulfill this order.")
+            return redirect('customeruserprofile', id=order.user.id)
+
+        # Confirm the order
+        try:
+            order.confirm_order()
+            messages.success(request, "Order confirmed successfully!")
+            return redirect('customeruserprofile', id=order.user.id)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('customeruserprofile', id=order.user.id)
+    # Redirect back to the profile page
+    return redirect('customeruserprofile', id=order.user.id)
 
 
 def stakeholder_registration(request, id):
     user = get_object_or_404(User, id=id)
-
     if request.method == 'POST':
-        form = StakeholderUserForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            form.save()  # Save the updated user profile
-            
-            # Redirect to a success page or wherever you need
+        user_form = StakeholderUserForm(
+            request.POST, request.FILES, instance=user)
+        if user_form.is_valid():
+            user_form.save()  # Save the updated user profile
+
+            # Re
+            # direct to a success page or wherever you need
             return redirect('stakeholder')
     else:
-        form = StakeholderUserForm(instance=user)
+        user_form = StakeholderUserForm(instance=user)
 
-    return render(request, 'stakeholder_profile.html', {'form': form})
+    return render(request, 'stakeholder_profile.html', {'user_form': user_form})
 
 
 def toggle_user_status(request, user_id):
@@ -217,15 +294,11 @@ def toggle_user_status(request, user_id):
         # Toggle the user's active status
         user.is_active = not user.is_active
         user.save()
-        
+
         status = "enabled" if user.is_active else "disabled"
         messages.success(request, f"User has been {status} successfully.")
-    
-    return redirect('stakeholderuser') 
-
-def delete_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user.delete()  # Delete the user
+        if user.user_type.name.lower() == "customer":
+            return redirect('customeruser')
     return redirect('stakeholderuser')
 
 
@@ -234,15 +307,13 @@ def vaccine_admin(request):
 
     return render(request, 'vaccination.html')
 
+
 def feed_admin(request):
     return render(request, 'feedadmin.html')
 
 
 # user/views.py
 
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from .models import User
 
 def renew_pollution_certificate(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -253,21 +324,23 @@ def renew_pollution_certificate(request, user_id):
             user.expiry_date = new_expiry_date  # Update the expiry date
             user.is_active = True  # Reactivate the user
             user.save()
-            messages.success(request, "Pollution certificate renewed successfully.")
+            messages.success(
+                request, "Pollution certificate renewed successfully.")
         else:
             messages.error(request, "Please provide a valid expiry date.")
-    
-    return redirect('stakeholder')  # Replace 'some_view' with the appropriate view name
+
+    # Replace 'some_view' with the appropriate view name
+    return redirect('stakeholder')
+
 
 # user/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Supplier
-from .forms import SupplierForm
+
 
 def supplier_list(request):
     """Display the list of suppliers."""
     suppliers = Supplier.objects.all()
     return render(request, 'supplier_list.html', {'suppliers': suppliers})
+
 
 def add_supplier(request):
     """Add a new supplier."""
@@ -275,15 +348,19 @@ def add_supplier(request):
         form = SupplierForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Supplier added successfully.')  # Success message
-            return redirect('supplier_list')  # Redirect to supplier list after adding
+            # Success message
+            messages.success(request, 'Supplier added successfully.')
+            # Redirect to supplier list after adding
+            return redirect('supplier_list')
         else:
             # This part will execute if the form is not valid
-            messages.error(request, 'Please correct the errors below.')  # Error message
+            # Error message
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = SupplierForm()
-    
+
     return render(request, 'add_supplier.html', {'form': form})
+
 
 def edit_supplier(request, supplier_id):
     """Edit an existing supplier."""
@@ -292,22 +369,26 @@ def edit_supplier(request, supplier_id):
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
             form.save()
-            return redirect('supplier_list')  # Redirect to supplier list after editing
+            # Redirect to supplier list after editing
+            return redirect('supplier_list')
     else:
         form = SupplierForm(instance=supplier)
-    return render(request, 'edit_supplier.html', {'form':form})
+    return render(request, 'edit_supplier.html', {'form': form})
+
 
 def enable_supplier(request, supplier_id):
     """Enable a supplier."""
     supplier = get_object_or_404(Supplier, id=supplier_id)
     supplier.is_active = True
     supplier.save()
-    return redirect('supplier_list')  # Redirect to supplier list after enabling
+    # Redirect to supplier list after enabling
+    return redirect('supplier_list')
+
 
 def disable_supplier(request, supplier_id):
     """Disable a supplier."""
     supplier = get_object_or_404(Supplier, id=supplier_id)
     supplier.is_active = False
     supplier.save()
-    return redirect('supplier_list')  # Redirect to supplier list after disabling
-
+    # Redirect to supplier list after disabling
+    return redirect('supplier_list')
