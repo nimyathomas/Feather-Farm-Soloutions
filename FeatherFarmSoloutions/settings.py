@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['feather-farm-soloutions.onrender.com']
 
 
 # Application definition
