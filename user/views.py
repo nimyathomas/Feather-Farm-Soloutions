@@ -219,8 +219,7 @@ def download_daily_log(request, batch_id):
         # Create an HTTP response with the appropriate Excel content type
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename="daily_log_{
-            batch_id}.xlsx"'
+        response['Content-Disposition'] = f'attachment; filename="daily_log_{batch_id}.xlsx"'
 
         # Write the DataFrame to the response using ExcelWriter
         with pd.ExcelWriter(response, engine='openpyxl') as writer:
