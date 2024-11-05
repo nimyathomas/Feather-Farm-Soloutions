@@ -316,8 +316,7 @@ def add_daily_data(request):
             existing_record = DailyData.objects.filter(
                 batch=selected_batch, date=date).exists()
             if existing_record:
-                messages.error(request, f"Data for {
-                               date} already exists for this batch.")
+                messages.error(request,f"Data for { date} already exists for this batch.")
                 return redirect('add_daily_data')  # Redirect back to the form
 
             # Calculate alive_count based on previous day's data
