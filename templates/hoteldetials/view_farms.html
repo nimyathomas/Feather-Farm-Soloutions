@@ -1,20 +1,30 @@
-{% extends 'hoteldetials/dashboard.html' %} {% block content %}
+{% extends 'hoteldetials/dashboard.html' %}
+{% block content %}
 <div class="container">
-    <h1>{{ farm.name }}</h1>
-    <span>Owner: {{ farm.full_name }}</span>
+    {% if messages %}
+    <div class="alert alert-info" role="alert" style="color:red;" id="messages">
+        {% for message in messages %} {{ message }}<br />
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h1 id="farm-name">{{ farm.name }}</h1>
+    <span id="owner-name">Owner: {{ farm.full_name }}</span>
     <br>
-    <span>Location: {{ farm.location }}</span>
+    <span id="location">Location: {{ farm.location }}</span>
     <br>
-    <span>Address: {{ farm.address }}</span>
+    <span id="address">Address: {{ farm.address }}</span>
     <br>
-    <img src="{{ farm.farm_image.url }}" alt="{{ farm.full_name }}" class="farm-image" />
-    
+    <img src="{{ farm.farm_image.url }}" alt="{{ farm.full_name }}" class="farm-image" id="farm-image" />
+
     <hr />
 
     <h2>Available Batches for Ordering</h2>
-    
+
     {% if batches %}
         {% for batch in batches %}
+        <div class="batch-container" id="batch-{{ batch.id }}">
+
         <div class="batch-card">
             <h3>Batch from {{ batch.batch_date }}</h3>
             <span>Status: {{ batch.batch_status }}</span>
@@ -26,10 +36,11 @@
             <br>
             <span>3 kg chickens available: {{ batch.three_kg_count }}</span>
             <br>
+
             <!-- Order Form for this Batch -->
-            <form method="POST" class="order-form">
+            <form method="POST" class="order-form" id="order-form-{{ batch.id }}">
                 {% csrf_token %}
-                
+
                 <!-- Hidden input to pass the batch ID -->
                 <input type="hidden" name="batch_id" value="{{ batch.id }}">
 
@@ -48,25 +59,53 @@
                     {{ order_form.three_kg_count }}
                 </div>
 
-                <button type="submit" class="btn btn-primary">Order from this Batch</button>
-                
-                {% if order_form.errors %}
-                <div class="error">
-                    {% for field in order_form %}
-                        {% for error in field.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    {% endfor %}
+                <!-- Error message container -->
+                <div class="error-message" style="color: red; display: none;" id="error-message-{{ batch.id }}">
+                    Please enter a value greater than 0 for at least one of the chicken counts.
                 </div>
-                {% endif %}
+
+                <button type="submit" class="btn btn-primary" id="order-button-{{ batch.id }}">Order from this Batch</button>
             </form>
-            
+
             <hr />
+        </div>
         </div>
         {% endfor %}
     {% else %}
         <p>No completed batches are available for ordering.</p>
     {% endif %}
 </div>
+
+<script>
+// Add event listener to all forms to restrict submission
+document.querySelectorAll('.order-form').forEach(form => {
+    form.addEventListener('submit', function(event) {
+        // Get the batch ID from the hidden input field
+        const batchId = form.querySelector('input[name="batch_id"]').value;
+
+        // Get input fields using the batch ID
+        const oneKgInput = form.querySelector(`#id_one_kg_count_${batchId}`);
+        const twoKgInput = form.querySelector(`#id_two_kg_count_${batchId}`);
+        const threeKgInput = form.querySelector(`#id_three_kg_count_${batchId}`);
+        
+        // Get the error message element
+        const errorMessage = form.querySelector(`#error-message-${batchId}`);
+
+        // Check if all fields are empty or 0
+        if (
+            (!oneKgInput.value || parseInt(oneKgInput.value) === 0) &&
+            (!twoKgInput.value || parseInt(twoKgInput.value) === 0) &&
+            (!threeKgInput.value || parseInt(threeKgInput.value) === 0)
+        ) {
+            // Show the error message and prevent form submission
+            errorMessage.style.display = 'block';
+            event.preventDefault();
+        } else {
+            // Hide the error message if validation passes
+            errorMessage.style.display = 'none';
+        }
+    });
+});
+</script>
 
 {% endblock %}

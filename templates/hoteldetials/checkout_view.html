@@ -43,7 +43,7 @@
           <input type="radio" name="payment_option" value="upi"> UPI
       </label>
   
-      <h3>Total Price (after discount): ${{ total_price|floatformat:2 }}</h3>
+      <h3>Total Price (after discount): ₹{{ total_price|floatformat:2 }}</h3>
       
       <button type="submit">Confirm Order</button>
   </form>
@@ -54,6 +54,16 @@
   document.getElementById('order-form').addEventListener('submit', function(event) {
       // Prevent the default form submission
       event.preventDefault();
+
+      document.querySelectorAll('input[name="delivery_method"]').forEach((input) => {
+        input.addEventListener('change', function () {
+          const basePrice = {{ total_price|floatformat:2 }};
+          let deliveryFee = this.value === 'express' ? 1000 : 0;
+          let updatedTotal = basePrice + deliveryFee;
+    
+          document.getElementById('total-price').innerText = `₹${updatedTotal.toFixed(2)}`;
+        });
+      });
       
       // Get the selected payment option
       const paymentOption = document.querySelector('input[name="payment_option"]:checked').value;
@@ -62,7 +72,7 @@
           // Initialize Razorpay payment
           const totalPrice = {{ total_price|floatformat:2 }};
           const options = {
-              key: 'rzp_test_i1eV0ftB0HVfyt', // Replace with your Razorpay key
+              key: 'rzp_test_i1eV0ftB0HVfyt', // Replace with your Razorpay key 'razorpay_key': "rzp_test_i1eV0ftB0HVfyt"
               amount: totalPrice * 100, // Amount in paise
               currency: 'INR', // Currency code
               name: 'FATHER FARM SOLUTIONS', // Your company name

@@ -7,15 +7,22 @@
       action="{% url 'hoteldashboard' %}"
       style="margin-bottom: 20px"
     >
-      <input
+      {% comment %} <input
         type="text"
         name="q"
-        placeholder="Explore type of chicken"
+        placeholder=""
         value="{{ query|default_if_none:'' }}"
         class="input"
         style="width: 80%; display: inline-block"
-      />
-      <button type="submit" class="button">Search</button>
+      /> {% endcomment %}
+      <select name="batch_type" id="batch">
+        <option value="">Select Batch Type</option>
+        <option value="broiler" {% if request.GET.batch_type == "broiler" %}selected{% endif %}>Broiler</option>
+        <option value="organic" {% if request.GET.batch_type == "organic" %}selected{% endif %}>Organic</option>
+        <option value="kada" {% if request.GET.batch_type == "kada" %}selected{% endif %}>Kada</option>
+    </select>
+    
+      <button type="submit" class="button" id="search">Search</button>
     </form>
   </div>
 </div>
@@ -34,12 +41,10 @@
        <div class="card-content">
          <span class="card-title">{{ item.name }}</span>
          <span class="card-address">{{ item.address }}</span>
-         <button class="view-button"><a
-          href="{% url 'view_farm' farm_id=item.id %}"
-        >
-          view
-        </a>
-      </button></button>
+         <button class="view-button" id="view-farm-123">
+          <a href="{% url 'view_farm' farm_id=item.id %}">view</a>
+      </button>
+      </button>
        </div>
      </div>
    </div>

@@ -6,9 +6,9 @@ from datetime import timedelta, date
 class ChickBatch(models.Model):
     STATUS_CHOICES = [
         ('active', 'Active'),
-        ('completed', 'Completed'),
-        ('uplifted', 'Uplifted'),
-        ('terminated', 'Terminated')
+        ('completed', 'Completed')
+        
+     
     ]
     TYPE_CHOICES = [
         ('broiler', 'Broiler'),

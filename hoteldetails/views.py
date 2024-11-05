@@ -7,17 +7,25 @@ from stakeholder.models import ChickBatch
 from user.models import UserType, User
 from .forms import CustomerUserForm, OrderForm
 from django.contrib import messages
+from decimal import Decimal
+
 
 
 def hoteldashboard(request):
     # fetching the search data from html search box
+    # fetching the search data from html search box
     query = request.GET.get('q')
+    batch_type = request.GET.get('batch_type')
     user_type = UserType.objects.get(name='Stakeholder')
     users = User.objects.filter(user_type=user_type)
     if query:
         # Filter items based on title or description matching the query
         users = users.filter(
-            Q(full_name__icontains=query) | Q(email__icontains=query)
+            Q(name_icontains=query) | Q(chick_batches_batch_type=query)
+        )
+    if batch_type:
+        users = users.filter(
+            chick_batches__batch_type=batch_type
         )
     paginator = Paginator(users, 6)
     # Get the page number from the query parameter
@@ -39,6 +47,9 @@ def view_profile(request, id):
     return render(request, 'hoteldetials/view_profile.html', {"form": form})
 
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.core.exceptions import ValidationError
+
 def view_farm(request, farm_id):
     farm = get_object_or_404(User, id=farm_id)
     batches = farm.chick_batches.filter(
@@ -56,32 +67,39 @@ def view_farm(request, farm_id):
             two_kg_count = form.cleaned_data['two_kg_count'] or 0
             three_kg_count = form.cleaned_data['three_kg_count'] or 0
 
-            # Ensure order does not exceed available stock
-            if (one_kg_count <= batch.one_kg_count and
-                two_kg_count <= batch.two_kg_count and
-                    three_kg_count <= batch.three_kg_count):
-                # Get or create the user's cart
-                cart, created = Cart.objects.get_or_create(user=request.user)
-
-                # Create a new CartItem or update if it exists for the same batch
-                cart_item, created = CartItem.objects.get_or_create(
-                    cart=cart, chick_batch=batch)
-                cart_item.one_kg_count += one_kg_count
-                cart_item.two_kg_count += two_kg_count
-                cart_item.three_kg_count += three_kg_count
-                cart_item.save()
-
-                # Redirect to cart page or display a success message
-                return redirect('cart_view')
+            # Custom validation: Check if at least one of the quantities is filled
+            if one_kg_count == 0 and two_kg_count == 0 and three_kg_count == 0:
+               
+                messages.error(request, "Please fill in at least one of the quantities.")
+                
             else:
-                form.add_error(
-                    None, "The requested quantities exceed available stock.")
+                # Ensure order does not exceed available stock
+                if (one_kg_count <= batch.one_kg_count and
+                    two_kg_count <= batch.two_kg_count and
+                        three_kg_count <= batch.three_kg_count):
+                    # Get or create the user's cart
+                    cart, created = Cart.objects.get_or_create(user=request.user)
+
+                    # Create a new CartItem or update if it exists for the same batch
+                    cart_item, created = CartItem.objects.get_or_create(
+                        cart=cart, chick_batch=batch)
+                    cart_item.one_kg_count += one_kg_count
+                    cart_item.two_kg_count += two_kg_count
+                    cart_item.three_kg_count += three_kg_count
+                    cart_item.save()
+
+                    # Redirect to cart page or display a success message
+                    return redirect('cart_view')
+                else:
+                    form.add_error(
+                        None, "The requested quantities exceed available stock.")
 
     return render(request, 'hoteldetials/view_farms.html', {
         'farm': farm,
         'batches': batches,
         'order_form': order_form,
     })
+
 
 
 def cart_view(request):
@@ -123,26 +141,37 @@ def update_cart(request):
 def checkout_view(request):
     cart = Cart.objects.get(user=request.user)  # Get user's cart
     items = cart.items.all()
+    
+    # Check if the cart has items
+    if not items:
+        # Redirect or display a message if the cart is empty
+        return redirect('cart_view')  # Or display an error message
+
+    # Calculate the base total price
     total_price = sum(item.discounted_price for item in items)
 
     if request.method == "POST":
-        # Handle delivery date and payment method
+        # Handle delivery date, payment method, and delivery option
         delivery_date = request.POST.get('delivery_date')
         payment_method = request.POST.get('payment_option')
+        delivery_option = request.POST.get('delivery_method')  # Retrieve selected delivery option
+        
+        # Adjust the total price based on the delivery option
+        if delivery_option == 'express':
+            total_price += Decimal('500.00')  # Add express delivery fee
+        elif delivery_option == 'standard':
+            total_price += Decimal('0.00')  # No extra charge for standard delivery
 
-        # Update the cart's additional fields if needed
-        print(delivery_date)
-        print(payment_method)
+        # Create the order
         order = Order.objects.create(
             user=request.user,
-            # Assuming one batch per order
-            batch=items[0].chick_batch if items else None,
+            batch=items[0].chick_batch,  # Assume all items belong to the same batch
             one_kg_count=sum(item.one_kg_count for item in items),
             two_kg_count=sum(item.two_kg_count for item in items),
             three_kg_count=sum(item.three_kg_count for item in items),
-            payment_method=payment_method if payment_method in [
-                'cod', 'online', 'upi'] else 'cod',
+            payment_method=payment_method if payment_method in ['cod', 'online', 'upi'] else 'cod',
             price=total_price, 
+            delivery_option=delivery_option,
             delivery_date=delivery_date if delivery_date else None,
             status='pending',
         )
@@ -151,6 +180,7 @@ def checkout_view(request):
         cart.items.all().delete()  # Clear the cart items
         cart.save()
         return redirect('view_orders')
+
     context = {
         'cart': cart,
         'items': items,

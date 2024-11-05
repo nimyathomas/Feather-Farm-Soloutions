@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 import pandas as pd
 from math import floor
+import openpyxl
 
 
 def register(request):

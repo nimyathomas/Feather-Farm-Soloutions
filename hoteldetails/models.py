@@ -31,6 +31,27 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=[(
         'pending', 'Pending'), ('completed', 'Completed')], default='pending')
+    
+    DELIVERY_OPTIONS = [
+        ('standard', 'Standard Delivery'),
+        ('express', 'Express Delivery')
+    ]
+    delivery_option = models.CharField(
+        max_length=10, choices=DELIVERY_OPTIONS, default='standard'
+    )
+    delivery_fee = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal('0.00'),
+        help_text="Fee based on delivery option"
+    )
+    
+    def calculate_delivery_fee(self):
+        if self.delivery_option == 'express':
+            return Decimal('1000.00')  # Set the express delivery fee
+        return Decimal('0.00')  # No fee for standard delivery
+
+    def save(self, *args, **kwargs):
+        self.delivery_fee = self.calculate_delivery_fee()
+        super().save(*args, **kwargs)
 
     def confirm_order(self):
         """Set the status to confirmed and process the stock."""
@@ -108,9 +129,10 @@ class CartItem(models.Model):
     def total_price(self):
         # Calculate the base price based on weight and price per kg
         base_price = (
-            (self.one_kg_count * self.chick_batch.price_per_kg) +
-            (self.two_kg_count * 2 * self.chick_batch.price_per_kg) +
-            (self.three_kg_count * 3 * self.chick_batch.price_per_kg)
+            (self.one_kg_count * self.chick_batch.price_per_kg 
+             ) +
+            (self.two_kg_count * 2 * self.chick_batch.price_per_kg ) +
+            (self.three_kg_count * 3 * self.chick_batch.price_per_kg )
         )
         # Calculate total count of chickens
         total_chickens = self.one_kg_count + self.two_kg_count + self.three_kg_count

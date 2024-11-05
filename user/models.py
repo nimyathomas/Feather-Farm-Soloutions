@@ -55,7 +55,8 @@ class User(AbstractUser):
     location = models.CharField(max_length=200)
     address = models.CharField(max_length=255)
     plan_file = models.FileField(upload_to='farm_plan/', blank=True, null=True)
-    hotel_license = models.FileField(upload_to='hotel_license/', blank=True, null=True)
+    hotel_license = models.FileField(upload_to='hotel_licenses/', blank=True, null=True)
+
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'  # Use email to login

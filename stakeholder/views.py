@@ -218,8 +218,8 @@ def update_chick_count(request, id):
             batch_date=timezone.now(),
             batch_type=batch_type,
             batch_size=batch_size,
-            price_per_kg=price_per_kg,
-            price_per_batch=price_per_batch
+            # price_per_kg=price_per_kg,
+            # price_per_batch=price_per_batch
         )
 
         # After creation, call method to calculate and set batch price

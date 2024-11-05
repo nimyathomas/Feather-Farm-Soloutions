@@ -225,6 +225,12 @@ button a {
 .order-button:hover {
     background-color: #2980b9;
 }
+.batch-container{
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 .batch-card {
     border: 1px solid #ccc;
@@ -232,7 +238,7 @@ button a {
     border-radius: 8px;
     background-color: #f9f9f9;
     width: 400px;
-    height: 500px;
+   
 }
 
 /* styles.css */
