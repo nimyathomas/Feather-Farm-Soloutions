@@ -1,7 +1,7 @@
 
 from celery.schedules import crontab
 from pathlib import Path, os
-import dj-database-url
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -98,19 +98,23 @@ WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'
 #         }
 #     }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'featherfarm_db',
+#         'USER': 'featherfarm_db_user',
+#         'PASSWORD': 'ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF',
+#         'HOST': 'dpg-csl5vh56l47c73e6h07g-a',  # Set to your database host
+#         'PORT': '5432',       # Default MySQL port
+#        "default": dj_database_url.parse("postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db") 
+#         }
+#     }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'featherfarm_db',
-        'USER': 'featherfarm_db_user',
-        'PASSWORD': 'ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF',
-        'HOST': 'dpg-csl5vh56l47c73e6h07g-a',  # Set to your database host
-        'PORT': '5432',       # Default MySQL port
-       "default": dj_database_url.parse("postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db") 
-        }
-    }
-
-
+    'default': dj_database_url.config(
+        default='postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db'
+    )
+}
 
 
 
