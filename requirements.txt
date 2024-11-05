@@ -22,6 +22,7 @@ crispy-bootstrap5==2024.2
 cron-descriptor==1.4.5
 cryptography==43.0.0
 cycler==0.12.1
+dj-database-url==2.3.0
 Django==5.0.8
 django-allauth==64.1.0
 django-celery-beat==2.7.0
@@ -42,6 +43,7 @@ geojson==2.5.0
 google-pasta==0.2.0
 googleapis-common-protos==1.65.0
 grpcio==1.66.2
+gunicorn==23.0.0
 h5py==3.12.1
 idna==3.7
 immutabledict==4.2.0
