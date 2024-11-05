@@ -97,15 +97,7 @@ setuptools==75.1.0
 simple-parsing==0.1.6
 six==1.16.0
 sqlparse==0.5.1
-tensorboard==2.18.0
-tensorboard-data-server==0.7.2
-tensorflow==2.18.0
-tensorflow-datasets==4.9.7
-tensorflow-hub==0.16.1
-tensorflow-metadata==1.16.1
-tensorflow_intel==2.18.0
 termcolor==2.4.0
-tf_keras==2.18.0
 threadpoolctl==3.5.0
 toml==0.10.2
 tqdm==4.66.6
