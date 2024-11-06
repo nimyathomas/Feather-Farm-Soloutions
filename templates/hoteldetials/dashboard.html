@@ -27,7 +27,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
               <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'cart_view' %}">
+                  <a id="cart-link" class="nav-link" href="{% url 'cart_view' %}">
                     <i class="fas fa-shopping-cart"></i>
                     Cart 
                     {% if user.is_authenticated and user.cart.count > 0 %}

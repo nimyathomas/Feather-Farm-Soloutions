@@ -32,10 +32,11 @@ class CompletedBatchUpdateForm(forms.ModelForm):
         model = ChickBatch
         fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']
         widgets = {
-            'one_kg_count': forms.NumberInput(attrs={'min': 0}),
-            'two_kg_count': forms.NumberInput(attrs={'min': 0}),
-            'three_kg_count': forms.NumberInput(attrs={'min': 0}),
+            'one_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'one-kg-count'}),
+            'two_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'two-kg-count'}),
+            'three_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'three-kg-count'})
         }
+        
 
     def clean(self):
         cleaned_data = super().clean()
