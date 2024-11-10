@@ -10,9 +10,9 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
-from django.db.models import Sum
+from django.db.models import Sum, Count
 
-from stakeholder.models import ChickBatch, DailyData
+from stakeholder.models import ChickBatch, DailyData,ChickSupply
 from .forms import EmailAuthenticationForm
 from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
 from .models import UserType, User
@@ -85,6 +85,8 @@ class CustomLoginView(LoginView):
 
 
 def admindash(request):
+    completed_orders_count = 0
+    completed_batches_sales_count = 0
     # Fetching the usertype with name 'Stakeholder'
     stakeholder_user_type = UserType.objects.get(name='Stakeholder')
 
@@ -100,20 +102,36 @@ def admindash(request):
     customer_user_type = UserType.objects.get(name='Customer')
     customer_count = User.objects.filter(user_type=customer_user_type).count()
 
-    # Counting total farms
-    # Assuming User model represents farms (in this case, stakeholders are farms)
-    total_farm = total_stakeholders
+    completed_orders_count = Order.objects.filter(status='completed').count()
+    pending_orders = Order.objects.filter(status='pending').order_by('-order_date')[:3]
+    completed_batches_sales_count = ChickBatch.objects.filter(batch_status='completed') \
+    .annotate(order_count=Count('order')) \
+    .aggregate(total_sales=Sum('order_count'))['total_sales'] or 0
+    chicken_type_totals = ChickBatch.objects.values('batch_type').annotate(
+        total_one_kg=Sum('one_kg_count'),
+        total_two_kg=Sum('two_kg_count'),
+        total_three_kg=Sum('three_kg_count')
+    )
 
-    # Counting active farms (which are essentially active stakeholders)
+    # Counting total farms (assuming stakeholders are farms)
+    total_farm = total_stakeholders
     farmactive_count = active_stakeholders
+    
+    # Aggregating total chicks supplied by type
+    chicks_supplied_by_type = ChickSupply.objects.values('chicken_type').annotate(total_supplied=Sum('chicks_supplied'))
+    print(list(chicks_supplied_by_type))
 
     return render(request, 'dashboard.html', {
         'stakeholder_count': total_stakeholders,
         'customer_count': customer_count,
         'farmactive_count': farmactive_count,
-        'total_farm': total_farm
+        'total_farm': total_farm,
+        'completed_orders_count': completed_orders_count,
+        'pending_orders': pending_orders,
+        'completed_batches_sales_count': completed_batches_sales_count,
+        'chicken_type_totals': chicken_type_totals,
+        'chicks_supplied_by_type': chicks_supplied_by_type
     })
-
 
 def stakeholderuser(request):
     # fetching the usertype with name stakeholder

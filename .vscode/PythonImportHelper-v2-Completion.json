@@ -73,6 +73,15 @@
         "documentation": {}
     },
     {
+        "label": "dj_database_url",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "dj_database_url",
+        "description": "dj_database_url",
+        "detail": "dj_database_url",
+        "documentation": {}
+    },
+    {
         "label": "admin",
         "importPath": "django.contrib",
         "description": "django.contrib",
@@ -233,30 +242,6 @@
         "documentation": {}
     },
     {
-        "label": "settings",
-        "importPath": "django.conf",
-        "description": "django.conf",
-        "isExtraImport": true,
-        "detail": "django.conf",
-        "documentation": {}
-    },
-    {
-        "label": "settings",
-        "importPath": "django.conf",
-        "description": "django.conf",
-        "isExtraImport": true,
-        "detail": "django.conf",
-        "documentation": {}
-    },
-    {
-        "label": "settings",
-        "importPath": "django.conf",
-        "description": "django.conf",
-        "isExtraImport": true,
-        "detail": "django.conf",
-        "documentation": {}
-    },
-    {
         "label": "static",
         "importPath": "django.conf.urls.static",
         "description": "django.conf.urls.static",
@@ -338,51 +323,35 @@
         "documentation": {}
     },
     {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "django.db",
+        "detail": "decimal",
         "documentation": {}
     },
     {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "django.db",
+        "detail": "decimal",
         "documentation": {}
     },
     {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "django.db",
+        "detail": "decimal",
         "documentation": {}
     },
     {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
         "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
+        "detail": "decimal",
         "documentation": {}
     },
     {
@@ -411,294 +380,6 @@
     },
     {
         "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "django.db",
-        "description": "django.db",
-        "isExtraImport": true,
-        "detail": "django.db",
-        "documentation": {}
-    },
-    {
-        "label": "migrations",
         "importPath": "django.db",
         "description": "django.db",
         "isExtraImport": true,
@@ -930,6 +611,14 @@
         "documentation": {}
     },
     {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
         "label": "models",
         "importPath": "django.db",
         "description": "django.db",
@@ -938,36 +627,11 @@
         "documentation": {}
     },
     {
-        "label": "django.utils.timezone",
-        "kind": 6,
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
         "isExtraImport": true,
-        "importPath": "django.utils.timezone",
-        "description": "django.utils.timezone",
-        "detail": "django.utils.timezone",
-        "documentation": {}
-    },
-    {
-        "label": "now",
-        "importPath": "django.utils.timezone",
-        "description": "django.utils.timezone",
-        "isExtraImport": true,
-        "detail": "django.utils.timezone",
-        "documentation": {}
-    },
-    {
-        "label": "Decimal",
-        "importPath": "decimal",
-        "description": "decimal",
-        "isExtraImport": true,
-        "detail": "decimal",
-        "documentation": {}
-    },
-    {
-        "label": "Decimal",
-        "importPath": "decimal",
-        "description": "decimal",
-        "isExtraImport": true,
-        "detail": "decimal",
+        "detail": "django.db",
         "documentation": {}
     },
     {
@@ -1083,6 +747,38 @@
         "documentation": {}
     },
     {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ValidationError",
+        "importPath": "django.core.exceptions",
+        "description": "django.core.exceptions",
+        "isExtraImport": true,
+        "detail": "django.core.exceptions",
+        "documentation": {}
+    },
+    {
         "label": "ChickBatch",
         "importPath": "stakeholder.models",
         "description": "stakeholder.models",
@@ -1139,11 +835,11 @@
         "documentation": {}
     },
     {
-        "label": "TestCase",
-        "importPath": "django.test",
-        "description": "django.test",
+        "label": "ChickSupply",
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
         "isExtraImport": true,
-        "detail": "django.test",
+        "detail": "stakeholder.models",
         "documentation": {}
     },
     {
@@ -1160,6 +856,54 @@
         "description": "django.test",
         "isExtraImport": true,
         "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "send_mail",
+        "importPath": "django.core.mail",
+        "description": "django.core.mail",
+        "isExtraImport": true,
+        "detail": "django.core.mail",
+        "documentation": {}
+    },
+    {
+        "label": "send_mail",
+        "importPath": "django.core.mail",
+        "description": "django.core.mail",
+        "isExtraImport": true,
+        "detail": "django.core.mail",
+        "documentation": {}
+    },
+    {
+        "label": "get_object_or_404",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
         "documentation": {}
     },
     {
@@ -1379,6 +1123,22 @@
         "documentation": {}
     },
     {
+        "label": "Count",
+        "importPath": "django.db.models",
+        "description": "django.db.models",
+        "isExtraImport": true,
+        "detail": "django.db.models",
+        "documentation": {}
+    },
+    {
+        "label": "Order",
+        "importPath": "hoteldetails.models",
+        "description": "hoteldetails.models",
+        "isExtraImport": true,
+        "detail": "hoteldetails.models",
+        "documentation": {}
+    },
+    {
         "label": "Cart",
         "importPath": "hoteldetails.models",
         "description": "hoteldetails.models",
@@ -1403,11 +1163,11 @@
         "documentation": {}
     },
     {
-        "label": "Order",
-        "importPath": "hoteldetails.models",
-        "description": "hoteldetails.models",
+        "label": "send_order_confirmation_email",
+        "importPath": "hoteldetails.utility",
+        "description": "hoteldetails.utility",
         "isExtraImport": true,
-        "detail": "hoteldetails.models",
+        "detail": "hoteldetails.utility",
         "documentation": {}
     },
     {
@@ -1419,19 +1179,20 @@
         "documentation": {}
     },
     {
-        "label": "ValidationError",
-        "importPath": "django.core.exceptions",
-        "description": "django.core.exceptions",
+        "label": "django.utils.timezone",
+        "kind": 6,
         "isExtraImport": true,
-        "detail": "django.core.exceptions",
+        "importPath": "django.utils.timezone",
+        "description": "django.utils.timezone",
+        "detail": "django.utils.timezone",
         "documentation": {}
     },
     {
-        "label": "ValidationError",
-        "importPath": "django.core.exceptions",
-        "description": "django.core.exceptions",
+        "label": "now",
+        "importPath": "django.utils.timezone",
+        "description": "django.utils.timezone",
         "isExtraImport": true,
-        "detail": "django.core.exceptions",
+        "detail": "django.utils.timezone",
         "documentation": {}
     },
     {
@@ -1828,14 +1589,6 @@
         "documentation": {}
     },
     {
-        "label": "send_mail",
-        "importPath": "django.core.mail",
-        "description": "django.core.mail",
-        "isExtraImport": true,
-        "detail": "django.core.mail",
-        "documentation": {}
-    },
-    {
         "label": "logging",
         "kind": 6,
         "isExtraImport": true,
@@ -1895,6 +1648,15 @@
         "documentation": {}
     },
     {
+        "label": "openpyxl",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "openpyxl",
+        "description": "openpyxl",
+        "detail": "openpyxl",
+        "documentation": {}
+    },
+    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -1926,7 +1688,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# ALLOWED_HOSTS = ['*']\n# Application definition",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1935,7 +1697,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "SECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# ALLOWED_HOSTS = ['*']\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1944,7 +1706,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\n# ALLOWED_HOSTS = ['*']\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1953,7 +1715,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "ALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'django.contrib.sites',",
+        "peekOfCode": "ALLOWED_HOSTS = []\n# ALLOWED_HOSTS = ['*']\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -1980,7 +1742,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'allauth.account.middleware.AccountMiddleware',\n]",
+        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n    'allauth.account.middleware.AccountMiddleware',\n    # 'whitenoise.middleware.WhitenoiseMiddleware',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2007,16 +1769,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'\n# Database\n# https://docs.djangoproject.com/en/5.0/ref/settings/#databases\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.mysql',\n        'NAME': 'featherfarm',\n        'USER': 'root',\n        'PASSWORD': '',\n        'HOST': 'localhost',  # Set to your database host",
-        "detail": "FeatherFarmSoloutions.settings",
-        "documentation": {}
-    },
-    {
-        "label": "DATABASES",
-        "kind": 5,
-        "importPath": "FeatherFarmSoloutions.settings",
-        "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "DATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.mysql',\n        'NAME': 'featherfarm',\n        'USER': 'root',\n        'PASSWORD': '',\n        'HOST': 'localhost',  # Set to your database host\n        'PORT': '3306',       # Default MySQL port\n        'OPTIONS': {\n            'init_command': \"SET sql_mode='STRICT_TRANS_TABLES'\",",
+        "peekOfCode": "WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'\n#dpg-csl5vh56l47c73e6h07g-a\n# Database\n# https://docs.djangoproject.com/en/5.0/ref/settings/#databases\n# DATABASES = {\n#     'default': {\n#         'ENGINE': 'django.db.backends.mysql',\n#         'NAME': 'featherfarm',\n#         'USER': 'root',\n#         'PASSWORD': '',",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2043,7 +1796,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2052,7 +1805,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "TIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type",
+        "peekOfCode": "TIME_ZONE = 'Asia/Kolkata'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2061,7 +1814,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "USE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field",
+        "peekOfCode": "USE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2070,7 +1823,7 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "USE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'",
+        "peekOfCode": "USE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.0/howto/static-files/\nSTATIC_URL = 'static/'\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2079,7 +1832,16 @@
         "kind": 5,
         "importPath": "FeatherFarmSoloutions.settings",
         "description": "FeatherFarmSoloutions.settings",
-        "peekOfCode": "STATIC_URL = 'static/'\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'",
+        "peekOfCode": "STATIC_URL = 'static/'\nSTATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "FeatherFarmSoloutions.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATIC_ROOT",
+        "kind": 5,
+        "importPath": "FeatherFarmSoloutions.settings",
+        "description": "FeatherFarmSoloutions.settings",
+        "peekOfCode": "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')\nSTATICFILES_DIRS = [\n    BASE_DIR/\"static\"\n]\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field\nMEDIA_URL = '/media/'\nMEDIA_ROOT = os.path.join(BASE_DIR, 'media/')\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nEMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'",
         "detail": "FeatherFarmSoloutions.settings",
         "documentation": {}
     },
@@ -2412,80 +2174,17 @@
         "kind": 6,
         "importPath": "hoteldetails.migrations.0001_initial",
         "description": "hoteldetails.migrations.0001_initial",
-        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('stakeholder', '0017_alter_chickbatch_price_per_batch_and_more'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Cart',\n            fields=[",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Cart',\n            fields=[",
         "detail": "hoteldetails.migrations.0001_initial",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
-        "description": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='cartitem',\n            name='quantity_kg',\n            field=models.FloatField(help_text='Quantity in kilograms', null=True),\n        ),",
-        "detail": "hoteldetails.migrations.0002_alter_cartitem_quantity_kg",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0003_order_quantity_kg",
-        "description": "hoteldetails.migrations.0003_order_quantity_kg",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0002_alter_cartitem_quantity_kg'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='quantity_kg',\n            field=models.FloatField(help_text='Quantity in kilograms', null=True),\n        ),",
-        "detail": "hoteldetails.migrations.0003_order_quantity_kg",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0004_alter_order_cart",
-        "description": "hoteldetails.migrations.0004_alter_order_cart",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0003_order_quantity_kg'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='order',\n            name='cart',\n            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='hoteldetails.cart'),\n        ),",
-        "detail": "hoteldetails.migrations.0004_alter_order_cart",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
-        "description": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0004_alter_order_cart'),\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='cartitem',\n            name='cart',",
-        "detail": "hoteldetails.migrations.0005_remove_cartitem_cart_remove_order_cart_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
-        "description": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0005_remove_cartitem_cart_remove_order_cart_and_more'),\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='created_at',",
-        "detail": "hoteldetails.migrations.0006_order_created_at_order_payment_method_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0007_cartitem_item_type",
-        "description": "hoteldetails.migrations.0007_cartitem_item_type",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0006_order_created_at_order_payment_method_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='cartitem',\n            name='item_type',\n            field=models.CharField(choices=[('live', 'Live'), ('processed', 'Processed')], default='live', help_text='Specify if the item is live or processed', max_length=10),\n        ),",
-        "detail": "hoteldetails.migrations.0007_cartitem_item_type",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0008_order_delivery_date",
-        "description": "hoteldetails.migrations.0008_order_delivery_date",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0007_cartitem_item_type'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='delivery_date',\n            field=models.DateField(blank=True, help_text='Expected delivery date', null=True),\n        ),",
-        "detail": "hoteldetails.migrations.0008_order_delivery_date",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "hoteldetails.migrations.0009_order_price",
-        "description": "hoteldetails.migrations.0009_order_price",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0008_order_delivery_date'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='price',\n            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='Total order price', max_digits=10),\n        ),",
-        "detail": "hoteldetails.migrations.0009_order_price",
+        "importPath": "hoteldetails.migrations.0002_order_delivery_fee_order_delivery_option",
+        "description": "hoteldetails.migrations.0002_order_delivery_fee_order_delivery_option",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('hoteldetails', '0001_initial'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='order',\n            name='delivery_fee',\n            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='Fee based on delivery option', max_digits=6),\n        ),",
+        "detail": "hoteldetails.migrations.0002_order_delivery_fee_order_delivery_option",
         "documentation": {}
     },
     {
@@ -2561,11 +2260,20 @@
         "documentation": {}
     },
     {
+        "label": "send_order_confirmation_email",
+        "kind": 2,
+        "importPath": "hoteldetails.utility",
+        "description": "hoteldetails.utility",
+        "peekOfCode": "def send_order_confirmation_email(email, order):\n    \"\"\"\n    Send an order confirmation email to the user after placing an order.\n    \"\"\"\n    subject = \"Order Confirmation - Your order has been placed!\"\n    message = f\"Hello {order.user.full_name},\\n\\nThank you for your order!\\n\\n\" \\\n              f\"Order Details:\\n\" \\\n              f\"Order ID: {order.id}\\n\" \\\n              f\"Total Price: ${order.price}\\n\" \\\n              f\"Delivery Date: {order.delivery_date}\\n\" \\",
+        "detail": "hoteldetails.utility",
+        "documentation": {}
+    },
+    {
         "label": "hoteldashboard",
         "kind": 2,
         "importPath": "hoteldetails.views",
         "description": "hoteldetails.views",
-        "peekOfCode": "def hoteldashboard(request):\n    # fetching the search data from html search box\n    query = request.GET.get('q')\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    if query:\n        # Filter items based on title or description matching the query\n        users = users.filter(\n            Q(full_name__icontains=query) | Q(email__icontains=query)\n        )",
+        "peekOfCode": "def hoteldashboard(request):\n    # fetching the search data from html search box\n    # fetching the search data from html search box\n    query = request.GET.get('q')\n    batch_type = request.GET.get('batch_type')\n    user_type = UserType.objects.get(name='Stakeholder')\n    users = User.objects.filter(user_type=user_type)\n    if query:\n        # Filter items based on title or description matching the query\n        users = users.filter(",
         "detail": "hoteldetails.views",
         "documentation": {}
     },
@@ -2574,7 +2282,7 @@
         "kind": 2,
         "importPath": "hoteldetails.views",
         "description": "hoteldetails.views",
-        "peekOfCode": "def view_profile(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = CustomerUserForm(request.POST, instance=user)\n        print(form.errors)\n        if form.is_valid():\n            form.save()\n            return redirect('hoteldashboard')\n    else:\n        form = CustomerUserForm(instance=user)",
+        "peekOfCode": "def view_profile(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        form = CustomerUserForm(request.POST,request.FILES, instance=user)\n        print(form.errors)\n        if form.is_valid():\n            print(form.is_valid())\n            form.save()\n            return redirect('hoteldashboard')\n    else:",
         "detail": "hoteldetails.views",
         "documentation": {}
     },
@@ -2610,7 +2318,7 @@
         "kind": 2,
         "importPath": "hoteldetails.views",
         "description": "hoteldetails.views",
-        "peekOfCode": "def checkout_view(request):\n    cart = Cart.objects.get(user=request.user)  # Get user's cart\n    items = cart.items.all()\n    total_price = sum(item.discounted_price for item in items)\n    if request.method == \"POST\":\n        # Handle delivery date and payment method\n        delivery_date = request.POST.get('delivery_date')\n        payment_method = request.POST.get('payment_option')\n        # Update the cart's additional fields if needed\n        print(delivery_date)",
+        "peekOfCode": "def checkout_view(request):\n    cart = Cart.objects.get(user=request.user)  # Get user's cart\n    items = cart.items.all()\n    # Check if the cart has items\n    if not items:\n        # Redirect or display a message if the cart is empty\n        return redirect('cart_view')  # Or display an error message\n    # Calculate the base total price\n    total_price = sum(item.discounted_price for item in items)\n    if request.method == \"POST\":",
         "detail": "hoteldetails.views",
         "documentation": {}
     },
@@ -2644,172 +2352,19 @@
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "stakeholder.migrations.0002_dailydata",
-        "description": "stakeholder.migrations.0002_dailydata",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='DailyData',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
-        "detail": "stakeholder.migrations.0002_dailydata",
+        "importPath": "stakeholder.migrations.0002_alter_chickbatch_batch_status",
+        "description": "stakeholder.migrations.0002_alter_chickbatch_batch_status",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0001_initial'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='batch_status',\n            field=models.CharField(choices=[('active', 'Active'), ('completed', 'Completed')], default='active', help_text='Current status of the batch', max_length=10),\n        ),",
+        "detail": "stakeholder.migrations.0002_alter_chickbatch_batch_status",
         "documentation": {}
     },
     {
         "label": "Migration",
         "kind": 6,
-        "importPath": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
-        "description": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0002_dailydata'),\n    ]\n    operations = [\n        migrations.RenameField(\n            model_name='chickbatch',\n            old_name='chick_count',\n            new_name='initial_chick_count',\n        ),",
-        "detail": "stakeholder.migrations.0003_rename_chick_count_chickbatch_initial_chick_count",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0004_chickbatch_batch_status",
-        "description": "stakeholder.migrations.0004_chickbatch_batch_status",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0003_rename_chick_count_chickbatch_initial_chick_count'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='batch_status',\n            field=models.CharField(choices=[('active', 'Active'), ('completed', 'Completed'), ('inactive', 'Inactive'), ('pending', 'Pending')], default='active', max_length=10),\n        ),",
-        "detail": "stakeholder.migrations.0004_chickbatch_batch_status",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
-        "description": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0004_chickbatch_batch_status'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='dailydata',\n            name='feed_forecast',\n            field=models.FloatField(default=0.0),\n        ),",
-        "detail": "stakeholder.migrations.0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
-        "description": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0005_dailydata_feed_forecast_dailydata_feed_remaining_and_more'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='dailydata',\n            name='feed_forecast',\n        ),\n        migrations.RemoveField(",
-        "detail": "stakeholder.migrations.0006_remove_dailydata_feed_forecast_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
-        "description": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0006_remove_dailydata_feed_forecast_and_more'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together=set(),\n        ),\n        migrations.CreateModel(",
-        "detail": "stakeholder.migrations.0007_alter_dailydata_unique_together_feedmonitoring",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
-        "description": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0007_alter_dailydata_unique_together_feedmonitoring'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.AlterModelOptions(\n            name='feedmonitoring',\n            options={'verbose_name': 'Feed Monitoring', 'verbose_name_plural': 'Feed Monitoring'},\n        ),",
-        "detail": "stakeholder.migrations.0008_alter_feedmonitoring_options_feedmonitoring_owner",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
-        "description": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0008_alter_feedmonitoring_options_feedmonitoring_owner'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='feedmonitoring',\n            name='owner',\n        ),\n    ]",
-        "detail": "stakeholder.migrations.0009_remove_feedmonitoring_owner",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0010_alter_dailydata_unique_together",
-        "description": "stakeholder.migrations.0010_alter_dailydata_unique_together",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0009_remove_feedmonitoring_owner'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together={('batch', 'date')},\n        ),\n    ]",
-        "detail": "stakeholder.migrations.0010_alter_dailydata_unique_together",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0011_alter_dailydata_unique_together",
-        "description": "stakeholder.migrations.0011_alter_dailydata_unique_together",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0010_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together=set(),\n        ),\n    ]",
-        "detail": "stakeholder.migrations.0011_alter_dailydata_unique_together",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0012_alter_dailydata_unique_together",
-        "description": "stakeholder.migrations.0012_alter_dailydata_unique_together",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0011_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterUniqueTogether(\n            name='dailydata',\n            unique_together={('batch', 'date')},\n        ),\n    ]",
-        "detail": "stakeholder.migrations.0012_alter_dailydata_unique_together",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
-        "description": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0012_alter_dailydata_unique_together'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='batch_status',\n            field=models.CharField(choices=[('active', 'Active'), ('completed', 'Completed'), ('uplifted', 'Uplifted'), ('terminated', 'Terminated')], default='active', max_length=10),\n        ),",
-        "detail": "stakeholder.migrations.0013_alter_chickbatch_batch_status",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0014_chickbatch_duration",
-        "description": "stakeholder.migrations.0014_chickbatch_duration",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0013_alter_chickbatch_batch_status'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='duration',\n            field=models.IntegerField(default=40),\n        ),",
-        "detail": "stakeholder.migrations.0014_chickbatch_duration",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
-        "description": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0014_chickbatch_duration'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='available_chickens',\n            field=models.FloatField(default=0, help_text='Total weight of chickens available (in kg)'),\n        ),",
-        "detail": "stakeholder.migrations.0015_chickbatch_available_chickens_chickbatch_batch_size_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
-        "description": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0015_chickbatch_available_chickens_chickbatch_batch_size_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='batch_date',\n            field=models.DateField(default=django.utils.timezone.now, help_text='Date the batch started'),\n        ),",
-        "detail": "stakeholder.migrations.0016_alter_chickbatch_batch_date_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
-        "description": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0016_alter_chickbatch_batch_date_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='price_per_batch',\n            field=models.DecimalField(decimal_places=2, help_text='Price per batch of chicken', max_digits=10, null=True),\n        ),",
-        "detail": "stakeholder.migrations.0017_alter_chickbatch_price_per_batch_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
-        "description": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0017_alter_chickbatch_price_per_batch_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='one_kg_count',\n            field=models.IntegerField(default=0, help_text='Number of 1 kg chickens available'),\n        ),",
-        "detail": "stakeholder.migrations.0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
-        "description": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0018_chickbatch_one_kg_count_chickbatch_three_kg_count_and_more'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='chickbatch',\n            name='available_chickens',\n            field=models.IntegerField(default=0, help_text='Count of live chickens available'),\n        ),",
-        "detail": "stakeholder.migrations.0019_alter_chickbatch_available_chickens",
-        "documentation": {}
-    },
-    {
-        "label": "Migration",
-        "kind": 6,
-        "importPath": "stakeholder.migrations.0020_chickbatch_batch_type",
-        "description": "stakeholder.migrations.0020_chickbatch_batch_type",
-        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0019_alter_chickbatch_available_chickens'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='chickbatch',\n            name='batch_type',\n            field=models.CharField(choices=[('broiler', 'Broiler'), ('organic', 'Organic'), ('kada', 'Kada')], default='broiler', help_text='Type of chickens in the batch', max_length=10),\n        ),",
-        "detail": "stakeholder.migrations.0020_chickbatch_batch_type",
+        "importPath": "stakeholder.migrations.0003_chicksupply",
+        "description": "stakeholder.migrations.0003_chicksupply",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('stakeholder', '0002_alter_chickbatch_batch_status'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='ChickSupply',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "stakeholder.migrations.0003_chicksupply",
         "documentation": {}
     },
     {
@@ -2844,7 +2399,7 @@
         "kind": 6,
         "importPath": "stakeholder.forms",
         "description": "stakeholder.forms",
-        "peekOfCode": "class ChickenBatchForm(forms.ModelForm):\n    class Meta:\n        model = ChickBatch\n        fields = ['price_per_kg',\"price_per_batch\",\"batch_status\",\"duration\"]\nclass CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {",
+        "peekOfCode": "class ChickenBatchForm(forms.ModelForm):\n    class Meta:\n        model = ChickBatch\n        fields = [\"batch_status\",\"duration\"]\nclass CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {",
         "detail": "stakeholder.forms",
         "documentation": {}
     },
@@ -2853,7 +2408,7 @@
         "kind": 6,
         "importPath": "stakeholder.forms",
         "description": "stakeholder.forms",
-        "peekOfCode": "class CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {\n            'one_kg_count': forms.NumberInput(attrs={'min': 0}),\n            'two_kg_count': forms.NumberInput(attrs={'min': 0}),\n            'three_kg_count': forms.NumberInput(attrs={'min': 0}),\n        }",
+        "peekOfCode": "class CompletedBatchUpdateForm(forms.ModelForm):\n    \"\"\"Form for updating count of chickens in 1kg, 2kg, and 3kg categories.\"\"\"\n    class Meta:\n        model = ChickBatch\n        fields = ['one_kg_count', 'two_kg_count', 'three_kg_count']\n        widgets = {\n            'one_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'one-kg-count'}),\n            'two_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'two-kg-count'}),\n            'three_kg_count': forms.NumberInput(attrs={'min': 0, 'class': 'form-control', 'id': 'three-kg-count'})\n        }",
         "detail": "stakeholder.forms",
         "documentation": {}
     },
@@ -2889,7 +2444,7 @@
         "kind": 6,
         "importPath": "stakeholder.models",
         "description": "stakeholder.models",
-        "peekOfCode": "class ChickBatch(models.Model):\n    STATUS_CHOICES = [\n        ('active', 'Active'),\n        ('completed', 'Completed'),\n        ('uplifted', 'Uplifted'),\n        ('terminated', 'Terminated')\n    ]\n    TYPE_CHOICES = [\n        ('broiler', 'Broiler'),\n        ('organic', 'Organic'),",
+        "peekOfCode": "class ChickBatch(models.Model):\n    STATUS_CHOICES = [\n        ('active', 'Active'),\n        ('completed', 'Completed')\n    ]\n    TYPE_CHOICES = [\n        ('broiler', 'Broiler'),\n        ('organic', 'Organic'),\n        ('kada', 'Kada')\n    ]",
         "detail": "stakeholder.models",
         "documentation": {}
     },
@@ -2908,6 +2463,15 @@
         "importPath": "stakeholder.models",
         "description": "stakeholder.models",
         "peekOfCode": "class FeedMonitoring(models.Model):\n    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)\n    date = models.DateField()\n    feed_consumed = models.FloatField(default=0.0)\n    feed_forecast = models.FloatField(default=0.0)\n    feed_wastage = models.FloatField(default=0.0)\n    def __str__(self):\n        return f\"Feed Monitoring for Batch {self.batch.batch_date} on {self.date}\"\n    class Meta:\n        verbose_name = \"Feed Monitoring\"",
+        "detail": "stakeholder.models",
+        "documentation": {}
+    },
+    {
+        "label": "ChickSupply",
+        "kind": 6,
+        "importPath": "stakeholder.models",
+        "description": "stakeholder.models",
+        "peekOfCode": "class ChickSupply(models.Model):\n    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE, related_name='chick_supplies')\n    stakeholder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chick_supplies')  # Link to stakeholder\n    date = models.DateField(default=timezone.now)\n    chicks_supplied = models.IntegerField(help_text=\"Number of chicks supplied on this day\")\n    chicken_type = models.CharField(max_length=20, choices=ChickBatch.TYPE_CHOICES)  # Type of chicken\n    def __str__(self):\n        return f\"Chicks Supplied for Batch {self.batch.batch_date} on {self.date}\"",
         "detail": "stakeholder.models",
         "documentation": {}
     },
@@ -3200,6 +2764,15 @@
         "documentation": {}
     },
     {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "user.migrations.0011_alter_user_hotel_license",
+        "description": "user.migrations.0011_alter_user_hotel_license",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('user', '0010_user_hotel_license'),\n    ]\n    operations = [\n        migrations.AlterField(\n            model_name='user',\n            name='hotel_license',\n            field=models.FileField(blank=True, null=True, upload_to='hotel_licenses/'),\n        ),",
+        "detail": "user.migrations.0011_alter_user_hotel_license",
+        "documentation": {}
+    },
+    {
         "label": "UserAdmin",
         "kind": 6,
         "importPath": "user.admin",
@@ -3438,7 +3011,7 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def admindash(request):\n    # Fetching the usertype with name 'Stakeholder'\n    stakeholder_user_type = UserType.objects.get(name='Stakeholder')\n    # Counting total stakeholders\n    total_stakeholders = User.objects.filter(\n        user_type=stakeholder_user_type).count()\n    # Counting active stakeholders\n    active_stakeholders = User.objects.filter(\n        user_type=stakeholder_user_type, is_active=True).count()\n    # Fetching the usertype with name 'Customer'",
+        "peekOfCode": "def admindash(request):\n    completed_orders_count = 0\n    completed_batches_sales_count = 0\n    # Fetching the usertype with name 'Stakeholder'\n    stakeholder_user_type = UserType.objects.get(name='Stakeholder')\n    # Counting total stakeholders\n    total_stakeholders = User.objects.filter(\n        user_type=stakeholder_user_type).count()\n    # Counting active stakeholders\n    active_stakeholders = User.objects.filter(",
         "detail": "user.views",
         "documentation": {}
     },
@@ -3510,7 +3083,7 @@
         "kind": 2,
         "importPath": "user.views",
         "description": "user.views",
-        "peekOfCode": "def stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        user_form = StakeholderUserForm(\n            request.POST, request.FILES, instance=user)\n        if user_form.is_valid():\n            user_form.save()  # Save the updated user profile\n            # Redirect to a success page or wherever you need\n            return redirect('stakeholder')\n    else:",
+        "peekOfCode": "def stakeholder_registration(request, id):\n    user = get_object_or_404(User, id=id)\n    if request.method == 'POST':\n        user_form = StakeholderUserForm(\n            request.POST, request.FILES, instance=user)\n        if user_form.is_valid():\n            user_form.save()  # Save the updated user profile\n            # Re\n            # direct to a success page or wherever you need\n            return redirect('stakeholder')",
         "detail": "user.views",
         "documentation": {}
     },

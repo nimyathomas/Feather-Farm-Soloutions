@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# # DATABASES = {
+# DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'featherfarm',
@@ -100,17 +100,13 @@ WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'
 #         }
 #     }
 # }
+
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'featherfarm_db',
-#         'USER': 'featherfarm_db_user',
-#         'PASSWORD': 'ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF',
-#         'HOST': 'dpg-csl5vh56l47c73e6h07g-a',  # Set to your database host
-#         'PORT': '5432',       # Default MySQL port
-#        "default": dj_database_url.parse("postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db") 
-#         }
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
+# }
 
 DATABASES = {
     'default': dj_database_url.config(

@@ -85,6 +85,19 @@ class ChickBatch(models.Model):
             self.price_per_batch = weight * float(self.price_per_kg)
             self.save(update_fields=['price_per_batch'])
         return self.price_per_batch or 0
+    
+    
+    def average_temperature(self):
+        """Calculate the average temperature for this batch."""
+        avg_temp = self.daily_data.aggregate(Avg('temperature'))['temperature__avg']
+        return avg_temp if avg_temp is not None else 0.0
+    
+    @property
+    def average_mortality_rate(self):
+        """Calculate the average mortality rate for this batch."""
+        total_mortality = self.daily_data.aggregate(Sum('mortality_count'))['mortality_count__sum'] or 0
+        mortality_rate = (total_mortality / self.initial_chick_count) * 100 if self.initial_chick_count > 0 else 0
+        return mortality_rate
 
     def __str__(self):
         return f"Batch on {self.batch_date} for {self.user.full_name}: {self.initial_chick_count} chicks, {self.live_chick_count} alive"
@@ -180,3 +193,15 @@ class FeedMonitoring(models.Model):
         verbose_name = "Feed Monitoring"
         verbose_name_plural = "Feed Monitoring"
         unique_together = ('batch', 'date')
+        
+        
+        
+class ChickSupply(models.Model):
+    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE, related_name='chick_supplies')
+    stakeholder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chick_supplies')  # Link to stakeholder
+    date = models.DateField(default=timezone.now)
+    chicks_supplied = models.IntegerField(help_text="Number of chicks supplied on this day")
+    chicken_type = models.CharField(max_length=20, choices=ChickBatch.TYPE_CHOICES)  # Type of chicken
+
+    def __str__(self):
+        return f"Chicks Supplied for Batch {self.batch.batch_date} on {self.date}"

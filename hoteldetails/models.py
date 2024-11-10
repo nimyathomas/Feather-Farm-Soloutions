@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)

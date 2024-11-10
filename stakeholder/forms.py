@@ -24,7 +24,7 @@ class DailyDataForm(forms.ModelForm):
 class ChickenBatchForm(forms.ModelForm):
     class Meta:
         model = ChickBatch
-        fields = ['price_per_kg',"price_per_batch","batch_status","duration"]
+        fields = ["batch_status","duration"]
 
 class CompletedBatchUpdateForm(forms.ModelForm):
     """Form for updating count of chickens in 1kg, 2kg, and 3kg categories."""

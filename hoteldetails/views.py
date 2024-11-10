@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q  # Import Q for complex queries
 from django.urls import reverse
 from hoteldetails.models import Order,Cart,CartItem
+from hoteldetails.utility import send_order_confirmation_email
 from stakeholder.models import ChickBatch
 from user.models import UserType, User
 from .forms import CustomerUserForm, OrderForm
@@ -37,9 +38,10 @@ def hoteldashboard(request):
 def view_profile(request, id):
     user = get_object_or_404(User, id=id)
     if request.method == 'POST':
-        form = CustomerUserForm(request.POST, instance=user)
+        form = CustomerUserForm(request.POST,request.FILES, instance=user)
         print(form.errors)
         if form.is_valid():
+            print(form.is_valid())
             form.save()
             return redirect('hoteldashboard')
     else:
@@ -179,6 +181,8 @@ def checkout_view(request):
         # Optionally, clear the cart after placing the order
         cart.items.all().delete()  # Clear the cart items
         cart.save()
+        send_order_confirmation_email(request.user.email, order)
+        print(send_order_confirmation_email(request.user.email, order))
         return redirect('view_orders')
 
     context = {
