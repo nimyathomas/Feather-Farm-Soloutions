@@ -19,6 +19,17 @@ def hoteldashboard(request):
     batch_type = request.GET.get('batch_type')
     user_type = UserType.objects.get(name='Stakeholder')
     users = User.objects.filter(user_type=user_type)
+    user_location = (12.9716, 77.5946)  # Replace with actual hotel coordinates
+
+    # Calculate distances and mark recommendations
+    for farm in users:
+        distance = farm.calculate_distance_from(*user_location)
+        farm.distance_from_hotel = distance
+        farm.is_recommended = distance <= 50  # Example: Recommend farms within 50km
+        farm.save()
+
+    # Sort farms by distance
+    farms = users.order_by('distance_from_hotel')
     if query:
         # Filter items based on title or description matching the query
         users = users.filter(
@@ -110,7 +121,7 @@ def cart_view(request):
     except Cart.DoesNotExist:
         cart = None
     cartitems = CartItem.objects.filter(cart=cart)
-    total_price = sum(item.total_price() for item in cartitems)
+    total_price = sum(item.total_price() or 0 for item in cartitems)
     total_discounted = sum(item.discounted_price for item in cartitems)
     is_empty = len(cartitems) == 0
     return render(request, 'hoteldetials/view_cart.html', {"cart": cart, "items": cartitems, "total_price": total_price, "total_dicounted_price": total_discounted,"is_empty": is_empty })
@@ -140,49 +151,72 @@ def update_cart(request):
     return redirect('cart_view')
 
 
+from datetime import datetime, timedelta
+from django.contrib import messages
+
 def checkout_view(request):
     cart = Cart.objects.get(user=request.user)  # Get user's cart
     items = cart.items.all()
     
     # Check if the cart has items
     if not items:
-        # Redirect or display a message if the cart is empty
         return redirect('cart_view')  # Or display an error message
 
     # Calculate the base total price
     total_price = sum(item.discounted_price for item in items)
 
     if request.method == "POST":
-        # Handle delivery date, payment method, and delivery option
         delivery_date = request.POST.get('delivery_date')
         payment_method = request.POST.get('payment_option')
-        delivery_option = request.POST.get('delivery_method')  # Retrieve selected delivery option
-        
-        # Adjust the total price based on the delivery option
+        delivery_option = request.POST.get('delivery_method')
+
+        # Validate delivery date
+        if delivery_date:
+            try:
+                # Convert string date to datetime object
+                delivery_date = datetime.strptime(delivery_date, "%Y-%m-%d").date()
+                today = datetime.today().date()
+                
+                # Check if delivery date is in the future and within 30 days
+                max_date = today + timedelta(days=30)
+                if delivery_date < today:
+                    messages.error(request, "Delivery date cannot be in the past.")
+                    return redirect('checkout_view')
+                elif delivery_date > max_date:
+                    messages.error(request, "Delivery date must be within the next 30 days.")
+                    return redirect('checkout_view')
+                
+            except ValueError:
+                messages.error(request, "Invalid delivery date format.")
+                return redirect('checkout_view')
+        else:
+            messages.error(request, "Please select a delivery date.")
+            return redirect('checkout_view')
+
+        # Adjust the total price based on delivery option
         if delivery_option == 'express':
-            total_price += Decimal('500.00')  # Add express delivery fee
+            total_price += Decimal('500.00')
         elif delivery_option == 'standard':
-            total_price += Decimal('0.00')  # No extra charge for standard delivery
+            total_price += Decimal('0.00')
 
         # Create the order
         order = Order.objects.create(
             user=request.user,
-            batch=items[0].chick_batch,  # Assume all items belong to the same batch
+            batch=items[0].chick_batch,
             one_kg_count=sum(item.one_kg_count for item in items),
             two_kg_count=sum(item.two_kg_count for item in items),
             three_kg_count=sum(item.three_kg_count for item in items),
             payment_method=payment_method if payment_method in ['cod', 'online', 'upi'] else 'cod',
-            price=total_price, 
+            price=total_price,
             delivery_option=delivery_option,
-            delivery_date=delivery_date if delivery_date else None,
+            delivery_date=delivery_date,
             status='pending',
         )
 
-        # Optionally, clear the cart after placing the order
-        cart.items.all().delete()  # Clear the cart items
+        # Clear the cart after placing the order
+        cart.items.all().delete()
         cart.save()
         send_order_confirmation_email(request.user.email, order)
-        print(send_order_confirmation_email(request.user.email, order))
         return redirect('view_orders')
 
     context = {
@@ -191,7 +225,6 @@ def checkout_view(request):
         'total_price': total_price,
     }
     return render(request, 'hoteldetials/checkout_view.html', context)
-
 
 def view_orders(request):
     orders = Order.objects.filter(user=request.user)

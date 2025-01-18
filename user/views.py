@@ -21,6 +21,7 @@ from django.http import HttpResponse
 import pandas as pd
 from math import floor
 import openpyxl
+from .models import WasteManagementResource, DailyTip
 
 
 def register(request):
@@ -288,21 +289,99 @@ def approve_order(request, order_id):
     return redirect('customeruserprofile', id=order.user.id)
 
 
-def stakeholder_registration(request, id):
-    user = get_object_or_404(User, id=id)
-    if request.method == 'POST':
-        user_form = StakeholderUserForm(
-            request.POST, request.FILES, instance=user)
-        if user_form.is_valid():
-            user_form.save()  # Save the updated user profile
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import StakeholderUserForm
+from .models import User
 
-            # Re
-            # direct to a success page or wherever you need
-            return redirect('stakeholder')
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
+from .forms import StakeholderUserForm  # Ensure you import the correct form
+from .models import User  # Ensure you import the User model correctly
+
+def stakeholder_registration(request, id):
+    # Fetch the user by ID
+    user = get_object_or_404(User, id=id)
+
+    if request.method == 'POST':
+        # Bind form with POST data and FILES for image/file uploads
+        user_form = StakeholderUserForm(request.POST, request.FILES, instance=user)
+        
+        if user_form.is_valid():
+            # Save the form data (including file uploads)
+            user_form.save()
+
+            # Add a success message
+            messages.success(request, 'Profile updated successfully.')
+
+            # Redirect to the stakeholder page or success page
+            return redirect('stakeholder')  # Ensure 'stakeholder' is defined in urls.py
+        else:
+            # Add an error message for invalid form data
+            messages.error(request, 'There was an error updating the profile. Please check the form and try again.')
+
+            # Render the form with errors
+            return render(request, 'stakeholder_profile.html', {'user_form': user_form})
     else:
+        # Prepopulate the form with the user's current data
         user_form = StakeholderUserForm(instance=user)
 
+    # Render the form template
     return render(request, 'stakeholder_profile.html', {'user_form': user_form})
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import User
+
+import json
+from django.http import JsonResponse
+from .utils import get_address_from_coordinates
+from django.contrib.auth.models import User
+
+def update_location(request):
+    """
+    Updates the user's location and address based on latitude and longitude.
+    """
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from request
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            latitude = data.get('latitude')
+            longitude = data.get('longitude')
+
+            # Validate the presence of latitude and longitude
+            if not (latitude and longitude):
+                return JsonResponse({'success': False, 'message': 'Latitude and longitude are required.'}, status=400)
+
+            # Fetch the user
+            user = User.objects.filter(id=user_id).first()
+            if not user:
+                return JsonResponse({'success': False, 'message': 'User not found.'}, status=404)
+
+            # Get address details using coordinates
+            address_details = get_address_from_coordinates(float(latitude), float(longitude))
+            if 'error' in address_details:
+                return JsonResponse({'success': False, 'message': 'Failed to fetch address from coordinates.'}, status=500)
+
+            # Update the user profile
+            user_profile = user.profile  # Assuming a one-to-one relationship with a Profile model
+            user_profile.location = f"{latitude}, {longitude}"
+            user_profile.address = f"{address_details.get('road', '')}, {address_details.get('suburb', '')}, {address_details.get('city', '')}, {address_details.get('state', '')}, {address_details.get('country', '')}"
+            user_profile.region = address_details.get('region', 'Unknown')
+            user_profile.save()
+
+            return JsonResponse({'success': True, 'message': 'Location and address updated successfully.'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 
 def toggle_user_status(request, user_id):
@@ -322,6 +401,7 @@ def toggle_user_status(request, user_id):
 
 def vaccine_admin(request):
     # Assuming you're trying to retrieve a VaccineAdmin object by its ID (pk)
+
 
     return render(request, 'vaccination.html')
 
@@ -410,3 +490,221 @@ def disable_supplier(request, supplier_id):
     supplier.save()
     # Redirect to supplier list after disabling
     return redirect('supplier_list')
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Vaccine
+from .forms import VaccineForm
+
+def manage_vaccines(request):
+
+    return render(request, 'manage_vaccines.html')
+
+# View to add a new vaccine
+from django.http import JsonResponse
+from django.shortcuts import render
+from .forms import VaccineForm
+
+def add_vaccine(request):
+    if request.method == 'POST':
+        form = VaccineForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'message': 'Vaccine added successfully'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Form is invalid', 'errors': form.errors})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+# View to edit an existing vaccine
+def edit_vaccine(request, vaccine_id):
+    vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+    if request.method == 'POST':
+        form = VaccineForm(request.POST, instance=vaccine)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Vaccine updated successfully!")
+            return redirect('vaccine_dashboard')
+    else:
+        form = VaccineForm(instance=vaccine)
+    return render(request, 'edit_vaccine.html', {'form': form})
+
+def delete_vaccine(request, vaccine_id):
+    # Get the vaccine object by ID
+    vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+
+    # Delete the vaccine
+    vaccine.delete()
+
+    # Return a JSON response indicating success
+    return JsonResponse({'success': True, 'message': 'Vaccine deleted successfully'})
+
+
+def vaccine_dashboard(request):
+    vaccines = Vaccine.objects.all()
+    return render(request, 'vaccine_dashboard.html', {'vaccines': vaccines})
+
+
+
+
+
+def manage_records(request):
+    records = VaccinationRecord.objects.all()
+    return render(request, 'manage_records.html', {'records': records})
+
+def add_record(request):
+    if request.method == 'POST':
+        form = VaccinationRecordForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_records')
+    else:
+        form = VaccinationRecordForm()
+    return render(request, 'add_record.html', {'form': form})
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from stakeholder.models import ChickBatch, VaccinationSchedule
+from user.models import User ,Vaccine # Replace `your_app` with the actual app name
+
+def assign_vaccine(request):
+    """
+    Renders the vaccine assignment form and handles the form submission.
+    """
+    if request.method == 'POST':
+        try:
+            # Retrieve POST data
+            user_id = request.POST.get('user')
+            batch_id = request.POST.get('batch')
+            vaccine_id = request.POST.get('vaccine')
+            vaccination_date = request.POST.get('vaccination_date')
+
+            # Validate inputs
+            if not user_id or not batch_id or not vaccine_id or not vaccination_date:
+                return JsonResponse({"success": False, "message": "All fields are required."}, status=400)
+
+            # Check if user exists
+            user = get_object_or_404(User, id=user_id, user_type='stakeholder')  # Ensure filtering by user_type works
+
+            # Check if batch exists and is active
+            batch = get_object_or_404(ChickBatch, id=batch_id, user=user, batch_status="active")
+
+            # Check if vaccine exists
+            vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+
+            # Prevent duplicate vaccination schedules for the same batch and vaccine
+            if VaccinationSchedule.objects.filter(batch=batch, vaccine=vaccine).exists():
+                return JsonResponse({
+                    "success": False,
+                    "message": "This vaccine is already scheduled for the selected batch."
+                }, status=400)
+
+            # Create the VaccinationSchedule
+            VaccinationSchedule.objects.create(
+                batch=batch,
+                vaccine=vaccine,
+                vaccination_date=vaccination_date
+            )
+
+            # Return success response
+            return JsonResponse({"success": True, "message": "Vaccine assigned successfully."})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": f"An unexpected error occurred: {str(e)}"}, status=500)
+
+    # If GET request, render the form
+    users = User.objects.filter(user_type='stakeholder')  # Fetch only stakeholders
+    vaccines = Vaccine.objects.all()  # Fetch all vaccines
+    return render(request, 'assign_vaccine.html', {
+        'users': users,
+        'vaccines': vaccines,
+    })
+
+
+
+def get_active_batches(request, user_id):
+    """
+    Returns active batches for a given stakeholder user.
+    """
+    try:
+        # Check if the user is a stakeholder
+        stakeholder = get_object_or_404(User, id=user_id, user_type='stakeholder')
+
+        # Get active batches for the stakeholder
+        active_batches = ChickBatch.objects.filter(user=stakeholder, batch_status='active')
+
+        # Prepare the batch data for the response
+        batch_data = [
+            {"id": batch.id, "name": f"Batch {batch.id} - {batch.batch_date}"}
+            for batch in active_batches
+        ]
+
+
+        return JsonResponse({"batches": batch_data}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def waste_management_admin(request):
+    # Get statistics for the dashboard
+    resources = WasteManagementResource.objects.all()
+    daily_tips = DailyTip.objects.all()
+    
+    context = {
+        'total_resources': resources.count(),
+        'active_resources': resources.filter(is_active=True).count(),
+        'total_tips': daily_tips.count(),
+        'active_tips': daily_tips.filter(is_active=True).count(),
+        'resources': resources.order_by('-created_at')[:5],  # Latest 5 resources
+        'tips': daily_tips.order_by('-created_at')[:5],     # Latest 5 tips
+    }
+    
+    return render(request, 'waste_management_admin.html', context)
+
+
+def add_resource(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        resource_type = request.POST.get('resource_type')
+        file = request.FILES.get('file')
+        
+        WasteManagementResource.objects.create(
+            title=title,
+            description=description,
+            resource_type=resource_type,
+            file=file,
+            is_active=True
+        )
+        
+        messages.success(request, 'Resource added successfully!')
+        return redirect('waste_management_admin')
+    return redirect('waste_management_admin')
+
+
+def add_tip(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        
+        DailyTip.objects.create(
+            title=title,
+            content=content,
+            category=category,
+            is_active=True
+        )
+        
+        messages.success(request, 'Tip added successfully!')
+        return redirect('waste_management_admin')
+    return redirect('waste_management_admin')
+
+
+def view_resources(request):
+    resources = WasteManagementResource.objects.all().order_by('-created_at')
+    return render(request, 'waste_management.html', {'resources': resources, 'section': 'resources'})
+
+
+def view_tips(request):
+    tips = DailyTip.objects.all().order_by('-created_at')
+    return render(request, 'waste_management.html', {'tips': tips, 'section': 'tips'})

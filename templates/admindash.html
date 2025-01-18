@@ -22,7 +22,8 @@
                 <li><a href="#">Alerts</a></li>
                 <li><a href="#">Sales</a></li>
                 <li><a href="{% url 'feed_admin' %}">Feeds</a></li>
-                <li><a href="{% url 'vaccine_admin'%}">Vaccinations</a></li>
+                <a href="{% url 'manage_vaccines' %}" class="{% if request.path ==  'vaccination'  %}active{% endif %}">🚑 Vaccinations</a>
+                <a href="{% url 'waste_management_admin' %}" class="{% if request.path ==  'waste_management_admin'  %}active{% endif %}">🚮 Waste Management</a>
                 <li><a href="{% url 'logout' %}">Logout</a></li>
             </ul>
         </aside>

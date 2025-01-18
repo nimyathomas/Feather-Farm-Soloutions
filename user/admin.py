@@ -11,7 +11,7 @@ class UserAdmin(DefaultUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {
-         'fields': ('full_name', 'phone_number', 'user_type')}),
+         'fields': ('full_name', 'phone_number', 'user_type','is_recommended', 'distance_from_hotel')}),
         (_('Coop Information'), {
          'fields': ('length', 'breadth', 'coopcapacity', 'expiry_date', 'pollution_certificate', 'farm_image','plan_file')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff',
@@ -21,12 +21,12 @@ class UserAdmin(DefaultUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'full_name', 'password1', 'password2', 'user_type', 'is_staff', 'is_active'),
+            'fields': ('email', 'full_name', 'password1', 'password2', 'user_type', 'is_staff', 'is_active','is_recommended', 'distance_from_hotel'),
         }),
     )
     list_display = ('email', 'full_name', 'phone_number',
-                    'user_type', 'is_staff', 'is_active')
-    list_filter = ('user_type', 'is_staff', 'is_active')
+                    'user_type', 'is_staff', 'is_active', 'is_recommended', 'distance_from_hotel')
+    list_filter = ('user_type', 'is_staff', 'is_active','is_recommended')
     search_fields = ('email', 'full_name', 'phone_number')
     ordering = ('email',)
 

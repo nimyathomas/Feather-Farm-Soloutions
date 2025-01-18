@@ -256,3 +256,22 @@ button a {
     color: red;
     font-weight: bold;
 }
+
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 5px;
+    margin-top: 5px;
+    color: #fff;
+  }
+  
+  .badge.recommended {
+    background-color: #28a745; /* Green */
+  }
+  
+  .badge.nearest {
+    background-color: #007bff; /* Blue */
+  }
+  

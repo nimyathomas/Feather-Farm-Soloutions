@@ -652,3 +652,8 @@ def supplier_list(request):
     """Display the list of suppliers."""
     suppliers = Supplier.objects.all()  # Fetch all suppliers from the database
     return render(request, 'supplier_list_stakeholder.html', {'suppliers': suppliers})
+
+
+def tips(request):
+    tips = WasteTip.objects.all()
+    return render(request, 'waste_management/tips.html', {'tips': tips})

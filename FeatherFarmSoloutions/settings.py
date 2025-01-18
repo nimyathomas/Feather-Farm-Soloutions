@@ -15,9 +15,9 @@ SECRET_KEY = 'django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -43,6 +43,13 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_celery_beat'
+    
+    # 'django_otp',
+    # 'django_otp.plugins.otp_static',  # For static tokens
+    # 'django_otp.plugins.otp_totp',   # For time-based tokens
+    # 'two_factor',
+    # 'two_factor.plugins.phonenumber',  # Optional: SMS-based tokens
+    
 ]
 
 
@@ -60,6 +67,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     # 'whitenoise.middleware.WhitenoiseMiddleware',
+    # 'django_otp.middleware.OTPMiddleware',  
 ]
 
 ROOT_URLCONF = 'FeatherFarmSoloutions.urls'
@@ -87,19 +95,19 @@ WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'featherfarm',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',  # Set to your database host
-#         'PORT': '3306',       # Default MySQL port
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#         }
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'featherfarm',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',  # Set to your database host
+        'PORT': '3306',       # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
+    }
+}
 
 # DATABASES = {
 #     'default': {
@@ -108,11 +116,11 @@ WSGI_APPLICATION = 'FeatherFarmSoloutions.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db'
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://featherfarm_db_user:ZzQ5IA8eVibOFi0uasnmXmuAdYEy3uLF@dpg-csl5vh56l47c73e6h07g-a.oregon-postgres.render.com/featherfarm_db'
+#     )
+# }
 
 
 
@@ -180,6 +188,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'user.backends.EmailBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
+    # 'django_otp.backends.OTPBackend',  # First layer: OTP validation
 
 )
 

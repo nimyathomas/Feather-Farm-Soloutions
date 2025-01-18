@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import hoteldashboard, view_farm, view_profile, view_orders, cart_view, update_cart, checkout_view
+# app_name='hoteldetails'
 
 urlpatterns = [
     path('', hoteldashboard, name="hoteldashboard"),

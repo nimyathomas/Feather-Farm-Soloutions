@@ -1,8 +1,8 @@
 from django.urls import path
-from user.views import approve_order, download_daily_log, register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, vaccine_admin, feed_admin, renew_pollution_certificate, supplier_list, add_supplier, enable_supplier, disable_supplier, edit_supplier, toggle_user_status,view_stakeholder_view
+from user.views import approve_order, download_daily_log, register, CustomLoginView, admindash, stakeholderuser, customeruser, stakeholderuserprofile, customeruserprofile, stakeholder_registration, vaccine_admin, feed_admin, renew_pollution_certificate, supplier_list, add_supplier, enable_supplier, disable_supplier, edit_supplier, toggle_user_status,view_stakeholder_view,manage_vaccines,add_vaccine,edit_vaccine,manage_records,add_record,vaccine_dashboard,delete_vaccine,assign_vaccine,get_active_batches,add_resource,add_tip,waste_management_admin,view_resources,view_tips,update_location
 from .import views
 
-
+# app_name='stakeholder'
 urlpatterns = [
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
@@ -18,6 +18,7 @@ urlpatterns = [
     path('customeruser/', customeruser, name='customeruser'),
     path('stakeholderuserprofile/<int:id>',
          stakeholderuserprofile, name='stakeholderuserprofile'),
+    path('update-location/',update_location, name='update_location'),
     path('view_stakeholder_view/<int:id>', view_stakeholder_view, name='view_stakeholder_view'),
     path('chick_batches/download/<int:batch_id>/', download_daily_log, name='download_daily_log'),
     path('feed_dashboard_view/<int:user_id>/',
@@ -57,5 +58,19 @@ urlpatterns = [
     path('toggle_user_status/<int:user_id>/',
          toggle_user_status, name='toggle_user_status'),
     path('supplier_list', views.supplier_list, name='supplier_list'),
-
+    
+    path('vaccines/',manage_vaccines, name='manage_vaccines'),
+    path('vaccines/add/',add_vaccine, name='add_vaccine'),
+    path('vaccines/edit/<int:vaccine_id>/',edit_vaccine, name='edit_vaccine'),
+    path('records/',manage_records, name='manage_records'),
+    path('records/add/',add_record, name='add_record'),
+    path('vaccines/dashboard/', vaccine_dashboard, name='vaccine_dashboard'),
+    path('delete-vaccine/<int:vaccine_id>/',delete_vaccine, name='delete_vaccine'),
+    path('assign-vaccine/',assign_vaccine, name='assign_vaccine'),
+    path('get-active-batches/<int:user_id>/',get_active_batches, name='get_active_batches'),
+    path('waste-management/',waste_management_admin, name='waste_management_admin'),
+    path('waste-management/add-resource/',add_resource, name='add_resource'),
+    path('waste-management/add-tip/',add_tip, name='add_tip'),
+    path('waste-management/resources/',view_resources, name='view_resources'),
+    path('waste-management/tips/',view_tips, name='view_tips'),
 ]

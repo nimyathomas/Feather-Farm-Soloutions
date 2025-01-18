@@ -1,4 +1,5 @@
-{% extends 'hoteldetials/dashboard.html' %} {% block content %}
+{% extends 'hoteldetials/dashboard.html' %} 
+{% block content %}
 <div class="row">
   <div class="column column-100">
     <!-- Search Form -->
@@ -7,29 +8,20 @@
       action="{% url 'hoteldashboard' %}"
       style="margin-bottom: 20px"
     >
-      {% comment %} <input
-        type="text"
-        name="q"
-        placeholder=""
-        value="{{ query|default_if_none:'' }}"
-        class="input"
-        style="width: 80%; display: inline-block"
-      /> {% endcomment %}
       <select name="batch_type" id="batch">
         <option value="">Select Batch Type</option>
         <option value="broiler" {% if request.GET.batch_type == "broiler" %}selected{% endif %}>Broiler</option>
         <option value="organic" {% if request.GET.batch_type == "organic" %}selected{% endif %}>Organic</option>
         <option value="kada" {% if request.GET.batch_type == "kada" %}selected{% endif %}>Quail</option>
-    </select>
-    
+      </select>
+      
       <button type="submit" class="button" id="search">Search</button>
     </form>
   </div>
 </div>
 
 <!-- List Items -->
- <div style="display: flex;">
-
+<div style="display: flex;">
    {% for item in page_obj %}
    <div class="column column-1-3">
      <div class="card">
@@ -41,25 +33,25 @@
        <div class="card-content">
          <span class="card-title">{{ item.name }}</span>
          <span class="card-address">{{ item.address }}</span>
-         <button class="view-button" id="view-farm-123">
-          <a href="{% url 'view_farm' farm_id=item.id %}">view</a>
-      </button>
-      </button>
+         {% if farm.is_recommended %}
+           <span class="badge recommended">Recommended</span>
+         {% endif %}
+         
+         <button class="view-button" id="view-farm-{{ item.id }}">
+          <a href="{% url 'view_farm' farm_id=item.id %}">View</a>
+         </button>
        </div>
      </div>
    </div>
    {% endfor %}
- </div>
-
+</div>
 
 <!-- Pagination Controls -->
 <div class="pagination">
   <span class="step-links">
     {% if page_obj.has_previous %}
     <a href="?q={{ query }}&page=1">&laquo; first</a>
-    <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}"
-      >previous</a
-    >
+    <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}">previous</a>
     {% endif %}
 
     <span class="current">
@@ -68,9 +60,7 @@
 
     {% if page_obj.has_next %}
     <a href="?q={{ query }}&page={{ page_obj.next_page_number }}">next</a>
-    <a href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}"
-      >last &raquo;</a
-    >
+    <a href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
     {% endif %}
   </span>
 </div>

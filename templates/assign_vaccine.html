@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Vaccine</title>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Select2 CSS and JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+    <style>
+        form {
+            max-width: 500px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="date"], button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Assign Vaccine to Active Batch</h2>
+    <form method="POST" action="/assign-vaccine/" id="assign-vaccine-form">
+        {% csrf_token %}
+        
+        <!-- User Selection -->
+        <label for="user">Select User:</label>
+        <select id="user" name="user" class="select2" required>
+            <option></option>
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.full_name }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Batch Selection -->
+        <label for="batch">Select Batch:</label>
+        <select id="batch" name="batch" class="select2" required>
+            <option></option>
+        </select>
+
+        <!-- Vaccine Selection -->
+        <label for="vaccine">Select Vaccine:</label>
+        <select id="vaccine" name="vaccine" class="select2" required>
+            <option></option>
+            {% for vaccine in vaccines %}
+                <option value="{{ vaccine.id }}">{{ vaccine.name }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Vaccination Date -->
+        <label for="vaccination_date">Vaccination Date:</label>
+        <input type="date" id="vaccination_date" name="vaccination_date" required />
+
+        <!-- Submit Button -->
+        <button type="submit" id="submit-btn" disabled>Assign Vaccine</button>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Select2 dropdowns
+            $('.select2').select2({
+                placeholder: "Select an option",
+                allowClear: true,
+                width: '100%'
+            });
+
+            const batchDropdown = $('#batch');
+            const submitButton = $('#submit-btn');
+
+            // Handle user change to load batches dynamically
+            $('#user').on('change', function () {
+                const userId = $(this).val();
+
+                batchDropdown.prop('disabled', true).empty().append('<option>Loading...</option>');
+
+                if (userId) {
+                    $.ajax({
+                        url: `/get-active-batches/${userId}/`, // Update this endpoint as needed
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            batchDropdown.empty().append('<option></option>');
+                            if (data.batches.length) {
+                                data.batches.forEach(function (batch) {
+                                    batchDropdown.append(`<option value="${batch.id}">${batch.name}</option>`);
+                                });
+                                batchDropdown.prop('disabled', false);
+                            } else {
+                                batchDropdown.append('<option disabled>No active batches available</option>');
+                                alert("No active batches available for this user.");
+                            }
+                        },
+                        error: function () {
+                            batchDropdown.empty().append('<option disabled>Error loading batches</option>');
+                            alert("Failed to fetch batches. Please try again.");
+                        }
+                    });
+                } else {
+                    batchDropdown.empty().append('<option></option>').prop('disabled', true);
+                }
+            });
+
+            // Enable submit button when a batch is selected
+            batchDropdown.on('change', function () {
+                submitButton.prop('disabled', !$(this).val());
+            });
+        });
+    </script>
+</body>
+</html>

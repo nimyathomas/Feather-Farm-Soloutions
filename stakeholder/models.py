@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from user.models import User
+from user.models import User,Vaccine
 from datetime import timedelta, date
 
 class ChickBatch(models.Model):
@@ -205,3 +205,16 @@ class ChickSupply(models.Model):
 
     def __str__(self):
         return f"Chicks Supplied for Batch {self.batch.batch_date} on {self.date}"
+
+
+class VaccinationSchedule(models.Model):
+    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE, related_name='vaccination_schedules')
+    vaccine = models.ForeignKey(Vaccine, on_delete=models.CASCADE)
+    vaccination_date = models.DateField()
+    
+    def user(self):
+        return self.batch.user  # Access user from the related ChickBatch
+
+    
+    def __str__(self):
+        return f"{self.batch} - {self.vaccine.name} on {self.vaccination_date}"

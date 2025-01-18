@@ -2,6 +2,12 @@
 {% load static %} 
 {% block body %}
 <div class="profile-container">
+  {% if messages %}
+    <div class="alert alert-info" role="alert" style="color:red;" id="messages">
+        {% for message in messages %} {{ message }}<br />
+        {% endfor %}
+    </div>
+    {% endif %}
   <a class="back-button" href="{% url 'stakeholderuser' %}">back</a>
   {% if messages %}
   <div class="messages">

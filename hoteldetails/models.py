@@ -128,15 +128,22 @@ class CartItem(models.Model):
     ADDITIONAL_PROCESSED_COST = Decimal('50.00')
 
     def total_price(self):
+    # Default counts and price_per_kg to 0 if they are None
+        one_kg_count = self.one_kg_count or 0
+        two_kg_count = self.two_kg_count or 0
+        three_kg_count = self.three_kg_count or 0
+        price_per_kg = self.chick_batch.price_per_kg or 0
+
         # Calculate the base price based on weight and price per kg
         base_price = (
-            (self.one_kg_count * self.chick_batch.price_per_kg 
-             ) +
-            (self.two_kg_count * 2 * self.chick_batch.price_per_kg ) +
-            (self.three_kg_count * 3 * self.chick_batch.price_per_kg )
+            (one_kg_count * price_per_kg) +
+            (two_kg_count * 2 * price_per_kg) +
+            (three_kg_count * 3 * price_per_kg)
         )
+        print(one_kg_count, two_kg_count, three_kg_count)
+
         # Calculate total count of chickens
-        total_chickens = self.one_kg_count + self.two_kg_count + self.three_kg_count
+        total_chickens = one_kg_count + two_kg_count + three_kg_count
 
         # Add additional cost only if item_type is 'processed'
         if self.is_processed:
@@ -145,11 +152,13 @@ class CartItem(models.Model):
 
         return base_price
 
+
     @property
     def discounted_price(self):
         """Calculates the price after a 5% discount."""
         discount = Decimal('0.05') * self.total_price()
+        print(self.total_price())
         return self.total_price() - discount
 
     def __str__(self):
-        return f"CartItem of {self.cart.user.username} - {self.chick_batch} ({self.item_type})"
+        return f"CartItem of {self.cart.user.email} - {self.chick_batch} ({self.item_type})"

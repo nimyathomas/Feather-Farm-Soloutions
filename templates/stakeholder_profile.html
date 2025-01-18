@@ -1,9 +1,8 @@
-{% extends 'stakeholder.html' %} 
-{% load static %} 
+{% extends 'stakeholder.html' %}
+{% load static %}
 {% block body %}
 
 <title>User Update Form</title>
-<!-- Bootstrap for styling -->
 
 <section class="content-section">
   <h2 class="text-center">User Profile</h2>
@@ -11,145 +10,205 @@
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- User Email (readonly) -->
+    <!-- User Email -->
     <div class="form-group">
-      <label for="email" class="form-label">Email</label>
-      <input
-        type="email"
-        class="form-control"
-        name="email"
-        value="{{ user_form.email.value }}"
-        readonly
-      />
+      <label for="email">Email</label>
+      <input type="email" class="form-control" name="email" value="{{ user_form.email.value }}" readonly />
     </div>
 
-    <!-- User Full Name -->
+    <!-- Full Name -->
     <div class="form-group">
-      <label for="full_name" class="form-label">Full Name</label>
+      <label for="full_name">Full Name</label>
       {{ user_form.full_name }}
     </div>
 
-    <!-- User Phone Number -->
+    <!-- Phone Number -->
     <div class="form-group">
-      <label for="phone_number" class="form-label">Phone Number</label>
+      <label for="phone_number">Phone Number</label>
       {{ user_form.phone_number }}
     </div>
 
     <!-- Farm Image -->
-<div class="form-group">
-  <label for="farm_image" class="form-label">Farm Image</label>
-  {% if user.farm_image and user.farm_image.url %}
-  <div class="current-image mb-2">
-    <img
-      src="{{ user.farm_image.url }}"
-      alt="Farm Image"
-      class="img-thumbnail"
-      style="max-width: 200px; max-height: 200px"
-    />
-  </div>
-  {% endif %}
-  {{ user_form.farm_image }}
-  {% if user_form.farm_image.errors %}
-  <div class="text-danger">
-    {% for error in user_form.farm_image.errors %}
-    <p>{{ error }}</p>
-    {% endfor %}
-  </div>
-  {% endif %}
-</div>
-
+    <div class="form-group">
+      <label for="farm_image">Farm Image</label>
+      {% if user.farm_image and user.farm_image.url %}
+      <div>
+        <img src="{{ user.farm_image.url }}" alt="Farm Image" class="img-thumbnail" style="max-width: 200px;" />
+      </div>
+      {% endif %}
+      {{ user_form.farm_image }}
+    </div>
 
     <!-- Coop Length -->
     <div class="form-group">
-      <label for="length" class="form-label">Coop Length</label>
-      {{ user_form.length }} 
-      {% if user_form.length.errors %}
-      <div class="text-danger">{{ user_form.length.errors }}</div>
-      {% endif %}
+      <label for="length">Coop Length</label>
+      {{ user_form.length }}
     </div>
 
     <!-- Coop Breadth -->
     <div class="form-group">
-      <label for="breadth" class="form-label">Coop Breadth</label>
-      {{ user_form.breadth }} 
-      {% if user_form.breadth.errors %}
-      <div class="text-danger">{{ user_form.breadth.errors }}</div>
-      {% endif %}
+      <label for="breadth">Coop Breadth</label>
+      {{ user_form.breadth }}
     </div>
 
     <!-- Pollution Certificate Expiry Date -->
     <div class="form-group">
-      <label for="expiry_date" class="form-label">Pollution Certificate Expiry Date</label>
-      {{ user_form.expiry_date }} 
-      {% if user_form.expiry_date.errors %}
-      <div class="text-danger">{{ user_form.expiry_date.errors }}</div>
-      {% endif %}
+      <label for="expiry_date">Pollution Certificate Expiry Date</label>
+      {{ user_form.expiry_date }}
     </div>
 
     <!-- Pollution Certificate -->
     <div class="form-group">
-      <label for="pollution_certificate" class="form-label">Pollution Certificate</label>
-      {% if user_form.pollution_certificate %}
+      <label for="pollution_certificate">Pollution Certificate</label>
+      {% if user.pollution_certificate %}
       <div>
-        <a href="{{ user.pollution_certificate }}" target="_blank">View Current Pollution Certificate</a>
+        <a href="{{ user.pollution_certificate.url }}" target="_blank">View Current Certificate</a>
       </div>
-      {% endif %} 
-      {{ user_form.pollution_certificate }} 
-      {% if user_form.pollution_certificate.errors %}
-      <div class="text-danger">{{ user_form.pollution_certificate.errors }}</div>
       {% endif %}
+      {{ user_form.pollution_certificate }}
     </div>
 
     <!-- Farm Name -->
     <div class="form-group">
-      <label for="name" class="form-label">Farm Name</label>
+      <label for="name">Farm Name</label>
       {{ user_form.name }}
     </div>
 
     <!-- Farm Address -->
     <div class="form-group">
-      <label for="address" class="form-label">Farm Address</label>
-      {{ user_form.address }} 
-      {% if user_form.address.errors %}
-      <div class="text-danger">
-        {% for error in user_form.address.errors %}
-        <p>{{ error }}</p>
-        {% endfor %}
-      </div>
-      {% endif %}
+      <label for="address">Farm Address</label>
+      {{ user_form.address }}
     </div>
 
-    <!-- Farm Location -->
+    <!-- Location -->
     <div class="form-group">
-      <label for="location" class="form-label">Farm Location</label>
-      {{ user_form.location }} 
-      {% if user_form.location.errors %}
-      <div class="text-danger">
-        {% for error in user_form.location.errors %}
-        <p>{{ error }}</p>
-        {% endfor %}
-      </div>
-      {% endif %}
+      <label for="location">Farm Location</label>
+      {{ user_form.location }}
+      <button type="button" id="fetch-location" class="btn btn-info mt-2">Fetch Location</button>
+      <small class="form-text text-muted">Click the button to fetch your current coordinates.</small>
     </div>
 
+
+    <!-- Hidden Fields for Latitude and Longitude -->
+    <input type="hidden" name="latitude" value="{{ user_form.latitude.value }}">
+    <input type="hidden" name="longitude" value="{{ user_form.longitude.value }}">
+    <div id="location-feedback" class="text-info mt-2"></div>
+
+    <div class="form-group">
+      <label for="region">Region</label>
+      {{ user_form.region }}
+     </div>
+
+     {% csrf_token %}
+     <div class="mb-3">
+         <label class="form-label">Certification Type</label>
+         {{ user_form.certification_type }}
+         {% if user_form.certification_type.errors %}
+             <div class="text-danger">{{ user_form.certification_type.errors }}</div>
+         {% endif %}
+     </div>
+     <div class="mb-3">
+         <label class="form-label">Certification File</label>
+         {{ user_form.certification_file }}
+         {% if user_form.certification_file.errors %}
+             <div class="text-danger">{{ user_form.certification_file.errors }}</div>
+         {% endif %}
+     </div>
+  
     <!-- Farm Plan -->
     <div class="form-group">
-      <label for="plan_file" class="form-label">Farm Plan</label>
+      <label for="plan_file">Farm Plan</label>
       {% if user_form.plan_file %}
       <div>
         <a href="{{ user_form.plan_file.url }}" target="_blank">View Farm Plan</a>
       </div>
       {% endif %}
       {{ user_form.plan_file }}
-      {% if user_form.plan_file.errors %}
-      <div class="text-danger mt-2">{{ user_form.plan_file.errors }}</div>
-      {% endif %}
     </div>
-    
 
     <!-- Submit Button -->
     <button type="submit" class="btn btn-primary">Update</button>
   </form>
 </section>
+
+<script>
+  document.getElementById('fetch-location').addEventListener('click', function () {
+    const feedbackElement = document.getElementById('location-feedback');
+    const locationField = document.getElementsByName('location')[0];
+    const latitudeField = document.getElementsByName('latitude')[0];
+    const longitudeField = document.getElementsByName('longitude')[0];
+
+    feedbackElement.textContent = ''; // Reset feedback
+
+    if (navigator.geolocation) {
+      feedbackElement.textContent = 'Fetching location...';
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          latitudeField.value = latitude;
+          longitudeField.value = longitude;
+          locationField.value = `${latitude}, ${longitude}`;
+
+          feedbackElement.textContent = 'Location fetched successfully!';
+        },
+        function (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              feedbackElement.textContent = 'Permission denied. Please enable location access.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              feedbackElement.textContent = 'Location unavailable. Try again later.';
+              break;
+            case error.TIMEOUT:
+              feedbackElement.textContent = 'Location request timed out.';
+              break;
+            default:
+              feedbackElement.textContent = 'An unknown error occurred.';
+          }
+        }
+      );
+    } else {
+      feedbackElement.textContent = 'Geolocation is not supported by your browser.';
+    }
+  });
+
+  <!-- Add this to your template to fetch geolocation -->
+
+  document.getElementById('fetch-location').addEventListener('click', function () {
+    const feedbackElement = document.getElementById('location-feedback');
+    const locationField = document.getElementsByName('location')[0];
+    const latitudeField = document.getElementsByName('latitude')[0];
+    const longitudeField = document.getElementsByName('longitude')[0];
+
+    feedbackElement.textContent = ''; // Reset feedback
+
+    if (navigator.geolocation) {
+      feedbackElement.textContent = 'Fetching location...';
+
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          latitudeField.value = latitude;
+          longitudeField.value = longitude;
+          locationField.value = `${latitude}, ${longitude}`;
+
+          feedbackElement.textContent = 'Location fetched successfully!';
+        },
+        function (error) {
+          feedbackElement.textContent = 'Failed to fetch location. Please try again later.';
+        }
+      );
+    } else {
+      feedbackElement.textContent = 'Geolocation is not supported by your browser.';
+    }
+  });
+
+
+</script>
 
 {% endblock %}

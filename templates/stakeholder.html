@@ -55,7 +55,7 @@
                 <a href="{% url 'feed_dashboard_view' user_id=request.user.id %}" class="{% if request.path ==  'feed_dashboard_view' %}active{% endif %}">🚑 Feeds</a>
             </li>
             <li>
-                <a href="{% url 'vaccination' user.id %}" class="{% if request.path ==  'vaccination'  %}active{% endif %}">🚑 Vaccinations</a>
+                <a href="{% url 'manage_vaccines' %}" class="{% if request.path ==  'vaccination'  %}active{% endif %}">🚑 Vaccinations</a>
             </li>
             <li>
                 <a href="#" class="{% if request.path == '#' %}active{% endif %}">🐥 Upliftments</a>

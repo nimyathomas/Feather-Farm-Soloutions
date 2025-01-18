@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 import re
-
+from .models import Vaccine
 
 class CustomUserCreationForm(UserCreationForm):
     error_messages = {
@@ -95,17 +95,6 @@ class CustomSetPasswordForm(SetPasswordForm):
         return cleaned_data
 
 
-class StakeholderUserForm(forms.ModelForm):
-    class Meta:
-
-        model = User
-        fields = ['email', 'full_name', 'phone_number', 'farm_image', 'length',
-                  'breadth', 'expiry_date', 'pollution_certificate', 'coopcapacity', 'address', 'plan_file']
-        widgets = {
-            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
-        }
-
-    from .models import User
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -196,10 +185,29 @@ class StakeholderUserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'full_name', 'phone_number', 'name', 'farm_image', 'length',
-                  'breadth', 'expiry_date', 'pollution_certificate', 'address', 'location', 'plan_file']
+                  'breadth', 'expiry_date', 'pollution_certificate', 'address', 'location','latitude', 'longitude','region','plan_file','location','certification_type','certification_file']
         widgets = {
-            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
+            'expiry_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'location': forms.TextInput(attrs={
+                'readonly': 'readonly',
+                'placeholder': 'Click to fetch location',
+                'class': 'form-control'
+            }),
+            'certification_type': forms.Select(attrs={
+                'class': 'form-control',
+                'placeholder': 'Select certification type'
+            }),
+            'certification_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.doc,.docx'
+            }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput()
         }
+        
 
     def clean(self):
         cleaned_data = super().clean()
@@ -413,3 +421,16 @@ class SupplierForm(forms.ModelForm):
             raise forms.ValidationError(
                 "This supplier code is already in use. Please choose a different one.")
         return supplier_code
+    
+class VaccineForm(forms.ModelForm):
+    class Meta:
+        model = Vaccine
+        fields = ['name', 'manufacturer', 'doses_required', 'interval_days']
+        
+from .models import VaccinationRecord
+
+class VaccinationRecordForm(forms.ModelForm):
+    class Meta:
+        model = VaccinationRecord
+        fields = ['batch', 'vaccine', 'dose_number', 'scheduled_date', 'administered_date', 'status']
+
