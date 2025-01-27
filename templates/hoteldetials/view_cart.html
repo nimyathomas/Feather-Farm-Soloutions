@@ -1,66 +1,88 @@
-{% extends 'hoteldetials/dashboard.html' %} 
-{% block content %}
+{% extends 'hoteldetials/dashboard.html' %} {% block content %}
 <div class="container">
-    <h2>Your Cart</h2>
-    
-    {% if items|length == 0 %}
-        <div class="alert alert-info">
-            Your cart is empty. Please add items to your cart to proceed.
-        </div>
-    {% else %}
-        <form method="POST" action="{% url 'update_cart' %}">
-            {% csrf_token %}
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Batch Owner</th>
-                        <th>Quantity</th>
-                        <th>Type</th>
-                        <th>Discounted Price</th>
-                        <th>Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in items %}
-                    <tr>
-                        <td>{{ item.chick_batch.user.name }}</td>
-                        <td>
-                          {% if item.one_kg_count > 0 %}
-                              {{ item.one_kg_count }}*1kg{% if item.two_kg_count > 0 or item.three_kg_count > 0 %},&nbsp;{% endif %}
-                          {% endif %}
-                          {% if item.two_kg_count > 0 %}
-                              {{ item.two_kg_count }}*2kg{% if item.three_kg_count > 0 %},&nbsp;{% endif %}
-                          {% endif %}
-                          {% if item.three_kg_count > 0 %}
-                              {{ item.three_kg_count }}*3kg
-                          {% endif %}
-                      </td>
-                      
-                        <td>
-                            <select name="type_{{ item.id }}">
-                                <option value="live" {% if item.type == "live" %}selected{% endif %}>
-                                    Live
-                                </option>
-                                <option value="processed" {% if item.type == "processed" %}selected{% endif %}>
-                                    Fully Dressed (Processed)
-                                </option>
-                            </select>
-                        </td>
-                        <td>${{ item.discounted_price|floatformat:2 }}</td>
-                        <td>${{ item.total_price|floatformat:2 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            <div class="summary">
-                <h3>Price Summary</h3>
-                <p>Total: ${{ total_price|floatformat:2 }}</p>
-                <p>Discount: 5%</p>
-                <p>Grand Total: ${{ total_dicounted_price | floatformat:2 }}</p>
-            </div>
-            <button type="submit" class="btn btn-primary" id="checkout">Proceed to Checkout</button>
-        </form>
-    {% endif %}
+  <h2>Your Cart</h2>
+
+  {% if items|length == 0 %}
+  <div class="alert alert-info">
+    Your cart is empty. Please add items to your cart to proceed.
+  </div>
+  {% else %}
+  <form method="POST" action="{% url 'update_cart' %}">
+    {% csrf_token %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Farm Name</th>
+          <th>Batch Owner</th>
+          <th>Quantity</th>
+          <th>Type</th>
+          <th>Discounted Price</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.chick_batch.farm.name }}</td>
+          <td>{{ item.chick_batch.user.full_name }}</td>
+          <td>
+            {% if item.one_kg_count > 0 %} {{ item.one_kg_count }}*1kg
+            {% if item.two_kg_count > 0 or item.three_kg_count > 0 %},&nbsp;
+            {% endif %} {% endif %} {% if item.two_kg_count > 0 %} {{ item.two_kg_count}}
+            *2kg{% if item.three_kg_count > 0 %},&nbsp;{% endif %} {% endif %}
+            {% if item.three_kg_count > 0 %} {{ item.three_kg_count }}*3kg {% endif %}
+          </td>
+
+          <td>
+            <select name="type_{{ item.id }}">
+              <option value="live" {% if item.type == "live" %}selected{% endif %}> Live <option value="processed" {% if item.type == "processed" %}selected{% endif %}> Fully Dressed (Processed)
+            </select>
+          </td>
+          <td>${{ item.discounted_price|floatformat:2 }}</td>
+          <td>${{ item.total_price|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="summary">
+      <h3>Price Summary</h3>
+      <p>Total: ${{ total_dicounted_price|floatformat:2 }}</p>
+      <p>Discount: 5%</p>
+    </div>
+    <button type="submit" class="btn btn-primary" id="checkout">
+      Proceed to Checkout
+    </button>
+  </form>
+  {% endif %}
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Listen for changes on the dropdowns
+      document.querySelectorAll("select[name^='type_']").forEach(function (select) {
+        select.addEventListener("change", function () {
+          const formData = new FormData();
+          formData.append(select.name, select.value);
+  
+          // Send the AJAX POST request to update the cart
+          fetch("{% url 'update_cart' %}", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.total_price) {
+                // Update the totals dynamically
+                document.querySelector(".summary p:nth-child(1)").textContent =
+                  `Total: $${data.total_discounted}`;
+              }
+            })
+            .catch((error) => console.error("Error:", error));
+        });
+      });
+    });
+  </script>
+  
 {% endblock %}

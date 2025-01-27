@@ -1,0 +1,222 @@
+{% extends 'stakeholder.html' %}
+{% block body %}
+<div class="feed-request-container">
+    <div class="batch-info-card">
+        <h2>Request Feed for Batch #{{ batch.id }}</h2>
+        <div class="batch-details">
+            <div class="info-group">
+                <label>Batch Type:</label>
+                <span>{{ batch.batch_type|title }}</span>
+            </div>
+            <div class="info-group">
+                <label>Chick Count:</label>
+                <span>{{ batch.initial_chick_count }} birds</span>
+            </div>
+            <div class="info-group">
+                <label>Batch Age:</label>
+                <span>{{ batch_age }} days</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="request-form-card">
+        <h3>Feed Request Form</h3>
+        <form method="POST" class="feed-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Feed Type</label>
+                <select name="feed_type" required id="feedType" class="form-control">
+                    <option value="starter" {% if batch_age <= 14 %}selected{% endif %}>
+                        Starter Feed (1-14 days)
+                    </option>
+                    <option value="grower" {% if batch_age > 14 and batch_age <= 28 %}selected{% endif %}>
+                        Grower Feed (15-28 days)
+                    </option>
+                    <option value="finisher" {% if batch_age > 28 %}selected{% endif %}>
+                        Finisher Feed (29+ days)
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Quantity (kg)</label>
+                <input type="number" name="quantity" required min="1" step="0.1" class="form-control">
+                <small class="help-text">Recommended weekly quantity based on batch age and size</small>
+            </div>
+
+            <div class="form-group">
+                <label>Required By Date</label>
+                <input type="date" name="required_by_date" required class="form-control" 
+                       min="{{ today|date:'Y-m-d' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Remarks</label>
+                <textarea name="remarks" rows="3" class="form-control"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Submit Request</button>
+                <a href="{% url 'view_batch_feed_requests' batch.id %}" class="btn-secondary">View Requests</a>
+            </div>
+        </form>
+    </div>
+
+    {% if feed_history %}
+    <div class="history-card">
+        <h3>Recent Feed History</h3>
+        <div class="table-responsive">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Feed Consumed</th>
+                        <th>Feed Wastage</th>
+                        <th>Feed Efficiency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in feed_history %}
+                    <tr>
+                        <td>{{ record.date|date:"M d, Y" }}</td>
+                        <td>{{ record.feed_consumed }} kg</td>
+                        <td>{{ record.feed_wastage }} kg</td>
+                        <td>{{ record.feed_efficiency|default:"N/A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.feed-request-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.batch-info-card, .request-form-card, .history-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.batch-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.info-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-group label {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-group span {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.feed-form {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-submit, .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.btn-submit {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    text-decoration: none;
+}
+
+.btn-submit:hover {
+    background: #2563eb;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.history-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+}
+
+@media (max-width: 768px) {
+    .feed-request-container {
+        padding: 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-submit, .btn-secondary {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %} 

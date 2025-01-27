@@ -1,0 +1,15 @@
+<div class="farm-header">
+    <div class="farm-title-section">
+        <h1 class="farm-title">{{ farm.name }}</h1>
+        {% if farm.chick_batches.first.batch_type == 'organic' %}
+            {% include 'components/organic_badge.html' %}
+        {% else %}
+            {% include 'components/batch_badge.html' %}
+        {% endif %}
+    </div>
+    
+    <div class="farm-location">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>{{ farm.address }}</span>
+    </div>
+</div> 

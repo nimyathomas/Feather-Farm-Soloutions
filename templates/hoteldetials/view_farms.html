@@ -1,111 +1,914 @@
 {% extends 'hoteldetials/dashboard.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container">
+    <!-- Alert Messages -->
     {% if messages %}
-    <div class="alert alert-info" role="alert" style="color:red;" id="messages">
-        {% for message in messages %} {{ message }}<br />
+    <div class="alert-message" role="alert" id="messages">
+        {% for message in messages %}
+        <div class="message-content">
+            <i class="fas fa-info-circle"></i>
+            {{ message }}
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <h1 id="farm-name">{{ farm.name }}</h1>
-    <span id="owner-name">Owner: {{ farm.full_name }}</span>
-    <br>
-    <span id="location">Location: {{ farm.location }}</span>
-    <br>
-    <span id="address">Address: {{ farm.address }}</span>
-    <br>
-    <img src="{{ farm.farm_image.url }}" alt="{{ farm.full_name }}" class="farm-image" id="farm-image" />
-
-    <hr />
-
-    <h2>Available Batches for Ordering</h2>
-
-    {% if batches %}
-        {% for batch in batches %}
-        <div class="batch-container" id="batch-{{ batch.id }}">
-
-        <div class="batch-card">
-            <h3>Batch from {{ batch.batch_date }}</h3>
-            <span>Status: {{ batch.batch_status }}</span>
-            <h5>Chicken Type: {{ batch.batch_type }}</h5>
-            <br>
-            <span>1 kg chickens available: {{ batch.one_kg_count }}</span>
-            <br>
-            <span>2 kg chickens available: {{ batch.two_kg_count }}</span>
-            <br>
-            <span>3 kg chickens available: {{ batch.three_kg_count }}</span>
-            <br>
-
-            <!-- Order Form for this Batch -->
-            <form method="POST" class="order-form" id="order-form-{{ batch.id }}">
-                {% csrf_token %}
-
-                <!-- Hidden input to pass the batch ID -->
-                <input type="hidden" name="batch_id" value="{{ batch.id }}">
-
-                <div class="form-group">
-                    <label for="id_one_kg_count_{{ batch.id }}">below 1 kg chickens:</label>
-                    {{ order_form.one_kg_count }}
+    <!-- Farm Header Section -->
+    <section class="farm-header-section">
+        <div class="farm-main-info">
+            <!-- Farm Title and Badge -->
+            <div class="farm-title-section">
+                <h1 class="farm-title">{{ farm.name }}</h1>
+                {% if farm.chick_batches.first.batch_type == 'organic' %}
+                <div class="organic-badge" title="100% Organic Farm">
+                    <div class="badge-icon">
+                        <i class="fas fa-leaf" aria-hidden="true"></i>
+                    </div>
+                    <div class="badge-text">
+                        <span class="badge-label">100%</span>
+                        <span class="badge-type">Organic</span>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="id_two_kg_count_{{ batch.id }}">1-2 kg chickens:</label>
-                    {{ order_form.two_kg_count }}
+                {% else %}
+                <div class="batch-badge" title="{{ farm.chick_batches.first.batch_type|title }} Farm">
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    {{ farm.chick_batches.first.batch_type|title }}
                 </div>
+                {% endif %}
+            </div>
+            
+            <!-- Farm Location -->
+            <div class="farm-location">
+                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                <span>{{ farm.address }}</span>
+            </div>
 
-                <div class="form-group">
-                    <label for="id_three_kg_count_{{ batch.id }}">2-3 kg chickens:</label>
-                    {{ order_form.three_kg_count }}
+            <!-- Farm Statistics -->
+            <div class="farm-stats">
+                <div class="stat-item">
+                    <i class="fas fa-warehouse" aria-hidden="true"></i>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ farm.coopcapacity }}</span>
+                        <span class="stat-label">Coop Capacity</span>
+                    </div>
                 </div>
-
-                <!-- Error message container -->
-                <div class="error-message" style="color: red; display: none;" id="error-message-{{ batch.id }}">
-                    Please enter a value greater than 0 for at least one of the chicken counts.
+                <div class="stat-item">
+                    <i class="fas fa-expand-arrows-alt" aria-hidden="true"></i>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ farm.size }}</span>
+                        <span class="stat-label">Farm Size</span>
+                    </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary" id="order-button-{{ batch.id }}">Order from this Batch</button>
-            </form>
-
-            <hr />
+                <div class="stat-item">
+                    <i class="fas fa-star" aria-hidden="true"></i>
+                    <div class="stat-info">
+                        <span class="stat-value">4.8</span>
+                        <span class="stat-label">Rating</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Contact Actions -->
+        <div class="contact-actions">
+            <a href="tel:{{ farm.owner.phone_number }}" class="action-button phone" aria-label="Call farm owner">
+                <i class="fas fa-phone" aria-hidden="true"></i>
+                <span>Call Now</span>
+            </a>
+            <a href="https://wa.me/{{ farm.owner.phone_number }}" class="action-button whatsapp" aria-label="Contact via WhatsApp">
+                <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                <span>WhatsApp</span>
+            </a>
+            <a href="https://www.google.com/maps?q={{ farm.latitude }},{{ farm.longitude }}" 
+               target="_blank" rel="noopener noreferrer" class="action-button directions" aria-label="Get directions to farm">
+                <i class="fas fa-directions" aria-hidden="true"></i>
+                <span>Get Directions</span>
+            </a>
         </div>
-        {% endfor %}
-    {% else %}
-        <p>No completed batches are available for ordering.</p>
-    {% endif %}
+    </section>
+
+    <!-- Farm Content Section -->
+    <section class="farm-content">
+        <!-- Navigation Tabs -->
+        <nav class="content-tabs" role="tablist">
+            <button class="tab-button active" data-tab="overview" role="tab" aria-selected="true" aria-controls="overview">
+                <i class="fas fa-info-circle" aria-hidden="true"></i> Overview
+            </button>
+            <button class="tab-button" data-tab="photos" role="tab" aria-selected="false" aria-controls="photos">
+                <i class="fas fa-images" aria-hidden="true"></i> Photos
+            </button>
+            <button class="tab-button" data-tab="contact" role="tab" aria-selected="false" aria-controls="contact">
+                <i class="fas fa-address-card" aria-hidden="true"></i> Contact
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div class="tab-pane active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                <div class="content-grid">
+                    <!-- Left Section: Photos and Details -->
+                    <aside class="photos-section">
+                        <div class="farm-image-container">
+                            <img src="{{ farm.farm_image.url }}" alt="View of {{ farm.name }}" class="farm-main-image">
+                            {% if farm.chick_batches.first.batch_type == 'organic' %}
+                            <div class="organic-badge">
+                                <div class="badge-icon">
+                                    <i class="fas fa-leaf" aria-hidden="true"></i>
+                                </div>
+                                <span>100% Organic</span>
+                            </div>
+                            {% endif %}
+                            <div class="image-overlay">
+                                <div class="farm-rating">
+                                    <i class="fas fa-star" aria-hidden="true"></i>
+                                    <span>4.8</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                    </aside>
+
+                    <!-- Right Section: Batches -->
+                    <main class="batches-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Available Batches</h2>
+                            <span class="batch-count">{{ batches|length }} batches available</span>
+                        </div>
+
+                        {% if batches %}
+                            {% for batch in batches %}
+                            <article class="batch-card">
+                                <div class="batch-header">
+                                    <div class="batch-title">
+                                        <h3>Batch {{ forloop.counter }}</h3>
+                                        <span class="batch-date">{{ batch.batch_date }}</span>
+                                    </div>
+                                    <span class="batch-status {{ batch.batch_status|lower }}">
+                                        {{ batch.batch_status }}
+                                    </span>
+                                </div>
+
+                                <div class="batch-info">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Below 1 kg</span>
+                                            <span class="info-value">{{ batch.one_kg_count }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">1-2 kg</span>
+                                            <span class="info-value">{{ batch.two_kg_count }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">2-3 kg</span>
+                                            <span class="info-value">{{ batch.three_kg_count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form method="POST" class="order-form" id="order-form-{{ batch.id }}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                                    
+                                    <div class="input-grid">
+                                        <div class="input-group">
+                                            {% comment %} <label for="id_one_kg_count_{{ batch.id }}">
+                                                Below 1 kg
+                                                <span class="input-hint">Available: {{ batch.one_kg_count }}</span>
+                                            </label> {% endcomment %}
+                                            <div class="input-with-unit">
+                                                {{ order_form.one_kg_count }}
+                                                <span class="unit">kg</span>
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            {% comment %} <label for="id_two_kg_count_{{ batch.id }}">
+                                                1-2 kg
+                                                <span class="input-hint">Available: {{ batch.two_kg_count }}</span>
+                                            </label> {% endcomment %}
+                                            <div class="input-with-unit">
+                                                {{ order_form.two_kg_count }}
+                                                <span class="unit">kg</span>
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            {% comment %} <label for="id_three_kg_count_{{ batch.id }}">
+                                                2-3 kg
+                                                <span class="input-hint">Available: {{ batch.three_kg_count }}</span>
+                                            </label> {% endcomment %}
+                                            <div class="input-with-unit">
+                                                {{ order_form.three_kg_count }}
+                                                <span class="unit">kg</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="order-button">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        Place Order
+                                    </button>
+                                </form>
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-batches">No batches are currently available.</p>
+                        {% endif %}
+                    </main>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
-<script>
-// Add event listener to all forms to restrict submission
-document.querySelectorAll('.order-form').forEach(form => {
-    form.addEventListener('submit', function(event) {
-        // Get the batch ID from the hidden input field
-        const batchId = form.querySelector('input[name="batch_id"]').value;
-
-        // Get input fields using the batch ID
-        const oneKgInput = form.querySelector(`#id_one_kg_count_${batchId}`);
-        const twoKgInput = form.querySelector(`#id_two_kg_count_${batchId}`);
-        const threeKgInput = form.querySelector(`#id_three_kg_count_${batchId}`);
+<!-- Enquiry Modal -->
+<div id="enquiryModal" class="enquiry-modal" role="dialog" aria-labelledby="enquiryModalTitle" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Enquiry for {{ farm.name }}</h3>
+            <span class="close-btn" onclick="closeEnquiryModal()">&times;</span>
+        </div>
         
-        // Get the error message element
-        const errorMessage = form.querySelector(`#error-message-${batchId}`);
+        <div class="contact-options">
+            <div class="contact-card">
+                <div class="card-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h4>Email Enquiry</h4>
+                <p>Get detailed information via email</p>
+                <a href="mailto:support@featherfarm.com?subject=Enquiry about {{ farm.name }}&body=I would like to know more about {{ farm.name }}." class="contact-link email-link">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Email
+                </a>
+            </div>
 
-        // Check if all fields are empty or 0
-        if (
-            (!oneKgInput.value || parseInt(oneKgInput.value) === 0) &&
-            (!twoKgInput.value || parseInt(twoKgInput.value) === 0) &&
-            (!threeKgInput.value || parseInt(threeKgInput.value) === 0)
-        ) {
-            // Show the error message and prevent form submission
-            errorMessage.style.display = 'block';
-            event.preventDefault();
-        } else {
-            // Hide the error message if validation passes
-            errorMessage.style.display = 'none';
+            <div class="contact-card">
+                <div class="card-icon">
+                    <i class="fas fa-sms"></i>
+                </div>
+                <h4>SMS Enquiry</h4>
+                <p>Quick response via SMS</p>
+                <a href="sms:+1234567890?body=Hi, I'm interested in {{ farm.name }}." class="contact-link sms-link">
+                    <i class="fas fa-comment"></i>
+                    Send SMS
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Alert Message Styling */
+    .alert-message {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .message-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #856404;
+    }
+
+    /* Farm Header Section */
+    .farm-header-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .farm-title-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .farm-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+    }
+
+    /* Organic Badge */
+    .organic-badge {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #00c853, #009624);
+        padding: 0.8rem 1.2rem;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,200,83,0.3);
+    }
+
+    .badge-icon {
+        background: rgba(255,255,255,0.2);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.8rem;
+    }
+
+    .badge-icon i {
+        color: white;
+        font-size: 1.4rem;
+    }
+
+    .badge-text {
+        color: white;
+        line-height: 1.1;
+    }
+
+    .badge-label {
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .badge-type {
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    /* Farm Stats */
+    .farm-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .stat-item i {
+        font-size: 1.5rem;
+        color: #4299e1;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .stat-label {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    /* Action Buttons */
+    .contact-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .phone {
+        background: linear-gradient(45deg, #48bb78, #38a169);
+    }
+
+    .whatsapp {
+        background: linear-gradient(45deg, #25d366, #128C7E);
+    }
+
+    .directions {
+        background: linear-gradient(45deg, #4299e1, #3182ce);
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        opacity: 0.95;
+    }
+
+    /* Content Tabs */
+    .content-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .tab-button {
+        padding: 1rem 2rem;
+        border: none;
+        background: white;
+        border-radius: 8px;
+        color: #4a5568;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+        background: #4299e1;
+        color: white;
+    }
+
+    /* Farm Image */
+    .farm-image-container {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .farm-main-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+    }
+
+    .image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 2rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
         }
-    });
-});
-</script>
 
+        .contact-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .farm-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .farm-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    .enquiry-button-container {
+        margin-top: 1rem;
+    }
+
+    .enquiry-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: linear-gradient(45deg, #2193b0, #6dd5ed);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .enquiry-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 147, 176, 0.3);
+    }
+
+    .enquiry-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        position: relative;
+        background: white;
+        width: 90%;
+        max-width: 600px;
+        margin: 50px auto;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+        color: #2d3748;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .close-btn {
+        font-size: 1.8rem;
+        color: #718096;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close-btn:hover {
+        color: #2d3748;
+    }
+
+    .contact-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    .contact-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e6f7ff;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+
+    .card-icon i {
+        font-size: 1.8rem;
+        color: #2193b0;
+    }
+
+    .contact-card h4 {
+        color: #2d3748;
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+    }
+
+    .contact-card p {
+        color: #718096;
+        margin: 0 0 1.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .contact-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .email-link {
+        background: #2193b0;
+    }
+
+    .sms-link {
+        background: #38a169;
+    }
+
+    .contact-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+        .contact-options {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            margin: 20px auto;
+            padding: 1.5rem;
+        }
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 2.5rem;
+        margin: 2rem auto;
+        max-width: 1400px;
+        padding: 0 1.5rem;
+    }
+
+    /* Left Section Styles */
+    .photos-section {
+        position: sticky;
+        top: 2rem;
+        height: fit-content;
+    }
+
+    .farm-image-container {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+
+    .farm-main-image {
+        width: 100%;
+        height: 450px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .farm-image-container:hover .farm-main-image {
+        transform: scale(1.05);
+    }
+
+    .image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 2rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    }
+
+    .farm-rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .farm-rating i {
+        color: #fbbf24;
+    }
+
+    /* Right Section Styles */
+    .batches-section {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a202c;
+    }
+
+    .batch-count {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .batch-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: transform 0.3s ease;
+    }
+
+    .batch-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .batch-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .batch-title h3 {
+        font-size: 1.2rem;
+        color: #1a202c;
+        margin-bottom: 0.3rem;
+    }
+
+    .batch-date {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a202c;
+    }
+
+    .input-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .input-group label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #4a5568;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-hint {
+        color: #64748b;
+        font-size: 0.8rem;
+    }
+
+    .input-with-unit {
+        position: relative;
+    }
+
+    .input-with-unit input {
+        width: 100%;
+        padding: 0.8rem 3rem 0.8rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-with-unit input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .unit {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .order-button {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .order-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .photos-section {
+            position: relative;
+            top: 0;
+        }
+
+        .input-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    // Tab switching functionality
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            const tabId = button.getAttribute('data-tab');
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    function openEnquiryModal() {
+        document.getElementById('enquiryModal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEnquiryModal() {
+        document.getElementById('enquiryModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('enquiryModal');
+        if (event.target == modal) {
+            closeEnquiryModal();
+        }
+    }
+</script>
 {% endblock %}

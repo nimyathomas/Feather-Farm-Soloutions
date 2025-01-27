@@ -32,11 +32,16 @@
       <p>Email: <span>{{ user.email }}</span></p>
       <p>Address: <span>{{ user.address }}</span></p>
       <p>Phone: <span>{{ user.phone_number }}</span></p>
+
       {% if user.hotel_license %}
-      <p>Hotel lincense: <span><a href="{{ user.hotel_license.url }}">View</a></span></p>
-      {% else %}
-      <p>No lincense</p>
-      {% endif %}
+    <p>
+        <strong>Hotel License:</strong>
+        <a href="{{ user.hotel_license.url }}" download>Download License</a>
+    </p>
+    {% else %}
+    <p>No hotel license uploaded.</p>
+    {% endif %}
+      
     </div>
 
     <hr class="divider" />

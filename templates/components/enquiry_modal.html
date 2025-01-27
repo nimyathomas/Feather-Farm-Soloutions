@@ -1,0 +1,34 @@
+<div id="enquiryModal" class="enquiry-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Enquiry for {{ farm.name }}</h3>
+            <span class="close-btn" onclick="closeEnquiryModal()">&times;</span>
+        </div>
+        
+        <div class="contact-options">
+            <div class="contact-card">
+                <div class="card-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h4>Email Enquiry</h4>
+                <p>Get detailed information via email</p>
+                <a href="mailto:support@featherfarm.com?subject=Enquiry about {{ farm.name }}&body=I would like to know more about {{ farm.name }}." class="contact-link email-link">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Email
+                </a>
+            </div>
+
+            <div class="contact-card">
+                <div class="card-icon">
+                    <i class="fas fa-sms"></i>
+                </div>
+                <h4>SMS Enquiry</h4>
+                <p>Quick response via SMS</p>
+                <a href="sms:+1234567890?body=Hi, I'm interested in {{ farm.name }}." class="contact-link sms-link">
+                    <i class="fas fa-comment"></i>
+                    Send SMS
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 

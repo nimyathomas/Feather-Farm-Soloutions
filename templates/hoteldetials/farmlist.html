@@ -1,67 +1,501 @@
-{% extends 'hoteldetials/dashboard.html' %} 
+{% extends 'hoteldetials/dashboard.html' %}
+
 {% block content %}
-<div class="row">
-  <div class="column column-100">
-    <!-- Search Form -->
-    <form
-      method="get"
-      action="{% url 'hoteldashboard' %}"
-      style="margin-bottom: 20px"
-    >
-      <select name="batch_type" id="batch">
-        <option value="">Select Batch Type</option>
-        <option value="broiler" {% if request.GET.batch_type == "broiler" %}selected{% endif %}>Broiler</option>
-        <option value="organic" {% if request.GET.batch_type == "organic" %}selected{% endif %}>Organic</option>
-        <option value="kada" {% if request.GET.batch_type == "kada" %}selected{% endif %}>Quail</option>
-      </select>
-      
-      <button type="submit" class="button" id="search">Search</button>
-    </form>
-  </div>
-</div>
+<div class="container">
+    <!-- Search and Filter Section -->
+    <div class="search-section">
+        <h2 class="section-title">Find Your Perfect Farm</h2>
+        <form method="get" action="{% url 'hoteldashboard' %}" class="search-form">
+            <div class="filters-grid">
+                <!-- Batch Type Filter -->
+                <div class="filter-item">
+                    <label for="batch">
+                        <i class="fas fa-layer-group"></i> Batch Type
+                    </label>
+                    <select name="batch_type" id="batch" class="form-select">
+                        <option value="">All Batch Types</option>
+                        <option value="broiler" {% if request.GET.batch_type == "broiler" %}selected{% endif %}>Broiler</option>
+                        <option value="organic" {% if request.GET.batch_type == "organic" %}selected{% endif %}>Organic</option>
+                        <option value="kada" {% if request.GET.batch_type == "kada" %}selected{% endif %}>Kada</option>
+                    </select>
+                </div>
 
-<!-- List Items -->
-<div style="display: flex;">
-   {% for item in page_obj %}
-   <div class="column column-1-3">
-     <div class="card">
-       <img
-         src="{{ item.farm_image.url }}"
-         alt="{{ item.full_name }}"
-         class="card-img"
-       />
-       <div class="card-content">
-         <span class="card-title">{{ item.name }}</span>
-         <span class="card-address">{{ item.address }}</span>
-         {% if farm.is_recommended %}
-           <span class="badge recommended">Recommended</span>
-         {% endif %}
-         
-         <button class="view-button" id="view-farm-{{ item.id }}">
-          <a href="{% url 'view_farm' farm_id=item.id %}">View</a>
-         </button>
-       </div>
-     </div>
-   </div>
-   {% endfor %}
-</div>
+                <!-- Farm Name Search -->
+                <div class="filter-item">
+                    <label for="farm_name">
+                        <i class="fas fa-search"></i> Farm Name
+                    </label>
+                    <input type="text" id="farm_name" name="q" class="form-control" 
+                           placeholder="Search farms..." value="{{ request.GET.q }}">
+                </div>
 
-<!-- Pagination Controls -->
-<div class="pagination">
-  <span class="step-links">
-    {% if page_obj.has_previous %}
-    <a href="?q={{ query }}&page=1">&laquo; first</a>
-    <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}">previous</a>
+                <!-- Distance Filter -->
+                <div class="filter-item">
+                    <label for="distance">
+                        <i class="fas fa-map-marker-alt"></i> Max Distance
+                    </label>
+                    <div class="input-group">
+                        <input type="number" id="distance" name="max_distance" 
+                               class="form-control" placeholder="Distance" 
+                               value="{{ request.GET.max_distance }}" min="1">
+                        <span class="input-group-text">km</span>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="filter-item search-button-container">
+                    <label style="visibility: hidden;">
+                        <i class="fas fa-search"></i> Search
+                    </label>
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Farm List Grid -->
+    <div class="farms-grid">
+        {% for farm in page_obj %}
+        <div class="farm-card">
+            <div class="farm-image">
+                <img src="{{ farm.farm_image.url }}" alt="{{ farm.name }}">
+                <div class="batch-badge-container">
+                    <span class="batch-badge {% if farm.chick_batches.first.batch_type == 'organic' %}organic{% endif %}">
+                        <i class="fas {% if farm.chick_batches.first.batch_type == 'organic' %}fa-leaf{% else %}fa-layer-group{% endif %}"></i>
+                        {{ farm.chick_batches.first.batch_type|title }}
+                    </span>
+                </div>
+                <div class="farm-overlay">
+                    <span class="farm-rating">
+                        <i class="fas fa-star"></i> 4.5
+                    </span>
+                </div>
+            </div>
+            
+            <div class="farm-details">
+                <h3 class="farm-name">{{ farm.name }}</h3>
+                <p class="farm-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ farm.address }}
+                </p>
+                
+                <div class="farm-actions">
+                    <a href="tel:{{ farm.owner.phone_number }}" class="action-button phone">
+                        <i class="fas fa-phone"></i> Call Now
+                    </a>
+                    <a href="https://wa.me/{{ farm.owner.phone_number }}?text={{ 'Hello I am interested in your farm products'|urlencode }}" 
+                       class="action-button whatsapp">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="{% url 'view_farm' farm_id=farm.id %}" class="action-button details">
+                        <i class="fas fa-info-circle"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <h3>No Farms Found</h3>
+            <p>Try adjusting your search criteria</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination-container">
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="page-link">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+
+            <span class="page-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
     {% endif %}
-
-    <span class="current">
-      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-    </span>
-
-    {% if page_obj.has_next %}
-    <a href="?q={{ query }}&page={{ page_obj.next_page_number }}">next</a>
-    <a href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-    {% endif %}
-  </span>
 </div>
+
+<style>
+    .container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Search Section Styles */
+    .search-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.8rem 2.5rem 2.5rem;
+        margin: -0.5rem auto 2.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        color: #1a202c;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: -0.5px;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-item label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4a5568;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .filter-item label i {
+        color: #4299e1;
+    }
+
+    .search-button-container {
+        align-self: flex-end;
+    }
+
+    .search-button {
+        width: 100%;
+        height: 45px;
+        padding: 0 1.5rem;
+        background: linear-gradient(45deg, #4299e1, #3182ce);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 4px rgba(66, 153, 225, 0.2);
+    }
+
+    .search-button:hover {
+        background: linear-gradient(45deg, #3182ce, #2c5282);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3);
+    }
+
+    .search-button i {
+        font-size: 0.9rem;
+    }
+
+    .form-select,
+    .form-control {
+        width: 100%;
+        height: 45px;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+        color: #2d3748;
+        background-color: #fff;
+    }
+
+    .form-select:hover,
+    .form-control:hover {
+        border-color: #cbd5e0;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        outline: none;
+    }
+
+    /* Farm Grid Styles */
+    .farms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .farm-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .farm-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .farm-image {
+        position: relative;
+        height: 250px;
+        overflow: hidden;
+    }
+
+    .farm-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .farm-card:hover .farm-image img {
+        transform: scale(1.05);
+    }
+
+    /* Enhanced Badge Styles */
+    .batch-badge-container {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 2;
+    }
+
+    .batch-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        background: rgba(66, 153, 225, 0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+
+    .batch-badge.organic {
+        background: linear-gradient(45deg, #2ecc71, #27ae60);
+    }
+
+    .batch-badge i {
+        margin-right: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    /* Farm Details Enhancement */
+    .farm-details {
+        padding: 1rem 1rem 0.8rem;
+    }
+
+    .farm-name {
+        font-size: 1.2rem;
+        margin-bottom: 0.3rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .farm-location {
+        color: #718096;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .farm-location i {
+        color: #4299e1;
+        font-size: 0.9rem;
+    }
+
+    /* Enhanced Action Buttons */
+    .farm-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4rem;
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 0.4rem;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 3px rgba(0,0,0,0.15);
+    }
+
+    .action-button i {
+        margin-right: 0.3rem;
+        font-size: 0.8rem;
+    }
+
+    .phone {
+        background: linear-gradient(45deg, #38a169, #2f855a);
+    }
+
+    .whatsapp {
+        background: linear-gradient(45deg, #25d366, #1a9548);
+    }
+
+    .details {
+        background: linear-gradient(45deg, #3182ce, #2c5282);
+    }
+
+    /* Farm Overlay with Rating */
+    .farm-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    }
+
+    .farm-rating {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        color: #2d3748;
+        font-weight: 600;
+    }
+
+    .farm-rating i {
+        color: #f6e05e;
+        margin-right: 0.5rem;
+    }
+
+    /* Pagination Styles */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .page-link {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        color: #4a5568;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background-color: #f7fafc;
+        color: #4299e1;
+    }
+
+    .page-info {
+        padding: 0.5rem 1rem;
+        color: #4a5568;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .filters-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .search-button-container {
+            grid-column: 2;
+            justify-self: end;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .section-title {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .search-button-container {
+            grid-column: 1;
+            justify-self: stretch;
+        }
+
+        .farm-details {
+            padding: 0.8rem 0.8rem 0.6rem;
+        }
+
+        .farm-actions {
+            padding: 0 0.4rem 0.4rem;
+        }
+
+        .action-button {
+            padding: 0.4rem 0.3rem;
+            font-size: 0.75rem;
+        }
+
+        .action-button i {
+            margin-right: 0.3rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    .input-group input {
+        height: 100%;
+    }
+
+    .input-group-text {
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+        color: #4a5568;
+    }
+</style>
 {% endblock %}

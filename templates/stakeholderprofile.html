@@ -3,216 +3,354 @@
 {% block body %}
 <div class="profile-container">
   {% if messages %}
-    <div class="alert alert-info" role="alert" style="color:red;" id="messages">
-        {% for message in messages %} {{ message }}<br />
-        {% endfor %}
-    </div>
-    {% endif %}
-  <a class="back-button" href="{% url 'stakeholderuser' %}">back</a>
-  {% if messages %}
-  <div class="messages">
+  <div class="messages-container">
     {% for message in messages %}
-    <div
-      class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}"
-      role="alert"
-    >
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} fade-out">
       {{ message }}
-      <span
-        class="close"
-        onclick="this.parentElement.style.display='none'"
-        aria-label="Close"
-        >&times;</span
-      >
-      <!-- Close button -->
+      <button type="button" class="close-btn" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <p>
-    User Status:
-    <strong class="status-red"
-      >{% if user.is_active %}Active{% else %}Disabled{% endif %}</strong
-    >
-  </p>
-  <!-- Farm Image Section -->
-  <h4>{{ user.name }}</h4>
-  {% if user.farm_image %}
-  <img src="{{ user.farm_image.url }}" alt="image of farm" class="farm-image" />
-  {% else %}
-  <p>No farm image available</p>
-  {% endif %}
+  <div class="header-section">
+    <a class="back-button" href="{% url 'stakeholderuser' %}">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+    <div class="status-badge {% if user.is_active %}active{% else %}inactive{% endif %}">
+      <i class="fas fa-circle"></i>
+      {% if user.is_active %}Active{% else %}Disabled{% endif %}
+    </div>
+  </div>
 
-  <div class="card profile-card">
-    <!-- Flex Container for two columns -->
-    <div class="flex-container">
-      <!-- Left Column: Profile and Coop Info -->
-      <div class="left-section">
-        <div class="info-section">
-          <p>Name: <span>{{ user.full_name }}</span></p>
-          <p>Email: <span>{{ user.email }}</span></p>
-          <p>Address: <span>{{ user.address }}</span></p>
-          <p>Phone: <span>{{ user.phone_number }}</span></p>
+  <div class="main-content">
+    <div class="profile-grid">
+      <!-- Left Column -->
+      <div class="profile-info">
+        <div class="card info-card">
+          <div class="card-header">
+            <h3><i class="fas fa-user"></i> Profile Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-item">
+              <label>Name:</label>
+              <span>{{ user.full_name }}</span>
+            </div>
+            <div class="info-item">
+              <label>Email:</label>
+              <span>{{ user.email }}</span>
+            </div>
+            <div class="info-item">
+              <label>Address:</label>
+              <span>{{ user.address }}</span>
+            </div>
+            <div class="info-item">
+              <label>Phone:</label>
+              <span>{{ user.phone_number }}</span>
+            </div>
+          </div>
         </div>
 
-        <div class="coop-info">
-          <h3>Coop Information</h3>
-          <div class="coop-info-item">
-            <span class="coop-label">Coop Length:</span>
-            <span class="coop-value">{{ user.length }} meters</span>
+        <div class="card coop-card">
+          <div class="card-header">
+            <h3><i class="fas fa-home"></i> Coop Information</h3>
           </div>
-          <div class="coop-info-item">
-            <span class="coop-label">Coop Breadth:</span>
-            <span class="coop-value">{{ user.breadth }} meters</span>
-          </div>
-          {% comment %}
-          <div class="coop-info-item">
-            <span class="coop-label">Coop Capacity:</span>
-            <span class="coop-value">{{ user.coopcapacity }} birds</span>
-          </div>
-          {% endcomment %}
-          <div class="coop-info-item">
-            <span class="coop-label">Pollution Board Certificate Expiry:</span>
-            <span class="coop-value">{{ user.expiry_date }}</span>
-          </div>
-          <div class="coop-info-item">
-            <span class="coop-label">Chicken Count:</span>
-            <span class="coop-value">{{ total_chick_count}} </span>
-          </div>
-          <div class="coop-info-item">
-            <strong class="coop-label">Area:</strong>
-            <span class="coop-value"
-              >{{ user.length }} x {{ user.breadth }} = {{sqr_feet}} sq ft</span
-            >
+          <div class="card-body">
+            <div class="coop-grid">
+              <div class="coop-item">
+                <label>Length:</label>
+                <span>{{ user.length }} meters</span>
+              </div>
+              <div class="coop-item">
+                <label>Breadth:</label>
+                <span>{{ user.breadth }} meters</span>
+              </div>
+              <div class="coop-item">
+                <label>Total Area:</label>
+                <span>{{sqr_feet}} sq ft</span>
+              </div>
+              <div class="coop-item">
+                <label>Chicken Count:</label>
+                <span>{{ total_chick_count }}</span>
+              </div>
+              <div class="coop-item">
+                <label>Certificate Expiry:</label>
+                <span>{{ user.expiry_date }}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <!-- Certificate Section -->
-        <h3>Pollution Board Certificate</h3>
-        {% if user.pollution_certificate %}
-        <a
-          href="{{ user.pollution_certificate.url }}"
-          download
-          class="download-link"
-          >Download Certificate</a
-        >
-        {% else %}
-        <p>No certificate available</p>
-        {% endif %}
       </div>
 
-      <!-- Right Column: Farm Image, Certificate, and Chick Count -->
-      <div class="right-section">
-        <a class="back-button" href="{% url 'view_stakeholder_view' user.id %}">View batches</a>
+      <!-- Right Column -->
+      <div class="farm-details">
+        <div class="card image-card">
+          <div class="card-header">
+            <h3><i class="fas fa-image"></i> Farm Image</h3>
+          </div>
+          <div class="card-body">
+            {% if user.farm_image %}
+            <img src="{{ user.farm_image.url }}" alt="Farm Image" class="farm-image">
+            {% else %}
+            <div class="no-image">
+              <i class="fas fa-image"></i>
+              <p>No farm image available</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card certificate-card">
+          <div class="card-header">
+            <h3><i class="fas fa-certificate"></i> Certificates</h3>
+          </div>
+          <div class="card-body">
+            {% if user.pollution_certificate %}
+            <div class="certificate-preview">
+              <i class="fas fa-file-pdf"></i>
+              <a href="{{ user.pollution_certificate.url }}" download class="download-link">
+                <i class="fas fa-download"></i> Download Certificate
+              </a>
+            </div>
+            {% else %}
+            <div class="no-certificate">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>No certificate available</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
         {% if user.is_active %}
-        <form
-          action="{% url 'update_chick_count' user.id %}"
-          method="POST"
-          class="update-form"
-        >
-          {% csrf_token %}
-          <h5>Provide Chickens</h5>
-          <div class="form-group">
-            <label for="batch_type">Type of Chickens</label>
-            <select
-              name="batch_type"
-              id="batch_type"
-              class="form-control"
-              required
-            >
-              <option value="broiler" {% if batch_type == 'broiler' %}selected{% endif %}>Broiler</option>
-              <option value="organic" {% if batch_type == 'organic' %}selected{% endif %}>Organic</option>
-              <option value="kada" {% if batch_type == 'kada' %}selected{% endif %}>Kada</option>
-            </select>
-            <small class="form-text text-muted">Select the type of chickens for this batch</small>
+        <div class="card action-card">
+          <div class="card-header">
+            <h3><i class="fas fa-plus-circle"></i> Add Chickens</h3>
           </div>
-          
-          <div class="form-group">
-            <label for="initial_chick_count">Chicken Count</label>
-            <input
-              type="number"
-              name="initial_chick_count"
-              placeholder="Enter number of chicks"
-              class="form-control"
-              id="chickCount"
-              required
-            />
+          <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" class="add-chickens-form">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="batch_type">Type of Chickens</label>
+                <select name="batch_type" id="batch_type" class="form-control" required>
+                  <option value="broiler" {% if batch_type == 'broiler' %}selected{% endif %}>Broiler</option>
+                  <option value="organic" {% if batch_type == 'organic' %}selected{% endif %}>Organic</option>
+                  <option value="kada" {% if batch_type == 'kada' %}selected{% endif %}>Kada</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="initial_chick_count">Chicken Count</label>
+                <input type="number" id="chickCount" name="initial_chick_count" 
+                       class="form-control" required>
+                <span id="error-msg" class="error-message"></span>
+              </div>
 
-            <span id="error-msg" style="color: red; display: none"
-              >Chick count cannot be less than zero.</span
-            >
+              <div class="form-actions">
+                <button type="submit" class="submit-btn">
+                  <i class="fas fa-check"></i> Submit
+                </button>
+                <a href="{% url 'view_stakeholder_view' user.id %}" class="view-btn">
+                  <i class="fas fa-eye"></i> View Batches
+                </a>
+              </div>
+            </form>
           </div>
-          <div class="form-group">
-            <label for="batch_size">Batch Size (kg)</label>
-            <input
-              type="number"
-              step="0.1"
-              name="batch_size"
-              id="batch_size"
-              class="form-control"
-              placeholder="Enter standard batch size"
-              required
-              value="{{ batch_size|default:50.0 }}"
-            />
-            <small class="form-text text-muted"
-              >Standard weight of a batch (in kg)</small
-            >
-          </div>
-
-          <!-- Price Per Kg Field -->
-          <div class="form-group">
-            <label for="price_per_kg" style="display: block"
-              >Price per kg
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              name="price_per_kg"
-              id="price_per_kg"
-              class="form-control"
-              placeholder="Enter price per kg"
-              required
-              value="{{ price_per_kg }}"
-            />
-            <small class="form-text text-muted">Price per kg of chicken</small>
-          </div>
-
-          {% comment %} <!-- Price Per Batch Field -->
-          <div class="form-group">
-            <label for="price_per_batch">Price per Batch </label>
-            <input
-              type="number"
-              step="0.01"
-              name="price_per_batch"
-              id="price_per_batch"
-              class="form-control"
-              placeholder="Enter price per batch"
-              required
-              value="{{ price_per_batch }}"
-            />
-            <small class="form-text text-muted"
-              >Price per batch of chicken</small
-            >
-          </div> {% endcomment %}
-
-          <button type="submit" class="btn-submit">Submit Chick Count</button>
-        </form>
-        {% else %}
-        <p style="color: red">
-          You cannot add chicks because the user account is disabled.
-        </p>
+        </div>
         {% endif %}
       </div>
     </div>
   </div>
 </div>
+
+<style>
+/* Modern Professional Styles */
+.profile-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #f8fafc;
+  color: #4a5568;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: #edf2f7;
+  transform: translateX(-2px);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #c6f6d5;
+  color: #2f855a;
+}
+
+.status-badge.inactive {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.info-item, .coop-item {
+  margin-bottom: 1rem;
+}
+
+.info-item label, .coop-item label {
+  font-weight: 500;
+  color: #4a5568;
+  margin-right: 0.5rem;
+}
+
+.farm-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.form-control:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+}
+
+.error-message {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.submit-btn, .view-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.submit-btn {
+  background: #4299e1;
+  color: white;
+}
+
+.view-btn {
+  background: #edf2f7;
+  color: #4a5568;
+  text-decoration: none;
+}
+
+.submit-btn:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+}
+
+.view-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style>
+
 <script>
-    const chickCountInput = document.getElementById('chickCount');
-  const errorMsg = document.getElementById('error-msg');
-  const birdsCanAccommodate = {{ birds_can_accommodate }}; // Get the coop capacity from Django context
+// Your existing JavaScript for form validation
+const chickCountInput = document.getElementById('chickCount');
+const errorMsg = document.getElementById('error-msg');
+const birdsCanAccommodate = {{ birds_can_accommodate }};
 
-  chickCountInput.addEventListener('input', function () {
+chickCountInput.addEventListener('input', function() {
   const chickCountValue = parseInt(chickCountInput.value);
-
   if (chickCountValue < 0) {
     errorMsg.textContent = 'Chick count cannot be less than zero.';
     errorMsg.style.display = 'block';
@@ -220,17 +358,17 @@
     errorMsg.textContent = `You can only grow a maximum of ${birdsCanAccommodate} birds.`;
     errorMsg.style.display = 'block';
   } else {
-    errorMsg.style.display = 'none'; // Hide error message for valid input
+    errorMsg.style.display = 'none';
   }
-  });
-  const form = document.querySelector('.update-form');
+});
 
-  form.addEventListener('submit', function(event) {
+const form = document.querySelector('.add-chickens-form');
+form.addEventListener('submit', function(event) {
   const chickCountValue = parseInt(chickCountInput.value);
   if (chickCountValue < 0 || chickCountValue > birdsCanAccommodate) {
-    event.preventDefault(); // Prevent form submission
-    errorMsg.style.display = 'block'; // Show error message
+    event.preventDefault();
+    errorMsg.style.display = 'block';
   }
-  });
+});
 </script>
 {% endblock %}

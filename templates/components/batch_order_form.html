@@ -1,0 +1,42 @@
+<form method="POST" class="order-form" id="order-form-{{ batch.id }}">
+    {% csrf_token %}
+    <input type="hidden" name="batch_id" value="{{ batch.id }}">
+    
+    <div class="input-grid">
+        <div class="input-group">
+            <label for="id_one_kg_count_{{ batch.id }}">
+                Below 1 kg
+                <span class="input-hint">Available: {{ batch.one_kg_count }}</span>
+            </label>
+            <div class="input-with-unit">
+                {{ order_form.one_kg_count }}
+                <span class="unit">kg</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="id_two_kg_count_{{ batch.id }}">
+                1-2 kg
+                <span class="input-hint">Available: {{ batch.two_kg_count }}</span>
+            </label>
+            <div class="input-with-unit">
+                {{ order_form.two_kg_count }}
+                <span class="unit">kg</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="id_three_kg_count_{{ batch.id }}">
+                2-3 kg
+                <span class="input-hint">Available: {{ batch.three_kg_count }}</span>
+            </label>
+            <div class="input-with-unit">
+                {{ order_form.three_kg_count }}
+                <span class="unit">kg</span>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="order-button">
+        <i class="fas fa-shopping-cart"></i>
+        Place Order
+    </button>
+</form> 

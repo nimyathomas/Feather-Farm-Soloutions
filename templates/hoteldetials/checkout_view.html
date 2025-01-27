@@ -11,16 +11,17 @@
       {% csrf_token %}
       <h3>Hotelier Information</h3>
       <label>Name:</label>
-      {{cart.user.name}}
+      {{cart.user.full_name}}
       <label>Contact:</label>
       {{cart.user.phone_number}}
+      <label>Email:</label>
       {{cart.user.email}}
       <label>Delivery Address:</label>
-      {{cart.user.address}}
+      {{ cart.get_farm_address }}
       {% for item in cart.items.all %}
       {% if item.is_processed %}
       <label>Other Service:</label>
-      $50 per KG
+      <p>processed_chicken : $5 per KG</p>
       {% else %}
       {% endif %}
       {% endfor %}
@@ -48,8 +49,7 @@
       <label>
           <input type="radio" name="payment_option" value="upi"> UPI
       </label>
-  
-      <h3>Total Price (after discount): ₹{{ total_price|floatformat:2 }}</h3>
+      <h3>Total Price (after discount): ₹{{ total_discounted|floatformat:2 }}</h3>
       
       <button type="submit">Confirm Order</button>
   </form>
@@ -63,7 +63,7 @@
 
       document.querySelectorAll('input[name="delivery_method"]').forEach((input) => {
         input.addEventListener('change', function () {
-          const basePrice = {{ total_price|floatformat:2 }};
+          const basePrice = {{ total_discounted|floatformat:2 }};
           let deliveryFee = this.value === 'express' ? 1000 : 0;
           let updatedTotal = basePrice + deliveryFee;
     
@@ -76,7 +76,7 @@
 
       if (paymentOption === 'online' || paymentOption === 'upi') {
           // Initialize Razorpay payment
-          const totalPrice = {{ total_price|floatformat:2 }};
+          const totalPrice = {{ total_discounted|floatformat:2 }};
           const options = {
               key: 'rzp_test_i1eV0ftB0HVfyt', // Replace with your Razorpay key 'razorpay_key': "rzp_test_i1eV0ftB0HVfyt"
               amount: totalPrice * 100, // Amount in paise
@@ -91,12 +91,12 @@
                   this.submit(); // Submit the form if you want to finalize the order
               }.bind(this),
               prefill: {
-                  name: '{{ cart.user.name }}',
+                  name: '{{ cart.user.full_name }}',
                   email: '{{ cart.user.email }}',
                   contact: '{{ cart.user.phone_number }}'
               },
               notes: {
-                  address: '{{ cart.user.address }}'
+                  address: '{{ cart.user.get_farm_address }}'
               },
               theme: {
                   color: '#F37254' // Change to your brand color

@@ -1,0 +1,37 @@
+<!-- chat_room.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room - {{ room_name }}</title>
+</head>
+<body>
+    <h1>Chat Room: {{ room_name }}</h1>
+    <div id="chat-log">
+        <!-- Chat messages will be displayed here -->
+    </div>
+    <input id="chat-message-input" type="text" placeholder="Type a message...">
+    <button id="chat-message-input-button">Send</button>
+
+    <script>
+        // Connect to the WebSocket
+        const roomName = "{{ room_name }}";
+        const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomName + '/');
+
+        // Handle incoming messages
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data['message'];
+            const chatLog = document.getElementById('chat-log');
+            chatLog.innerHTML += `<p>${message}</p>`;
+        };
+
+        // Send message when the user presses the button
+        document.getElementById('chat-message-input-button').onclick = function() {
+            const messageInputDom = document.getElementById('chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({ 'message': message }));
+            messageInputDom.value = '';  // Clear the input after sending the message
+        };
+    </script>
+</body>
+</html>

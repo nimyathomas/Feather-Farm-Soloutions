@@ -1,0 +1,41 @@
+<div class="batches-section">
+    <div class="section-header">
+        <h2 class="section-title">Available Batches</h2>
+        <span class="batch-count">{{ batches|length }} batches available</span>
+    </div>
+
+    {% if batches %}
+        {% for batch in batches %}
+        <div class="batch-card">
+            <div class="batch-header">
+                <div class="batch-title">
+                    <h3>Batch #{{ forloop.counter }}</h3>
+                    <span class="batch-date">{{ batch.batch_date }}</span>
+                </div>
+                <span class="batch-status {{ batch.batch_status|lower }}">
+                    {{ batch.batch_status }}
+                </span>
+            </div>
+
+            <div class="batch-info">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Below 1 kg</span>
+                        <span class="info-value">{{ batch.one_kg_count }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">1-2 kg</span>
+                        <span class="info-value">{{ batch.two_kg_count }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">2-3 kg</span>
+                        <span class="info-value">{{ batch.three_kg_count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'components/batch_order_form.html' %}
+        </div>
+        {% endfor %}
+    {% endif %}
+</div> 

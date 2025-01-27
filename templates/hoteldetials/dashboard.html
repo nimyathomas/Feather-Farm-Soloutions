@@ -5,63 +5,252 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Feather Farm Solutions{% endblock %}</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css"
-    />
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/hoteldetails.css' %}" />
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-color: #1f2937;
+            --light-bg: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* Cart Button */
+        .cart-button {
+            position: relative;
+            padding: 0.5rem 1rem;
+            background-color: var(--white);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .cart-button:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* User Profile */
+        .user-profile {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background-color: var(--light-bg);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+            border-top: 1px solid var(--light-bg);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .navbar-brand img {
+                height: 32px;
+            }
+        }
+    </style>
   </head>
   <body>
-    <!-- Header Section with Milligram -->
-    <header>
-      <div class="row">
-        <h1 class="column column-60">
-          {% block site_title %}{{request.user.name}}{% endblock %}
-        </h1>
-        <nav class="column column-40">
-          <ul>
-            <li><a href="{% url 'hoteldashboard' %}" id="home-link">Home</a></li>
-            <li><a href="{% url 'view_orders' %}">Orders</a></li>
-            <div class="collapse navbar-collapse" id="navbarNav">
-              <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                  <a id="cart-link" class="nav-link" href="{% url 'cart_view' %}">
-                    <i class="fas fa-shopping-cart"></i>
-                    Cart 
-                    {% if user.is_authenticated and user.cart.count > 0 %}
-                      <!-- Display Cart Item Count if available -->
-                      <span class="badge bg-primary">{{ user.cart.first.items.count }}</span>
-                    {% endif %}
-                  </a>
-                </li>
-              </ul>
-            </div>
-            
-            <li class="profile-menu">
-              <!-- Avatar and Dropdown -->
-              <img
-                src="{% static 'images/avatar.png' %}"
-                alt="User Avatar"
-                class="avatar"
-              />
-              <div class="profile-dropdown">
-                <a href="{% url 'view_profile' request.user.id %}">View Profile</a>
-                
-                <a href="{% url 'logout' %}">Logout</a>
-              </div>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'hoteldashboard' %}">
+                Feather Farm Solutions
+            </a>
 
-    <!-- Main Content Section -->
-    <main class="container">
-      {% block content %}
-      <!-- Page-specific content will go here -->
-      {% endblock %}
-    </main>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'hoteldashboard' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'view_orders' %}">
+                            <i class="fas fa-list me-1"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="cart-button" href="{% url 'cart_view' %}">
+                            <i class="fas fa-shopping-cart me-1"></i> Cart
+                            {% if user.is_authenticated and user.cart.count > 0 %}
+                            <span class="cart-count">{{ user.cart.first.items.count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <div class="user-profile" onclick="toggleDropdown()">
+                            <img src="{% static 'images/avatar.png' %}" alt="User Avatar" class="avatar">
+                            <span class="user-name d-none d-md-block">{{request.user.name}}</span>
+                            <i class="fas fa-chevron-down ms-1"></i>
+                            <div class="profile-dropdown" id="profileDropdown">
+                                <a class="dropdown-item" href="{% url 'view_profile' request.user.id %}">
+                                    <i class="fas fa-user"></i> View Profile
+                                </a>
+                                
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            {% block content %}
+            <!-- Page-specific content will go here -->
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profile = document.querySelector('.user-profile');
+            const dropdown = document.getElementById('profileDropdown');
+            
+            if (!profile.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
   </body>
 </html>

@@ -1,14 +1,9 @@
-{% extends 'stakeholder.html' %}
-{% load static %}
-{% block body %}
+{% extends 'stakeholder.html' %} {% load static %} {% block body %}
 <section class="content-section">
   <h3>Daily Updates</h3>
-  
-  <!-- Display Django messages if any -->
   {% if messages %}
   <div class="alert alert-info" role="alert">
-    {% for message in messages %}
-      {{ message }}<br />
+    {% for message in messages %} {{ message }}<br />
     {% endfor %}
   </div>
   {% endif %}
@@ -18,79 +13,78 @@
     <div class="form-group">
       <label for="batch-select">Select Batch:</label>
       <select name="batch" id="batch-select" class="form-control" required>
-        <option value="" disabled {% if not selected_batch %}selected{% endif %}>Select a batch</option>
-        
-        <!-- Loop through each batch to display as an option -->
-        {% for b in all_batches %}
-        <option 
-          value="{{ b.id }}"
-          data-initial-chick-count="{{ b.initial_chick_count }}"
-          data-available-chickens="{{ b.available_chickens }}"
-          data-batch-type="{{ b.batch_type }}"
-          {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}
+        <option
+          value=""
+          disabled
+          {%
+          if
+          not
+          selected_batch
+          %}selected{%
+          endif
+          %}
         >
-          {{ b.batch_date|date:"F j, Y" }}
+          Select a batch
         </option>
-        {% endfor %}
+        {% for b in all_batches %}
+        <option value="{{ b.id }}"
+        data-initial-chick-count="{{ b.initial_chick_count }}"
+        data-live-chick-count="{{ b.live_chick_count }}"
+        data-mortality-count="{{ b.total_mortality_count }}" 
+        {% if selected_batch and selected_batch.id == b.id %} selected {% endif %}> 
+        {{b.batch_date|date:"F j, Y" }}
+         
       </select>
     </div>
 
-    <!-- Display counts and batch information dynamically -->
     <div id="counts-display">
-      <p>Initial Chick Count: <span id="initial-chick-count">N/A</span></p>
-      <p>Updated Alive Count: <span id="updated-alive-count">N/A</span></p>
-      <p>Chicken Type: <span id="batch-type">N/A</span></p>
+      <p>
+        Initial Chick Count:
+        <span id="initial-chick-count">{{ b.initial_chick_count }}</span>
+      </p>
+      <p>
+        Updated Alive Count:
+        <span id="updated-alive-count">{{ b.available_chickens }}</span>
+      </p>
+      <p>
+        Chicken Type:
+        <span id="updated-mortality-count">{{ b.batch_type }}</span>
+      </p>
     </div>
-
+    {% endfor %}
     <!-- Wrapper div with a fixed height for scrollable table -->
     <div class="scrollable-table-wrapper">
-      <table id="daily-entries" class="table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Alive Count</th>
-            <th>Sick Chicks</th>
-            <th>Mortality Count</th>
-            <th>Feed Uplifted (kg)</th>
-            <th>Water Consumption (L)</th>
-            <th>Weight Gain (g)</th>
-            <th>Temperature (°C)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="daily-entry">
-            <td><input type="date" name="date[]" class="form-control date-input" required></td>
-            <td><input type="number" name="alive_count[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="sick_chicks[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="mortality_count[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="feed_uplifted[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="water_consumption[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="weight_gain[]" class="form-control positive-input" required></td>
-            <td><input type="number" name="temperature[]" class="form-control" required></td>
-          </tr>
-        </tbody>
-      </table>
+        <table id="daily-entries" class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Alive Count</th>
+                    <th>Sick Chicks</th>
+                    <th>Mortality Count</th>
+                    <th>Feed Uplifted (kg)</th>
+                    <th>Water Consumption (L)</th>
+                    <th>Weight Gain (g)</th>
+                    <th>Temperature (°C)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="daily-entry">
+                    <td><input type="date" name="date[]" class="form-control date-input" required></td>
+                    <td><input type="number" name="alive_count[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="sick_chicks[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="mortality_count[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="feed_uplifted[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="water_consumption[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="weight_gain[]" class="form-control positive-input" required></td>
+                    <td><input type="number" name="temperature[]" class="form-control" required></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
     
-    <button type="submit" class="btn btn-primary mt-3">Submit Daily Data</button>
+    <button type="submit" class="btn btn-primary mt-3">
+      Submit Daily Data
+    </button>
   </form>
 </section>
-
-<script>
-// JavaScript to update counts-display based on selected batch
-document.getElementById('batch-select').addEventListener('change', function() {
-  // Get selected option
-  const selectedOption = this.options[this.selectedIndex];
-
-  // Extract data from selected option
-  const initialChickCount = selectedOption.getAttribute('data-initial-chick-count');
-  const availableChickens = selectedOption.getAttribute('data-available-chickens');
-  const batchType = selectedOption.getAttribute('data-batch-type');
-
-  // Update counts-display section
-  document.getElementById('initial-chick-count').textContent = initialChickCount || 'N/A';
-  document.getElementById('updated-alive-count').textContent = availableChickens || 'N/A';
-  document.getElementById('batch-type').textContent = batchType || 'N/A';
-});
-</script>
 {% endblock %}

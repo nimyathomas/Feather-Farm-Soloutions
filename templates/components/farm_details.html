@@ -1,0 +1,41 @@
+<div class="photos-section">
+    <div class="farm-image-container">
+        <img src="{{ farm.farm_image.url }}" alt="{{ farm.name }}" class="farm-main-image">
+        {% if farm.chick_batches.first.batch_type == 'organic' %}
+        <div class="organic-badge">
+            <div class="badge-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <span>100% Organic</span>
+        </div>
+        {% endif %}
+        <div class="image-overlay">
+            <div class="farm-rating">
+                <i class="fas fa-star"></i>
+                <span>4.8</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="farm-details">
+        <div class="detail-card">
+            <div class="detail-header">Farm Statistics</div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <i class="fas fa-warehouse"></i>
+                    <div class="detail-info">
+                        <span class="detail-label">Coop Capacity</span>
+                        <span class="detail-value">{{ farm.coopcapacity }}</span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-ruler-combined"></i>
+                    <div class="detail-info">
+                        <span class="detail-label">Farm Size</span>
+                        <span class="detail-value">{{ farm.size }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

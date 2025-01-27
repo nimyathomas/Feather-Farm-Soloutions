@@ -1,0 +1,15 @@
+<div class="contact-actions">
+    <a href="tel:{{ farm.owner.phone_number }}" class="action-button phone">
+        <i class="fas fa-phone"></i>
+        <span>Call Now</span>
+    </a>
+    <a href="https://wa.me/{{ farm.owner.phone_number }}" class="action-button whatsapp">
+        <i class="fab fa-whatsapp"></i>
+        <span>WhatsApp</span>
+    </a>
+    <a href="https://www.google.com/maps?q={{ farm.latitude }},{{ farm.longitude }}" 
+       target="_blank" class="action-button directions">
+        <i class="fas fa-directions"></i>
+        <span>Get Directions</span>
+    </a>
+</div> 

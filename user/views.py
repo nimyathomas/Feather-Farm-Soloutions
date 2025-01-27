@@ -10,23 +10,22 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login
-from django.db.models import Sum, Count
+from django.db.models import Sum
 
-from stakeholder.models import ChickBatch, DailyData,ChickSupply
-from .forms import EmailAuthenticationForm
-from .forms import CustomUserCreationForm, EmailAuthenticationForm, StakeholderUserForm
+from stakeholder.models import ChickBatch, DailyData,Farm
+from .forms import CustomUserCreationForm, EmailAuthenticationForm
 from .models import UserType, User
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 import pandas as pd
 from math import floor
-import openpyxl
 from .models import WasteManagementResource, DailyTip
+from django.db import models
+
 
 
 def register(request):
     user_type_param = request.GET.get('user_type')
-    print(user_type_param)
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -74,26 +73,26 @@ class CustomLoginView(LoginView):
         if user.user_type != None and hasattr(user, 'user_type') and user.user_type.name.lower() == 'stakeholder':
             return reverse_lazy('stakeholder')
 
-        elif user.expiry_date and user.expiry_date < date.today():
-            # Redirect the user to an 'expiry notification' page if the certificate has expired
-            return reverse_lazy('expiry_notification')
+        # elif user.expiry_date and user.expiry_date < date.today():
+        #     # Redirect the user to an 'expiry notification' page if the certificate has expired
+        #     return reverse_lazy('expiry_notification')
 
         elif user.user_type != None and user.user_type.name.lower() == 'admin':
             return reverse_lazy('admindash')
         elif user.user_type != None and user.user_type.name.lower() == 'customer':
             return reverse_lazy('hoteldashboard')
         return self.success_url
-
+from django.utils import timezone
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import timedelta
 
 def admindash(request):
-    completed_orders_count = 0
-    completed_batches_sales_count = 0
     # Fetching the usertype with name 'Stakeholder'
     stakeholder_user_type = UserType.objects.get(name='Stakeholder')
 
     # Counting total stakeholders
-    total_stakeholders = User.objects.filter(
-        user_type=stakeholder_user_type).count()
+    total_stakeholders = User.objects.filter(user_type=stakeholder_user_type).count()
 
     # Counting active stakeholders
     active_stakeholders = User.objects.filter(
@@ -103,36 +102,61 @@ def admindash(request):
     customer_user_type = UserType.objects.get(name='Customer')
     customer_count = User.objects.filter(user_type=customer_user_type).count()
 
-    completed_orders_count = Order.objects.filter(status='completed').count()
-    pending_orders = Order.objects.filter(status='pending').order_by('-order_date')[:3]
-    completed_batches_sales_count = ChickBatch.objects.filter(batch_status='completed') \
-    .annotate(order_count=Count('order')) \
-    .aggregate(total_sales=Sum('order_count'))['total_sales'] or 0
-    chicken_type_totals = ChickBatch.objects.values('batch_type').annotate(
+    # Counting total farms (which are essentially stakeholders)
+    total_farm = total_stakeholders
+    total_one_kg = ChickBatch.objects.aggregate(total_one_kg=Sum('one_kg_count'))['total_one_kg'] or 0
+    total_two_kg = ChickBatch.objects.aggregate(total_two_kg=Sum('two_kg_count'))['total_two_kg'] or 0
+    total_three_kg = ChickBatch.objects.aggregate(total_three_kg=Sum('three_kg_count'))['total_three_kg'] or 0
+    available_chicks_by_type = ChickBatch.objects.values('batch_type').annotate(total_available_chicks=Sum('available_chickens'))
+
+    # Counting active farms (which are essentially active stakeholders)
+    farmactive_count = active_stakeholders
+
+    # Fetch today's orders
+    today = timezone.now().date()
+    todays_orders = Order.objects.filter(order_date__date=today)
+
+    # Fetching today's sales data
+    todays_sales = Order.objects.filter(order_date__date=today).aggregate(
         total_one_kg=Sum('one_kg_count'),
         total_two_kg=Sum('two_kg_count'),
         total_three_kg=Sum('three_kg_count')
     )
 
-    # Counting total farms (assuming stakeholders are farms)
-    total_farm = total_stakeholders
-    farmactive_count = active_stakeholders
-    
-    # Aggregating total chicks supplied by type
-    chicks_supplied_by_type = ChickSupply.objects.values('chicken_type').annotate(total_supplied=Sum('chicks_supplied'))
-    print(list(chicks_supplied_by_type))
+    # Fetching this week's sales data
+    start_of_week = today - timedelta(days=today.weekday())  # Start of the week (Monday)
+    end_of_week = start_of_week + timedelta(days=6)  # End of the week (Sunday)
+    weekly_sales = Order.objects.filter(order_date__date__range=[start_of_week, end_of_week]).aggregate(
+        total_one_kg=Sum('one_kg_count'),
+        total_two_kg=Sum('two_kg_count'),
+        total_three_kg=Sum('three_kg_count')
+    )
+
+    # Fetching this month's sales data
+    start_of_month = today.replace(day=1)  # Start of the month (1st day)
+    end_of_month = start_of_month.replace(month=today.month % 12 + 1, day=1) - timedelta(days=1)  # End of the month
+    monthly_sales = Order.objects.filter(order_date__date__range=[start_of_month, end_of_month]).aggregate(
+        total_one_kg=Sum('one_kg_count'),
+        total_two_kg=Sum('two_kg_count'),
+        total_three_kg=Sum('three_kg_count')
+    )
 
     return render(request, 'dashboard.html', {
         'stakeholder_count': total_stakeholders,
         'customer_count': customer_count,
         'farmactive_count': farmactive_count,
         'total_farm': total_farm,
-        'completed_orders_count': completed_orders_count,
-        'pending_orders': pending_orders,
-        'completed_batches_sales_count': completed_batches_sales_count,
-        'chicken_type_totals': chicken_type_totals,
-        'chicks_supplied_by_type': chicks_supplied_by_type
+        'total_one_kg': total_one_kg,
+        'total_two_kg': total_two_kg,
+        'total_three_kg': total_three_kg,
+        'available_chicks_by_type': available_chicks_by_type,
+        'todays_sales_data': [todays_sales],
+        'weekly_sales_data': [weekly_sales],
+        'monthly_sales_data': [monthly_sales],
     })
+
+
+
 
 def stakeholderuser(request):
     # fetching the usertype with name stakeholder
@@ -144,19 +168,20 @@ def stakeholderuser(request):
 
 def stakeholderuserprofile(request, id):
     user = User.objects.get(id=id)
+    farm=Farm.objects.filter(owner=user).first()
     chick_batches = ChickBatch.objects.filter(user=user)
     total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))[
         'initial_chick_count__sum'] or 0
 
     today = date.today()
     day_expiry = None
-    if user.expiry_date:
+    if farm.expiry_date:
         day_expiry = (user.expiry_date - today).days
 
     # Calculate square feet based on length and breadth (assuming they're in the User model)
     sqr_feet = 0
-    if user.length and user.breadth:
-        sqr_feet = user.length * user.breadth
+    if farm.length and farm.breadth:
+        sqr_feet = farm.length * farm.breadth
     sqr_feet_rounded = round(sqr_feet, 0)
 
     # Calculate number of birds that can be accommodated
@@ -287,102 +312,6 @@ def approve_order(request, order_id):
             return redirect('customeruserprofile', id=order.user.id)
     # Redirect back to the profile page
     return redirect('customeruserprofile', id=order.user.id)
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import StakeholderUserForm
-from .models import User
-
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib import messages
-from .forms import StakeholderUserForm  # Ensure you import the correct form
-from .models import User  # Ensure you import the User model correctly
-
-def stakeholder_registration(request, id):
-    # Fetch the user by ID
-    user = get_object_or_404(User, id=id)
-
-    if request.method == 'POST':
-        # Bind form with POST data and FILES for image/file uploads
-        user_form = StakeholderUserForm(request.POST, request.FILES, instance=user)
-        
-        if user_form.is_valid():
-            # Save the form data (including file uploads)
-            user_form.save()
-
-            # Add a success message
-            messages.success(request, 'Profile updated successfully.')
-
-            # Redirect to the stakeholder page or success page
-            return redirect('stakeholder')  # Ensure 'stakeholder' is defined in urls.py
-        else:
-            # Add an error message for invalid form data
-            messages.error(request, 'There was an error updating the profile. Please check the form and try again.')
-
-            # Render the form with errors
-            return render(request, 'stakeholder_profile.html', {'user_form': user_form})
-    else:
-        # Prepopulate the form with the user's current data
-        user_form = StakeholderUserForm(instance=user)
-
-    # Render the form template
-    return render(request, 'stakeholder_profile.html', {'user_form': user_form})
-
-
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from .models import User
-
-import json
-from django.http import JsonResponse
-from .utils import get_address_from_coordinates
-from django.contrib.auth.models import User
-
-def update_location(request):
-    """
-    Updates the user's location and address based on latitude and longitude.
-    """
-    if request.method == 'POST':
-        try:
-            # Parse JSON data from request
-            data = json.loads(request.body)
-            user_id = data.get('user_id')
-            latitude = data.get('latitude')
-            longitude = data.get('longitude')
-
-            # Validate the presence of latitude and longitude
-            if not (latitude and longitude):
-                return JsonResponse({'success': False, 'message': 'Latitude and longitude are required.'}, status=400)
-
-            # Fetch the user
-            user = User.objects.filter(id=user_id).first()
-            if not user:
-                return JsonResponse({'success': False, 'message': 'User not found.'}, status=404)
-
-            # Get address details using coordinates
-            address_details = get_address_from_coordinates(float(latitude), float(longitude))
-            if 'error' in address_details:
-                return JsonResponse({'success': False, 'message': 'Failed to fetch address from coordinates.'}, status=500)
-
-            # Update the user profile
-            user_profile = user.profile  # Assuming a one-to-one relationship with a Profile model
-            user_profile.location = f"{latitude}, {longitude}"
-            user_profile.address = f"{address_details.get('road', '')}, {address_details.get('suburb', '')}, {address_details.get('city', '')}, {address_details.get('state', '')}, {address_details.get('country', '')}"
-            user_profile.region = address_details.get('region', 'Unknown')
-            user_profile.save()
-
-            return JsonResponse({'success': True, 'message': 'Location and address updated successfully.'})
-
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)
-
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=500)
-
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
-
 
 def toggle_user_status(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -708,3 +637,9 @@ def view_resources(request):
 def view_tips(request):
     tips = DailyTip.objects.all().order_by('-created_at')
     return render(request, 'waste_management.html', {'tips': tips, 'section': 'tips'})
+
+
+# views.py
+from django.shortcuts import render
+
+

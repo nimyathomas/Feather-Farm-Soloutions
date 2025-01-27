@@ -84,88 +84,115 @@ form {
 }
 
 .card {
-    width: 300px;
-    /* Set fixed width */
-    height: 300px;
-    /* Set fixed height */
-    border: 1px solid #ccc;
-    /* Light gray border */
-    border-radius: 5px;
-    /* Rounded corners */
-    overflow: hidden;
-    /* Ensures content doesn't overflow */
     display: flex;
-    /* Use flexbox for layout */
-    flex-direction: column;
-    /* Stack children vertically */
-    padding: 16px;
-    /* Add padding inside the card */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow */
-    margin: 10px;
-    /* Add margin between cards */
-}
-
-.card-img {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
     width: 100%;
-    /* Make the image responsive */
-    height: 100px;
-    /* Maintain aspect ratio */
-    object-fit: cover;
-    /* Ensure the image covers the area */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 15px;
 }
 
-.card-content {
-    /* Take up remaining space */
+
+.card-image {
+    flex: 1;
+    max-width: 40%;
+    margin-right: 15px;
+}
+
+.card-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.card-body {
+    flex: 2;
     display: flex;
-    /* Use flexbox for content alignment */
     flex-direction: column;
-    /* Stack elements vertically */
     justify-content: space-between;
-    /* Space elements evenly */
 }
 
 .card-title {
-    font-size: 1.2em;
-    /* Adjust title font size */
-    font-weight: bold;
-    /* Make the title bold */
-}
-
-.card-address {
-    color: #666;
-    /* Gray color for address */
+    font-size: 1.5em;
     margin-bottom: 10px;
-    /* Space below address */
+    font-weight: bold;
 }
 
-.buy-button,
-.view-button {
-    background-color: #4CAF50;
-    /* Green background for buttons */
-    color: white;
-    /* White text color */
-    border: none;
-    /* Remove default border */
-    text-align: center;
-    /* Center text */
-    text-decoration: none;
-    /* Remove underline */
-    display: inline-block;
-    /* Allow block properties */
+.card-body p {
     margin: 5px 0;
-    /* Space around buttons */
-    cursor: pointer;
-    /* Change cursor on hover */
-    border-radius: 4px;
-    /* Rounded corners for buttons */
+    color: #666;
 }
 
-.buy-button:hover,
-.view-button:hover {
-    background-color: #45a049;
-    /* Darker green on hover */
+/* Fixing button alignment */
+.buy-options {
+    display: flex;
+    gap: 10px;
+    /* Spacing between buttons */
+    flex-wrap: wrap;
+    /* Allows buttons to wrap on small screens */
+    align-items: center;
+    /* Vertically center align */
+    margin-top: 10px;
 }
+
+.buy-options a {
+    display: flex;
+    align-items: center;
+    /* Align icon and text vertically */
+    justify-content: center;
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+    margin: 0;
+    /* Remove extra margins */
+}
+
+/* Call Button Styles */
+.buy-options .button-outline {
+    background-color: #007bff;
+    /* Blue color for call button */
+    color: #fff;
+}
+
+.buy-options .button-outline:hover {
+    background-color: #0056b3;
+}
+
+/* WhatsApp Button Styles */
+.buy-options .whatsapp-button {
+    background-color: #25D366;
+    /* WhatsApp green */
+}
+
+.buy-options .whatsapp-button:hover {
+    background-color: #20b357;
+}
+
+/* View Button Styles */
+.buy-options .view-button {
+    background-color: #4CAF50;
+    /* Green */
+}
+
+.buy-options .view-button:hover {
+    background-color: #45a049;
+}
+
+/* Icons */
+.buy-options i {
+    margin-right: 5px;
+    /* Space between icon and text */
+    font-size: 16px;
+}
+
 
 button a {
     color: inherit;
@@ -191,9 +218,8 @@ button a {
 
 .farm-image {
     max-width: 100%;
-    height: 400px;
+    height: 300px;
     border-radius: 10px;
-    margin-top: 10px;
 }
 
 .batch-list {
@@ -202,16 +228,7 @@ button a {
     gap: 20px;
 }
 
-.card {
-    border: 1px solid #ccc;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-}
 
-.buy-options {
-    margin-top: 10px;
-}
 
 .order-button {
     background-color: #3498db;
@@ -225,7 +242,8 @@ button a {
 .order-button:hover {
     background-color: #2980b9;
 }
-.batch-container{
+
+.batch-container {
     margin-top: 30px;
     display: flex;
     justify-content: space-between;
@@ -238,7 +256,7 @@ button a {
     border-radius: 8px;
     background-color: #f9f9f9;
     width: 400px;
-   
+
 }
 
 /* styles.css */
@@ -257,6 +275,7 @@ button a {
     font-weight: bold;
 }
 
+
 .badge {
     display: inline-block;
     padding: 5px 10px;
@@ -265,13 +284,193 @@ button a {
     border-radius: 5px;
     margin-top: 5px;
     color: #fff;
-  }
-  
-  .badge.recommended {
-    background-color: #28a745; /* Green */
-  }
-  
-  .badge.nearest {
-    background-color: #007bff; /* Blue */
-  }
-  
+    background-color: #f0ad4e;
+}
+
+/* Flex container for form-row */
+.form-row {
+    display: flex;
+    align-items: center;
+    /* Vertically align items */
+    justify-content: space-between;
+    /* Spread items horizontally */
+    gap: 20px;
+    /* Space between columns */
+    flex-wrap: wrap;
+    /* Allow wrapping for smaller screens */
+}
+
+/* Columns styling */
+.form-row .column {
+    display: flex;
+    flex-direction: column;
+    /* Stack label and input vertically */
+    flex: 1;
+    /* Make columns responsive */
+    min-width: 200px;
+    /* Minimum width for each column */
+}
+
+/* Adjust Search Button Column */
+.form-row .column:last-child {
+    align-items: flex-start;
+    /* Ensure button aligns left within its column */
+}
+
+/* Input and select fields */
+.input-select,
+.input-field {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-btn {
+    border: none;
+    margin: auto;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* farm views detail */
+#farm-name {
+    font-weight: bold;
+}
+
+#address {
+    color: #888;
+    /* Grey out address color */
+}
+
+#contact-info {
+    color: #333;
+    /* Ensure phone number and WhatsApp are visible */
+}
+
+.text-success {
+    color: #28a745 !important;
+    /* Override to ensure WhatsApp color */
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn-outline-primary {
+    border: 1px solid #007bff;
+    color: #007bff;
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.nav-tabs {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.nav-tabs {
+    margin: 0 0;
+    /* Space between tabs */
+}
+
+/* Default style for tab links */
+.nav-tabs .nav-link {
+    padding: 10px 15px;
+    color: #666;
+    background-color: transparent;
+    text-decoration: none;
+    /* Remove underline by default */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Hover effect for the tabs */
+.nav-tabs .nav-link:hover {
+    background-color: #f4f4f4;
+}
+
+/* Active tab style (highlighted with DodgerBlue) */
+.nav-tabs .nav-link.active {
+    color: rgb(69, 63, 63);
+    border-bottom: 2px solid dodgerblue;
+    box-shadow: none;
+}
+
+/* Optional: Customizing the hover effect for non-active tabs */
+.nav-tabs .nav-link:not(.active):hover {
+    background-color: #f4f4f4;
+    border-color: #ccc;
+}
+
+.batch-card {
+    width: 400px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Flex container to align the cards horizontally and wrap them to new lines if needed */
+.d-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* Adds space between cards */
+}
+
+/* Align the content in the center */
+.batch-card h4,
+.batch-card p,
+.batch-card form {
+    margin: 0 0 10px;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;  /* Vertically center the label and input */
+    margin-bottom: 1rem;
+}
+
+/* Label styling */
+.form-group label {
+    font-weight: bold;
+    margin-right: 1rem;  /* Add space between label and input */
+}
+
+/* Input field styling */
+.form-group input {
+    flex: 1;             /* Input takes up the remaining space */
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: auto;         /* Make sure input fields are compact and inline */
+}
+
+/* Button styling */
+.btn {
+    width: 100%;
+}
+
+/* Error message styling */
+.error-message {
+    display: none;
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+/* Margin for the labels to the right */
+.me-3 {
+    margin-right: 1rem;
+}

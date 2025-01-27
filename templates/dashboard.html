@@ -1,106 +1,144 @@
-{% extends 'admindash.html' %} {% load static %} {% block body %}
+{% extends 'admindash.html' %}
+{% load static %}
+{% block body %}
 
 <div class="dashboard-main-content">
-  <header class="topbar">
-    <h1>Admin Dashboard</h1>
-  </header>
+    <header class="topbar">
+        <h1>Admin Dashboard</h1>
+    </header>
+    
+    <div class="dashboard-content-area">
+        <div class="dashboard-flex-container">
 
-  <div class="dashboard-content-area">
-    <div class="dashboard-flex-container">
-      <!-- Stakeholders and Customers Status -->
-      <div class="dashboard-item">
-        <div class="overview-card">
-          <h2>Active Farms</h2>
-          <p>Number of active farms: <strong>{{ farmactive_count }}</strong></p>
+            <div class="dashboard-item">
+                <div class="overview-card">
+                    <h2>Active Farms</h2>
+                    <p>Number of active farms: <strong>{{ farmactive_count }}</strong></p>
+                </div>
+                <div class="overview-card">
+                    <h2>Total Farms</h2>
+                    <p>Total farms: <strong>{{ total_farm }}</strong></p>
+                </div>
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Stakeholder & Customer Status</h2>
+                <p>Stakeholders: {{ stakeholder_count }}</p>
+                <p>Customers: {{ customer_count }}</p>
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Alerts</h2>
+                {% if low_stock_alerts %}
+                    <ul>
+                        {% for feed in low_stock_alerts %}
+                            <li>{{ feed.name }} is low on stock!</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No new alerts at the moment.</p>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Chicks Ready for Sale</h2>
+                <ul>
+                    <div class="card">
+                        <h3>Chickens Ready for Sale</h3>
+                        <p><strong>Total 1kg Chickens:</strong> {{ total_one_kg }}</p>
+                        <p><strong>Total 2kg Chickens:</strong> {{ total_two_kg }}</p>
+                        <p><strong>Total 3kg Chickens:</strong> {{ total_three_kg }}</p>
+                    </div>
+                </ul>
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Available Chicks by Batch Type</h2>
+                <ul>
+                    <div class="card">
+                        <h3>Broiler</h3>
+                        <p><strong>{{ total_broiler_chicks }}</strong> chicks ready for sale</p>
+                    </div>
+                    <div class="card">
+                        <h3>Organic</h3>
+                        <p><strong>{{ total_organic_chicks }}</strong> chicks ready for sale</p>
+                    </div>
+                    <div class="card">
+                        <h3>Quail</h3>
+                        <p><strong>{{ total_quail_chicks }}</strong> chicks ready for sale</p>
+                    </div>
+                </ul>
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Sales Overview</h2>
+                <p>Total 1kg Chickens: {{ todays_sales_data.0.total_one_kg }}</p>
+                <p>Total 2kg Chickens: {{ todays_sales_data.0.total_two_kg }}</p>
+                <p>Total 3kg Chickens: {{ todays_sales_data.0.total_three_kg }}</p>
+                <canvas id="salesChart"></canvas>
+            </div>
+
+            <div class="dashboard-item">
+                <h2>Quick Actions</h2>
+                <button class="action-button" onclick="window.location.href='{% url 'stakeholderuser' %}'">Manage Stakeholders</button>
+                <button class="action-button" onclick="window.location.href='{% url 'customeruser' %}'">Manage Customers</button>
+            </div>
+
         </div>
-        <div class="overview-card">
-          <h2>Total Farms</h2>
-          <p>Total farms: <strong>{{ total_farm }}</strong></p>
-        </div>
-      </div>
-
-      <!-- Stakeholder & Customer Status -->
-      <div class="dashboard-item">
-        <h2>Stakeholder & Customer Status</h2>
-        <p>Stakeholders: {{ stakeholder_count }}</p>
-        <p>Customers: {{ customer_count }}</p>
-      </div>
-
-      <!-- Feed Stock Levels -->
-      <div class="dashboard-item">
-        <h2>Current Feed Stock Levels</h2>
-        <ul>
-          {% for feed in feeds %}
-          <li>
-            {{ feed.name }}: <strong>{{ feed.current_stock }} kg</strong> {% if feed.check_low_stock %} (Low Stock Alert) {% endif %}
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <!-- Alerts -->
-      <div class="dashboard-item">
-        <h2>Alerts</h2>
-    
-        <!-- Pending Orders Section -->
-        <h5>Orders Pending Approval</h5>
-        {% if pending_orders %}
-        <ul>
-          {% for order in pending_orders %}
-          <li>
-            <a style="list-style: none;" href="{% url 'customeruserprofile' order.user.id %}">Order #{{ order.id }} by {{ order.user.email }}</a>
-            - {{ order.order_date }}
-          </li>
-          {% endfor %}
-        </ul>
-        <a href="{% url 'stakeholderuser' %}" class="view-more-btn" style="margin-top: 20px;">View More</a>
-        {% else %}
-        <p>No orders awaiting approval at the moment.</p>
-        {% endif %}
     </div>
-    
-    
-
-      <!-- Displaying Total Chicks Supplied Per Chicken Type -->
-      <div class="dashboard-item">
-        <h2>Total Chicks Supplied by Type</h2>
-        {% if completed_orders_count %}
-        <h2>Total Sales Done:{{ completed_orders_count }}</h2>
-        {% else %}
-        {% endif %}
-        {% if completed_batches_sales_count %}
-        <h2>Ready for Sales :{{ completed_batches_sales_count }}</h2>
-        {% for type_data in chicken_type_totals %}
-
-            <strong>{{ type_data.batch_type|title }}:</strong>
-            1 kg: {{ type_data.total_one_kg }} |
-            2 kg: {{ type_data.total_two_kg }} |
-            3 kg: {{ type_data.total_three_kg }}
-        {% endfor %}
-        {% else %}
-        <p>Sales are not listed available.</p>
-        {% endif %}
-       
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="dashboard-item">
-        <h2>Quick Actions</h2>
-        <button
-          class="action-button"
-          onclick="window.location.href='{% url 'stakeholderuser' %}'"
-        >
-          Manage Stakeholders
-        </button>
-        <button
-          class="action-button"
-          onclick="window.location.href='{% url 'customeruser' %}'"
-        >
-          Manage Customers
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesData = {
+        labels: ['1kg Chickens', '2kg Chickens', '3kg Chickens'],
+        datasets: [
+            {
+                label: 'Today',
+                data: [
+                    {{ todays_sales_data.0.total_one_kg }},
+                    {{ todays_sales_data.0.total_two_kg }},
+                    {{ todays_sales_data.0.total_three_kg }}
+                ],
+                backgroundColor: ['#4CAF50', '#FF9800', '#F44336']
+            },
+            {
+                label: 'This Week',
+                data: [
+                    {{ weekly_sales_data.0.total_one_kg }},
+                    {{ weekly_sales_data.0.total_two_kg }},
+                    {{ weekly_sales_data.0.total_three_kg }}
+                ],
+                backgroundColor: ['#2196F3', '#9C27B0', '#FFC107']
+            },
+            {
+                label: 'This Month',
+                data: [
+                    {{ monthly_sales_data.0.total_one_kg }},
+                    {{ monthly_sales_data.0.total_two_kg }},
+                    {{ monthly_sales_data.0.total_three_kg }}
+                ],
+                backgroundColor: ['#E91E63', '#009688', '#795548']
+            }
+        ]
+    };
+    var salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: salesData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Sales Overview (Daily, Weekly, Monthly)'
+                }
+            }
+        }
+    });
+</script>
 
 {% endblock %}

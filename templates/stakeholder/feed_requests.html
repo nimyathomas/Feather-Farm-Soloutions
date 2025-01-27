@@ -1,0 +1,268 @@
+{% extends 'stakeholder.html' %}
+{% block body %}
+<div class="feed-requests-container">
+    <div class="page-header">
+        <div class="header-content">
+            <h2>Feed Requests for Batch #{{ batch.id }}</h2>
+            <p class="batch-info">
+                {{ batch.batch_type|title }} Batch • 
+                {{ batch.initial_chick_count }} Birds • 
+                {{ batch_age }} Days Old
+            </p>
+        </div>
+        <a href="{% url 'request_feed' batch.id %}" class="btn-new-request">
+            <i class="fas fa-plus"></i> New Request
+        </a>
+    </div>
+
+    <div class="requests-grid">
+        {% for request in feed_requests %}
+        <div class="request-card">
+            <div class="request-header">
+                <span class="status-badge {{ request.status }}">{{ request.status|title }}</span>
+                <span class="request-date">{{ request.requested_date|date:"M d, Y" }}</span>
+            </div>
+
+            <div class="request-body">
+                <div class="info-row">
+                    <div class="info-item">
+                        <label>Feed Type</label>
+                        <span>{{ request.feed_type|title }} Feed</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Quantity</label>
+                        <span>{{ request.quantity }} kg</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <label>Required By</label>
+                        <span>{{ request.required_by_date|date:"M d, Y" }}</span>
+                    </div>
+                    {% if request.assigned_supplier %}
+                    <div class="info-item">
+                        <label>Supplier</label>
+                        <span>{{ request.assigned_supplier.name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if request.remarks %}
+                <div class="remarks">
+                    <label>Remarks</label>
+                    <p>{{ request.remarks }}</p>
+                </div>
+                {% endif %}
+
+                {% if request.bill_generated %}
+                <div class="bill-info">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <label>Price per kg</label>
+                            <span>₹{{ request.price_per_unit }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Total Amount</label>
+                            <span>₹{{ request.total_amount }}</span>
+                        </div>
+                    </div>
+                    <div class="payment-status {{ request.payment_status }}">
+                        {{ request.payment_status|title }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-requests">
+            <i class="fas fa-inbox"></i>
+            <p>No feed requests found for this batch</p>
+            <a href="{% url 'request_feed' batch.id %}" class="btn-new-request">
+                Create First Request
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.feed-requests-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-content h2 {
+    margin: 0;
+    color: #1e293b;
+}
+
+.batch-info {
+    color: #64748b;
+    margin: 0.5rem 0 0;
+}
+
+.btn-new-request {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #3b82f6;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-new-request:hover {
+    background: #2563eb;
+}
+
+.requests-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.request-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.pending { background: #fef3c7; color: #92400e; }
+.status-badge.approved { background: #dcfce7; color: #166534; }
+.status-badge.assigned { background: #dbeafe; color: #1e40af; }
+.status-badge.delivered { background: #f0fdf4; color: #166534; }
+.status-badge.rejected { background: #fee2e2; color: #991b1b; }
+
+.request-body {
+    padding: 1.5rem;
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item label {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.info-item span {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.remarks {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.remarks label {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.remarks p {
+    margin: 0;
+    color: #475569;
+}
+
+.bill-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.payment-status {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    text-align: center;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.payment-status.pending { background: #fef3c7; color: #92400e; }
+.payment-status.paid { background: #dcfce7; color: #166534; }
+
+.no-requests {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.no-requests i {
+    font-size: 3rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.no-requests p {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .feed-requests-container {
+        padding: 1rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .btn-new-request {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .info-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

@@ -66,7 +66,7 @@
           {% csrf_token %} {% if batch.batch_status == 'completed' %}
           <div class="form-group">
             <label for="one_kg_count" class="form-label"
-              >1 Kg Chickens Count</label
+              >Below 1 Kg Chickens Count</label
             >
             {{ form.one_kg_count }} {% if form.one_kg_count.errors %}
             <div class="text-danger">
@@ -78,7 +78,7 @@
           </div>
           <div class="form-group">
             <label for="two_kg_count" class="form-label"
-              >2 Kg Chickens Count</label
+              >1Kg-2 Kg Chickens Count</label
             >
             {{ form.two_kg_count }} {% if form.two_kg_count.errors %}
             <div class="text-danger">
@@ -90,7 +90,7 @@
           </div>
           <div class="form-group">
             <label for="three_kg_count" class="form-label"
-              >3 Kg Chickens Count</label
+              >Above 2 Kg Chickens Count</label
             >
             {{ form.three_kg_count }} {% if form.three_kg_count.errors %}
             <div class="text-danger">
@@ -104,14 +104,25 @@
           <!-- Show the default fields when the batch is not completed -->
           <div class="form-group">
             <label for="price_per_kg" class="form-label">Price Per Kg</label>
-            {{ batch.price_per_kg }}
+            {{ form.price_per_kg }} {% if form.price_per_kg.errors %}
+            <div class="text-danger">
+              {% for error in form.price_per_kg.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
           </div>
           <div class="form-group">
             <label for="price_per_batch" class="form-label"
               >Price Per Batch</label
             >
-            {{ batch.price_per_batch }}
-            
+            {{ form.price_per_batch }} {% if form.price_per_batch.errors %}
+            <div class="text-danger">
+              {% for error in form.price_per_batch.errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
           </div>
           <div class="form-group">
             <label for="batch_status" class="form-label">Batch Status</label>

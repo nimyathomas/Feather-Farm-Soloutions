@@ -1,47 +1,213 @@
-{% extends 'hoteldetials/dashboard.html' %} {% block content %}
+{% extends 'hoteldetials/dashboard.html' %}
+{% block content %}
 
-  {% if messages %} {% for message in messages %}
-  <p style="color: rgb(121, 234, 46)">{{ message }}</p>
-  {% endfor %} {% endif %}
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Product Name</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Payment</th>
-        <th>Order Date</th>
-        <th>Delivery Date</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for order in orders %}
-      <tr>
-        <td>{{order.id}}</td>
-        <td>{{order.user.name}}</td>
-        <td>
-          {% if order.one_kg_count > 0 %}{{ order.one_kg_count }}*1kg{% endif %}
-          {% if order.one_kg_count > 0 and order.two_kg_count > 0 or order.one_kg_count > 0 and order.three_kg_count > 0 %},&nbsp;{% endif %}
-          
-          {% if order.two_kg_count > 0 %}{{ order.two_kg_count }}*2kg{% endif %}
-          {% if order.two_kg_count > 0 and order.three_kg_count > 0 %},&nbsp;{% endif %}
-          
-          {% if order.three_kg_count > 0 %}{{ order.three_kg_count }}*3kg{% endif %}
-      </td>
-      
-        <td>{{order.price}}</td>
-        <td>{{order.payment_method}}</td>
-        <td>{{order.created_at}}</td>
-        <td>{{order.delivery_date}}</td>
-        <td class="{% if order.status == 'pending' %}status-pending{% elif order.status == 'completed' %}status-completed{% elif order.status == 'cancelled' %}status-cancelled{% endif %}">
-          {{ order.status|capfirst }}
-        </td>
-      
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="orders-container">
+    <!-- Messages Section -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="message success">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-  {% endblock %}
+    <!-- Orders Section -->
+    <div class="orders-section">
+        <div class="section-header">
+            <h2><i class="fas fa-shopping-cart"></i> Your Orders</h2>
+        </div>
+
+        <div class="table-container">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> Order ID</th>
+                        <th><i class="fas fa-warehouse"></i> Farm Name</th>
+                        <th><i class="fas fa-weight"></i> Quantity</th>
+                        <th><i class="fas fa-rupee-sign"></i> Price</th>
+                        <th><i class="fas fa-credit-card"></i> Payment</th>
+                        <th><i class="fas fa-calendar-alt"></i> Order Date</th>
+                        <th><i class="fas fa-truck"></i> Delivery Date</th>
+                        <th><i class="fas fa-info-circle"></i> Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="order-row">
+                        <td class="order-id">
+                            <span class="id-badge">#{{order.id}}</span>
+                        </td>
+                        <td class="farm-name">{{order.batch.farm.name}}</td>
+                        <td class="quantity">
+                            <div class="quantity-details">
+                                {% if order.one_kg_count > 0 %}
+                                <span class="quantity-badge">
+                                    <i class="fas fa-weight"></i> {{order.one_kg_count}} × 1kg
+                                </span>
+                                {% endif %}
+                                
+                                {% if order.two_kg_count > 0 %}
+                                <span class="quantity-badge">
+                                    <i class="fas fa-weight"></i> {{order.two_kg_count}} × 2kg
+                                </span>
+                                {% endif %}
+                                
+                                {% if order.three_kg_count > 0 %}
+                                <span class="quantity-badge">
+                                    <i class="fas fa-weight"></i> {{order.three_kg_count}} × 3kg
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="price">₹{{order.price}}</td>
+                        <td class="payment">{{order.payment_method}}</td>
+                        <td class="date">{{order.created_at|date:"d M Y"}}</td>
+                        <td class="date">{{order.delivery_date|date:"d M Y"}}</td>
+                        <td class="status">
+                            <span class="status-badge {{order.status}}">
+                                {{ order.status|capfirst }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .orders-container {
+        padding: 2rem;
+        background: #f8fafc;
+        border-radius: 15px;
+    }
+
+    .messages-container {
+        margin-bottom: 2rem;
+    }
+
+    .message {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem;
+        border-radius: 10px;
+        background: #c6f6d5;
+        color: #2f855a;
+    }
+
+    .section-header {
+        margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: #2d3748;
+        font-size: 1.5rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .orders-table th {
+        background: #f8fafc;
+        padding: 1rem;
+        font-weight: 600;
+        color: #4a5568;
+        text-align: left;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .orders-table th i {
+        margin-right: 0.5rem;
+        color: #4299e1;
+    }
+
+    .orders-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #4a5568;
+    }
+
+    .order-row:hover {
+        background: #f8fafc;
+    }
+
+    .id-badge {
+        background: #edf2f7;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .quantity-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .quantity-badge {
+        background: #ebf8ff;
+        color: #3182ce;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-badge.pending {
+        background: #fefcbf;
+        color: #975a16;
+    }
+
+    .status-badge.completed {
+        background: #c6f6d5;
+        color: #2f855a;
+    }
+
+    .status-badge.cancelled {
+        background: #fed7d7;
+        color: #c53030;
+    }
+
+    @media (max-width: 1024px) {
+        .orders-container {
+            padding: 1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .quantity-details {
+            flex-direction: column;
+        }
+    }
+</style>
+
+{% endblock %}
