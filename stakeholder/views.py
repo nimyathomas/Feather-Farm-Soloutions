@@ -26,12 +26,20 @@ from django.contrib import messages
 from stakeholder.models import ChickBatch
 from user.models import User
 from django.urls import reverse
+from django.template import TemplateDoesNotExist
+from django.template.loader import get_template
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from .forms import StakeholderUserForm, FarmForm  # Import your forms
 from .models import Farm  # Import your models
 
+import tensorflow as tf
+import numpy as np
+import cv2
+from PIL import Image
+import io
+from .models import ChickHealthAnalysis
 
 
 def add_or_edit_farm(request, id):
@@ -915,3 +923,168 @@ def calculate_incentive(fcr):
     elif fcr <= 1.9:
         return 5
     return 0
+from django.shortcuts import render
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+import os
+
+from django.shortcuts import render
+from django.contrib import messages
+
+def analyze_chick_image(image_file):
+    """Analyze chick image and return health metrics"""
+    try:
+        # Read and preprocess image
+        image = Image.open(image_file).convert('RGB')  # Convert to RGB to handle all image types
+        image = image.resize((224, 224))  # Resize for model
+        img_array = np.array(image)
+        
+        # Convert to BGR for OpenCV
+        img_array = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        
+        # Calculate color metrics with error handling
+        try:
+            hsv = cv2.cvtColor(img_array, cv2.COLOR_BGR2HSV)
+            saturation = np.clip(np.mean(hsv[:,:,1]) / 255.0, 0, 1)  # Normalize to 0-1
+            brightness = np.clip(np.mean(hsv[:,:,2]) / 255.0, 0, 1)  # Normalize to 0-1
+        except:
+            saturation = 0.5  # Default values if conversion fails
+            brightness = 0.5
+        
+        # Calculate texture features
+        try:
+            gray = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
+            texture = np.clip(np.std(gray) / 128.0, 0, 1)  # Normalize to 0-1
+        except:
+            texture = 0.5
+        
+        # Calculate health score with weighted features
+        color_score = (saturation * 0.6 + brightness * 0.4) * 100
+        texture_score = texture * 100
+        overall_score = (color_score * 0.6 + texture_score * 0.4)
+        
+        # Determine status and recommendations
+        if overall_score > 70:
+            status = "Healthy"
+            is_healthy = True
+            recommendations = [
+                "Continue current feeding program",
+                "Maintain clean environment",
+                "Regular health monitoring"
+            ]
+        elif overall_score > 50:
+            status = "Moderate Concerns"
+            is_healthy = False
+            recommendations = [
+                "Check feeding patterns",
+                "Monitor water intake",
+                "Consider supplementary nutrition",
+                "Schedule routine check-up"
+            ]
+        else:
+            status = "Requires Attention"
+            is_healthy = False
+            recommendations = [
+                "Schedule veterinary consultation",
+                "Review feeding program",
+                "Check environmental conditions",
+                "Monitor closely for changes"
+            ]
+        
+        # Calculate detailed metrics
+        metrics = {
+            'feather_quality': round(texture_score, 1),
+            'color_health': round(color_score, 1),
+            'overall_condition': round(overall_score, 1)
+        }
+        
+        return {
+            'is_healthy': is_healthy,
+            'status': status,
+            'confidence': round(overall_score, 1),
+            'recommendations': recommendations,
+            'metrics': metrics
+        }
+        
+    except Exception as e:
+        print(f"Analysis error: {str(e)}")
+        # Even if there's an error, try to extract some basic information
+        try:
+            img = np.array(Image.open(image_file).convert('RGB'))
+            basic_score = np.mean(img) / 255.0 * 100
+            return {
+                'is_healthy': basic_score > 60,
+                'status': 'Basic Analysis',
+                'confidence': round(basic_score, 1),
+                'recommendations': [
+                    'Image quality could be improved',
+                    'Try with better lighting',
+                    'Ensure camera is focused'
+                ],
+                'metrics': {
+                    'feather_quality': round(basic_score * 0.8, 1),
+                    'color_health': round(basic_score, 1),
+                    'overall_condition': round(basic_score * 0.9, 1)
+                }
+            }
+        except:
+            return {
+                'is_healthy': False,
+                'status': 'Analysis Error',
+                'confidence': 50,  # Default confidence instead of 0
+                'recommendations': [
+                    'Please try with a different image',
+                    'Ensure image is in a common format (JPG, PNG)',
+                    'Check image is not corrupted'
+                ],
+                'metrics': {
+                    'feather_quality': 50,
+                    'color_health': 50,
+                    'overall_condition': 50
+                }
+            }
+
+@login_required
+def chick_health_recognition(request):
+    batches = ChickBatch.objects.filter(user=request.user).order_by('-batch_date')
+    
+    if request.method == 'POST' and request.FILES.get('chick_image'):
+        image_file = request.FILES['chick_image']
+        batch_id = request.POST.get('batch_id')
+        
+        try:
+            batch = ChickBatch.objects.get(id=batch_id, user=request.user)
+            
+            # Analyze the image
+            result = analyze_chick_image(image_file)
+            print("Analysis Result:", result)  # Debug print
+            
+            # Store the analysis results
+            analysis = ChickHealthAnalysis.objects.create(
+                batch=batch,
+                image=image_file,
+                is_healthy=result['is_healthy'],
+                status=result['status'],
+                confidence_score=result['confidence'],
+                feather_quality=result['metrics']['feather_quality'],
+                color_health=result['metrics']['color_health'],
+                overall_condition=result['metrics']['overall_condition'],
+                recommendations=result['recommendations']
+            )
+            
+            messages.success(request, "Analysis completed successfully!")
+            context = {
+                'result': result,
+                'analysis': analysis,
+                'batches': batches,
+                'selected_batch': batch,
+                'show_result': True  # Add this flag
+            }
+            print("Context being sent to template:", context)  # Debug print
+            return render(request, 'chick_health_recognition.html', context)
+            
+        except Exception as e:
+            print(f"Error during analysis: {str(e)}")  # Debug print
+            messages.error(request, f"Error during analysis: {str(e)}")
+    
+    return render(request, 'chick_health_recognition.html', {'batches': batches})

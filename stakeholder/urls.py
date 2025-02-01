@@ -164,7 +164,8 @@ urlpatterns = [
     
     # path('api/chat/',views.chat_api, name='chat_api')
     
-    
+    path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
+
     
    
 ]

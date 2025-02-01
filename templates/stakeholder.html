@@ -63,7 +63,7 @@
                 <a href="#" class="{% if request.path == '#' %}active{% endif %}">🐥 Upliftments</a>
             </li>
             <li>
-                <a href="#" class="{% if request.path == '#' %}active{% endif %}">💳 Transactions</a>
+              <a href="{% url 'chick_health_recognition' %}" class="{% if request.path == 'chick_health_recognition' %}active{% endif %}">🔍 Chick Health Scanner</a>
             </li>
         </ul>
         

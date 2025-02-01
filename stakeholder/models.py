@@ -415,3 +415,29 @@ class SuccessStory(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.owner.email}"
+
+class ChickHealthAnalysis(models.Model):
+    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE, related_name='health_analyses')
+    image = models.ImageField(upload_to='chick_health_images/')
+    analyzed_date = models.DateTimeField(auto_now_add=True)
+    
+    # Analysis Results
+    is_healthy = models.BooleanField()
+    status = models.CharField(max_length=100)
+    confidence_score = models.FloatField()
+    
+    # Detailed Metrics
+    feather_quality = models.FloatField()
+    color_health = models.FloatField()
+    overall_condition = models.FloatField()
+    
+    # Recommendations stored as JSON
+    recommendations = models.JSONField()
+
+    def __str__(self):
+        return f"Health Analysis for Batch {self.batch.id} on {self.analyzed_date}"
+
+    class Meta:
+        ordering = ['-analyzed_date']
+        
+
