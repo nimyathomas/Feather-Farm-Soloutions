@@ -124,7 +124,20 @@ class Vaccine(models.Model):
     manufacturer = models.CharField(max_length=100)
     doses_required = models.PositiveIntegerField()
     interval_days = models.PositiveIntegerField()  # Days between doses
+    expiry_date = models.DateField(null=True, blank=True)  # Add this field if not present
+# New Stock Management Fields
+    current_stock = models.PositiveIntegerField(default=0,help_text="Current available stock")# New field for expiry date
     created_at = models.DateTimeField(auto_now_add=True)
+    STOCK_STATUS_CHOICES = [
+        ('IN_STOCK', 'In Stock'),
+        ('LOW_STOCK', 'Low Stock'),
+        ('OUT_OF_STOCK', 'Out of Stock')
+    ]
+    stock_status = models.CharField(
+        max_length=20,
+        choices=STOCK_STATUS_CHOICES,
+        default='OUT_OF_STOCK'
+    )
 
     def __str__(self):
         return self.name
@@ -136,7 +149,6 @@ class VaccinationRecord(models.Model):
     dose_number = models.PositiveIntegerField()
     scheduled_date = models.DateField()
     administered_date = models.DateField(null=True, blank=True)
-
     status = models.CharField(
         max_length=10,
         choices=[("pending", "Pending"), ("completed", "Completed")],

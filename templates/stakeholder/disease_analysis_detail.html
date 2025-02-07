@@ -1,0 +1,126 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="row my-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="text-primary mb-0">
+                    <i class="fas fa-microscope me-2"></i>Analysis Details
+                </h2>
+                <a href="{% url 'disease_analysis_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Details Card -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="{{ analysis.image.url }}" 
+                                 alt="Analysis Image" 
+                                 class="img-fluid rounded mb-3">
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Analysis Results</h4>
+                            <table class="table">
+                                <tr>
+                                    <th>Date:</th>
+                                    <td>{{ analysis.analyzed_date|date:"M d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Batch:</th>
+                                    <td>Batch #{{ analysis.batch.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Disease:</th>
+                                    <td>
+                                        <span class="badge {% if analysis.predicted_disease == 'healthy' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ analysis.predicted_disease }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Confidence:</th>
+                                    <td>{{ analysis.confidence_score|floatformat:1 }}%</td>
+                                </tr>
+                            </table>
+
+                            {% if analysis.symptoms_detected %}
+                            <div class="mt-4">
+                                <h5>Detected Symptoms:</h5>
+                                <ul class="list-unstyled">
+                                    {% for symptom in analysis.symptoms_detected %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                                        {{ symptom }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <!-- Add this after the analysis results -->
+                            <div class="feedback-section mt-4">
+                                <h4>Feedback</h4>
+                                <form method="POST" action="{% url 'provide_feedback' analysis.id %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label>Was this prediction correct?</label>
+                                        <select name="correct_label" class="form-control" required>
+                                            <option value="">Select actual condition...</option>
+                                            <option value="healthy">Healthy</option>
+                                            <option value="coccidiosis">Coccidiosis</option>
+                                            <option value="salmonella">Salmonella</option>
+                                            <option value="aspergillosis">Aspergillosis</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-2">Submit Feedback</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    {% if analysis.predicted_disease == 'healthy' %}
+                    <div class="text-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        No immediate action required. Continue regular monitoring.
+                    </div>
+                    {% else %}
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-hospital me-2 text-danger"></i>
+                            Consult a veterinarian immediately
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-shield-virus me-2 text-warning"></i>
+                            Isolate affected birds
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-temperature-high me-2 text-info"></i>
+                            Monitor temperature closely
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

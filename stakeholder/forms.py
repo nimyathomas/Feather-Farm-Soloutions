@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from .models import FeedMonitoring
+from .models import FeedMonitoring, DiseaseAnalysis
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now  # Use timezone-aware date
@@ -201,3 +201,15 @@ class FeedMonitoringForm(forms.ModelForm):
         if feed_wastage < 0:
             raise forms.ValidationError("Feed wastage cannot be negative.")
         return feed_wastage
+
+
+class DiseaseAnalysisForm(forms.ModelForm):
+    class Meta:
+        model = DiseaseAnalysis
+        fields = ['image']
+        widgets = {
+            'image': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
+        }

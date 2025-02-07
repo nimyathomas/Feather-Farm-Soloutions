@@ -2,266 +2,462 @@
 {% load static %}
 {% block body %}
 
-<div class="max-w-7xl mx-auto grid grid-cols-12 gap-6 p-4 min-h-screen bg-gray-50">
-    <!-- Left Sidebar - Forum List -->
-    <div class="col-span-4 bg-white rounded-lg shadow-sm p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Discussions</h2>
-            <button onclick="showNewPostModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                <i class="fas fa-plus"></i>
-                New Post
-            </button>
-        </div>
-
-        <!-- Forum Categories -->
-        <div class="mb-6">
-            <div class="flex gap-2 mb-4 overflow-x-auto">
-                <button class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">All Posts</button>
-                <button class="px-4 py-2 hover:bg-gray-100 rounded-full text-sm text-gray-600">FCR Discussion</button>
-                <button class="px-4 py-2 hover:bg-gray-100 rounded-full text-sm text-gray-600">Health & Safety</button>
-                <button class="px-4 py-2 hover:bg-gray-100 rounded-full text-sm text-gray-600">Best Practices</button>
+<div class="max-w-7xl mx-auto p-4 min-h-screen bg-gray-50">
+    <!-- Forum Header with New Post Button -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Farmer Community Forum</h1>
+                <p class="text-gray-600 mt-1">Connect, share experiences, and learn from fellow farmers</p>
             </div>
-        </div>
-
-        <!-- Posts List -->
-        <div class="space-y-3 overflow-y-auto max-h-[calc(100vh-300px)]">
-            {% for post in posts %}
-            <div class="group hover:bg-gray-50 p-4 rounded-lg border border-gray-200 cursor-pointer transition-all"
-                 onclick="window.location.href='{% url 'forum' post.id %}'">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span class="text-blue-600 font-semibold">{{ post.owner.full_name|make_list|first }}</span>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ post.title }}</h3>
-                            <p class="text-sm text-gray-500">{{ post.owner.full_name }} • {{ post.created_at|timesince }} ago</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm text-gray-500">
-                        <span class="flex items-center gap-1">
-                            <i class="far fa-comment"></i>
-                            {{ post.comment_count }}
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <i class="far fa-eye"></i>
-                            {{ post.view_count }}
-                        </span>
-                    </div>
-                </div>
+            <div class="flex items-center gap-4">
+                <button onclick="showNewPostModal()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                    <i class="fas fa-plus"></i>
+                    Share Experience
+                </button>
             </div>
-            {% endfor %}
         </div>
     </div>
 
-    <!-- Right Content - Post Detail -->
-    <div class="col-span-8 bg-white rounded-lg shadow-sm p-6">
-        {% if selected_post %}
-            <!-- Post Header -->
-            <div class="border-b pb-6 mb-6">
-                <div class="flex justify-between items-start mb-4">
-                    <h1 class="text-3xl font-bold text-gray-900">{{ selected_post.title }}</h1>
-                    <div class="flex gap-2">
-                        <button onclick="speakPost()" class="text-gray-600 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="text-gray-600 hover:text-gray-800 p-2 rounded-full hover:bg-gray-100">
-                                <i class="fas fa-share-alt"></i>
-                            </button>
-                            <div x-show="open" @click.away="open = false" 
-                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg p-2 border">
-                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
-                                   target="_blank" 
-                                   class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700">
-                                    <i class="fab fa-facebook text-blue-600"></i>
-                                    Facebook
-                                </a>
-                                <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ selected_post.title }}" 
-                                   target="_blank" 
-                                   class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700">
-                                    <i class="fab fa-twitter text-blue-400"></i>
-                                    Twitter
-                                </a>
-                                <a href="https://www.linkedin.com/shareArticle?url={{ request.build_absolute_uri }}&title={{ selected_post.title }}" 
-                                   target="_blank" 
-                                   class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700">
-                                    <i class="fab fa-linkedin text-blue-700"></i>
-                                    LinkedIn
-                                </a>
-                                <button onclick="copyLink()" 
-                                        class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg text-gray-700 w-full">
-                                    <i class="fas fa-link text-gray-600"></i>
-                                    Copy Link
+    <!-- Main Content Area -->
+    <div class="grid grid-cols-12 gap-6">
+        <!-- Left Sidebar - Categories -->
+        <div class="col-span-3">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Categories</h2>
+                <nav class="space-y-2">
+                    <a href="?category=all" 
+                       class="flex items-center justify-between px-4 py-2 rounded-lg {% if current_category == 'all' %}bg-blue-50 text-blue-700{% else %}hover:bg-gray-50 text-gray-700{% endif %}">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-layer-group"></i>
+                            All Topics
+                        </span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            {{ category_counts.all }}
+                        </span>
+                    </a>
+                    <a href="?category=fcr" 
+                       class="flex items-center justify-between px-4 py-2 rounded-lg {% if current_category == 'fcr' %}bg-blue-50 text-blue-700{% else %}hover:bg-gray-50 text-gray-700{% endif %}">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-chart-line"></i>
+                            FCR Discussion
+                        </span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            {{ category_counts.fcr }}
+                        </span>
+                    </a>
+                    <a href="?category=health" 
+                       class="flex items-center justify-between px-4 py-2 rounded-lg {% if current_category == 'health' %}bg-blue-50 text-blue-700{% else %}hover:bg-gray-50 text-gray-700{% endif %}">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-heartbeat"></i>
+                            Health & Safety
+                        </span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            {{ category_counts.health }}
+                        </span>
+                    </a>
+                    <a href="?category=best_practices" 
+                       class="flex items-center justify-between px-4 py-2 rounded-lg {% if current_category == 'best_practices' %}bg-blue-50 text-blue-700{% else %}hover:bg-gray-50 text-gray-700{% endif %}">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-star"></i>
+                            Best Practices
+                        </span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                            {{ category_counts.best_practices }}
+                        </span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content - Posts and Post Detail -->
+        <div class="col-span-9">
+            {% if selected_post %}
+                <!-- Post Detail View -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <div class="p-6 border-b">
+                        <div class="flex justify-between items-start mb-4">
+                            <h1 class="text-2xl font-bold text-gray-900">{{ selected_post.title }}</h1>
+                            <div class="flex gap-2">
+                                <button onclick="startTextToSpeech()" class="text-gray-600 hover:text-blue-600 p-2">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                                <button onclick="sharePost()" class="text-gray-600 hover:text-blue-600 p-2">
+                                    <i class="fas fa-share-alt"></i>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 text-sm text-gray-500">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span class="text-blue-600 font-semibold">{{ selected_post.owner.full_name|make_list|first }}</span>
-                        </div>
-                        <span>{{ selected_post.owner.full_name }}</span>
-                    </div>
-                    <span>•</span>
-                    <span>{{ selected_post.created_at|date:"d M Y, H:i" }}</span>
-                </div>
-            </div>
-
-            <!-- Post Content -->
-            <div class="prose max-w-none mb-8" id="post-text">
-                {{ selected_post.content|linebreaks }}
-            </div>
-
-            <!-- Comments Section -->
-            <div class="border-t pt-6">
-                <h3 class="text-xl font-semibold mb-6">Comments ({{ comments|length }})</h3>
-                
-                <!-- New Comment Form -->
-                <form method="post" class="mb-8">
-                    {% csrf_token %}
-                    <div class="flex gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center">
-                            <span class="text-blue-600 font-semibold">{{ request.user.full_name|make_list|first }}</span>
-                        </div>
-                        <div class="flex-grow">
-                            <textarea
-                                name="comment_content"
-                                placeholder="Add to the discussion"
-                                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                rows="3"
-                                required
-                            ></textarea>
-                            <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                Post Comment
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <!-- Comments List -->
-                <div class="space-y-6">
-                    {% for comment in comments %}
-                    <div class="flex gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center">
-                            <span class="text-blue-600 font-semibold">{{ comment.owner.full_name|make_list|first }}</span>
-                        </div>
-                        <div class="flex-grow">
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-semibold text-gray-900">{{ comment.owner.full_name }}</span>
-                                    <span class="text-sm text-gray-500">{{ comment.created_at|timesince }} ago</span>
+                        <div class="flex items-center gap-4 text-sm text-gray-500 mb-6">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span class="text-blue-600 font-semibold">{{ selected_post.owner.full_name|make_list|first }}</span>
                                 </div>
-                                <p class="text-gray-700">{{ comment.content }}</p>
+                                <span>{{ selected_post.owner.full_name }}</span>
+                            </div>
+                            <span>•</span>
+                            <span>{{ selected_post.created_at|date:"d M Y, H:i" }}</span>
+                            <span class="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                                {{ selected_post.get_category_display }}
+                            </span>
+                        </div>
+                        <div class="prose max-w-none" id="post-content">
+                            {{ selected_post.content|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Comments ({{ comments|length }})</h3>
+                        
+                        <!-- New Comment Form -->
+                        <div class="mb-6">
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 font-semibold">{{ request.user.full_name|make_list|first }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="relative">
+                                        <textarea id="commentInput" 
+                                                placeholder="Add to the discussion..."
+                                                class="w-full border rounded-lg p-3 pr-12 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                rows="3"></textarea>
+                                        <button onclick="startVoiceInput('comment')" 
+                                                class="absolute right-2 bottom-2 text-gray-500 hover:text-blue-600">
+                                            <i class="fas fa-microphone"></i>
+                                        </button>
+                                    </div>
+                                    <div class="flex justify-end mt-2">
+                                        <button onclick="submitComment()" 
+                                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                            Post Comment
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Comments List -->
+                        <div class="space-y-4" id="commentsList">
+                            {% for comment in comments %}
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 font-semibold">{{ comment.owner.full_name|make_list|first }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-semibold">{{ comment.owner.full_name }}</span>
+                                            <span class="text-sm text-gray-500">{{ comment.created_at|timesince }} ago</span>
+                                        </div>
+                                        <p>{{ comment.content }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-        {% else %}
-            <div class="text-center py-12">
-                <i class="fas fa-comments text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-600">Select a post from the left to view its content and join the discussion.</p>
-            </div>
-        {% endif %}
+            {% else %}
+                <!-- Posts List -->
+                <div class="bg-white rounded-lg shadow-sm">
+                    <!-- Category Header -->
+                    <div class="border-b border-gray-200 p-4">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            {% if current_category == 'all' %}
+                                All Discussions
+                            {% elif current_category == 'fcr' %}
+                                FCR Discussions
+                            {% elif current_category == 'health' %}
+                                Health & Safety Topics
+                            {% elif current_category == 'best_practices' %}
+                                Best Practices
+                            {% endif %}
+                        </h2>
+                    </div>
+
+                    <!-- Posts List -->
+                    <div class="divide-y divide-gray-200">
+                        {% for post in posts %}
+                        <div class="p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 font-semibold text-lg">{{ post.owner.full_name|make_list|first }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="text-lg font-semibold text-gray-900 hover:text-blue-600">
+                                            <a href="{% url 'forum' post.id %}?category={{ current_category }}">{{ post.title }}</a>
+                                        </h3>
+                                        <span class="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                                            {{ post.get_category_display }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span class="flex items-center gap-1">
+                                            <i class="far fa-user"></i>
+                                            {{ post.owner.full_name }}
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i class="far fa-clock"></i>
+                                            {{ post.created_at|timesince }} ago
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <i class="far fa-comment"></i>
+                                            {{ post.comments.count }} comments
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-8 text-center">
+                            <div class="text-gray-400 mb-4">
+                                <i class="fas fa-comments text-5xl"></i>
+                            </div>
+                            {% if current_category == 'all' %}
+                                <p class="text-gray-600">No discussions have been started yet.</p>
+                            {% else %}
+                                <p class="text-gray-600">No discussions found in this category.</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <!-- New Post Modal -->
-<div id="newPostModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-    <div class="bg-white rounded-lg p-6 w-full max-w-xl">
+<div id="newPostModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Create New Post</h3>
+            <h3 class="text-xl font-semibold">Share Your Experience</h3>
             <button onclick="hideNewPostModal()" class="text-gray-500 hover:text-gray-700">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
+        <div class="space-y-4">
             <div>
-                <input
-                    type="text"
-                    name="post_title"
-                    placeholder="Post Title"
-                    class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                />
+                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" id="postTitle" 
+                       class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Give your post a title">
             </div>
             <div>
-                <textarea
-                    id="post_content"
-                    name="post_content"
-                    placeholder="Write your post content..."
-                    class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows="6"
-                    required
-                ></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select id="postCategory" 
+                        class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="fcr">FCR Discussion</option>
+                    <option value="health">Health & Safety</option>
+                    <option value="best_practices">Best Practices</option>
+                    <option value="general">General Discussion</option>
+                </select>
             </div>
-            <div class="flex justify-between">
-                <button type="button" onclick="startVoiceRecognition()" 
-                        class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700">
-                    <i class="fas fa-microphone"></i>
-                    Voice Input
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <div class="relative">
+                    <textarea id="postContent" rows="6" 
+                            class="w-full border rounded-lg p-3 pr-12 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Share your thoughts..."></textarea>
+                    <button onclick="startVoiceInput('post')" 
+                            class="absolute right-2 bottom-2 text-gray-500 hover:text-blue-600">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="hideNewPostModal()" 
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    Cancel
                 </button>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                <button onclick="submitPost()" 
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
                     Publish Post
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <script>
-    function startVoiceRecognition() {
-        if ('webkitSpeechRecognition' in window) {
-            let recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
+// Voice Recognition
+function startVoiceInput(type) {
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
 
-            recognition.onstart = function() {
-                alert('Voice recognition started. Please speak...');
-            };
+        recognition.onstart = () => {
+            showToast('Listening... Speak now');
+        };
 
-            recognition.onresult = function(event) {
-                document.getElementById('post_content').value = event.results[0][0].transcript;
-            };
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            if (type === 'post') {
+                const currentText = document.getElementById('postContent').value;
+                document.getElementById('postContent').value = currentText + ' ' + text;
+            } else {
+                const currentText = document.getElementById('commentInput').value;
+                document.getElementById('commentInput').value = currentText + ' ' + text;
+            }
+        };
 
-            recognition.onerror = function(event) {
-                alert('Error occurred in recognition: ' + event.error);
-            };
+        recognition.onerror = (event) => {
+            showToast('Error: ' + event.error);
+        };
 
-            recognition.start();
+        recognition.start();
+    } else {
+        showToast('Speech recognition is not supported in your browser');
+    }
+}
+
+// Text to Speech
+function startTextToSpeech() {
+    const text = document.getElementById('post-content').innerText;
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+}
+
+// Share Post
+function sharePost() {
+    if (navigator.share) {
+        navigator.share({
+            title: document.title,
+            url: window.location.href
+        });
+    } else {
+        // Fallback
+        const dummy = document.createElement('input');
+        document.body.appendChild(dummy);
+        dummy.value = window.location.href;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        showToast('Link copied to clipboard!');
+    }
+}
+
+// Toast Notification
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Modal Controls
+function showNewPostModal() {
+    document.getElementById('newPostModal').style.display = 'flex';
+}
+
+function hideNewPostModal() {
+    document.getElementById('newPostModal').style.display = 'none';
+}
+
+// AJAX Submissions
+async function submitPost() {
+    const title = document.getElementById('postTitle').value;
+    const content = document.getElementById('postContent').value;
+    const category = document.getElementById('postCategory').value;
+
+    try {
+        const response = await fetch('{% url "forum_dashboard" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                post_title: title,
+                post_content: content,
+                post_category: category
+            })
+        });
+
+        if (response.ok) {
+            location.reload();
         } else {
-            alert('Your browser does not support speech recognition.');
+            showToast('Error creating post');
+        }
+    } catch (error) {
+        showToast('Error: ' + error.message);
+    }
+}
+
+async function submitComment() {
+    const content = document.getElementById('commentInput').value;
+    const postId = '{{ selected_post.id }}';
+
+    try {
+        const response = await fetch(`{% url "forum_dashboard" %}${postId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                comment_content: content
+            })
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            showToast('Error posting comment');
+        }
+    } catch (error) {
+        showToast('Error: ' + error.message);
+    }
+}
+
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
         }
     }
-
-    function speakPost() {
-        let text = document.getElementById("post-text").innerText;
-        let speech = new SpeechSynthesisUtterance();
-        speech.lang = "en-US";
-        speech.text = text;
-        speech.rate = 1;
-        speech.pitch = 1;
-        window.speechSynthesis.speak(speech);
-    }
-
-    function showNewPostModal() {
-        document.getElementById('newPostModal').style.display = 'flex';
-    }
-
-    function hideNewPostModal() {
-        document.getElementById('newPostModal').style.display = 'none';
-    }
-
-    function copyLink() {
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-    }
+    return cookieValue;
+}
 </script>
+
+<style>
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c5c5c5;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
 
 {% endblock %}

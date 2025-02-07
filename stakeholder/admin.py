@@ -1,8 +1,10 @@
 from django.contrib import admin
-from stakeholder.models import ChickBatch, DailyData, Farm
+from stakeholder.models import ChickBatch, DailyData, Farm,SuccessStory
 
 admin.site.register(ChickBatch)
 admin.site.register(DailyData)
+admin.site.register(SuccessStory)
+
 
 from user.models import Supplier
 
@@ -39,5 +41,4 @@ class SupplierAdmin(admin.ModelAdmin):
 
 # Register Supplier with custom admin
 admin.site.register(Supplier, SupplierAdmin)
-
 admin.site.register(Farm)

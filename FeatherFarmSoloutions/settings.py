@@ -94,25 +94,25 @@ ASGI_APPLICATION = 'FeatherFarmSoloutions.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'featherfarm',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',  # Set to your database host
-#         'PORT': '3306',       # Default MySQL port
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#         }
-#     }
-# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",  # Database engine
-        "NAME": BASE_DIR / "db.sqlite3",  # Path to database file
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'featherfarm',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',  # Set to your database host
+        'PORT': '3306',       # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",  # Database engine
+#         "NAME": BASE_DIR / "db.sqlite3",  # Path to database file
+#     }
+# }
 
 
 # DATABASES = {
@@ -227,3 +227,6 @@ LOGIN_REDIRECT_URL = "/login/"
 LOGOUT_REDIRECT_URL = "/"
 
 AUTH_USER_MODEL = "user.User"
+
+# Path to the model in stakeholder app
+MODEL_PATH = os.path.join(BASE_DIR, 'stakeholder', 'models', 'disease_model.h5')

@@ -39,7 +39,9 @@ import numpy as np
 import cv2
 from PIL import Image
 import io
-from .models import ChickHealthAnalysis
+import os
+from django.conf import settings
+
 
 
 def add_or_edit_farm(request, id):
@@ -112,13 +114,23 @@ def stakeholder(request):
     today = timezone.now().date()
 
     farm = Farm.objects.filter(owner=user).first()
-    # Fetch chick batches
-    chick_batches = farm.chick_batches.all().order_by("-batch_date")
-    total_chick_count = sum(batch.initial_chick_count for batch in chick_batches)
+    try:
+        # Ensure farm has chick_batches attribute
+            if hasattr(farm, 'chick_batches'):
+                 chick_batches = farm.chick_batches.all().order_by("-batch_date")
+                 total_chick_count = sum(batch.initial_chick_count for batch in chick_batches)
+            else:
+                chick_batches = []
+                total_chick_count = 0  # Default value if attribute is missing
+    except AttributeError as e:
+        chick_batches = []
+        total_chick_count = 0
+        print(f"Error: {e}")  # Log the error for debugging
 
-    # Fetch location from query parameters (not from the User model)
+# Fetch location from query parameters
     latitude = request.GET.get("lat")
     longitude = request.GET.get("lon")
+
 
     # Set up OpenWeatherMap client
     api_key = "6a0179abe35c7736af4f3f57bd4da77e"
@@ -931,160 +943,349 @@ import os
 from django.shortcuts import render
 from django.contrib import messages
 
-def analyze_chick_image(image_file):
-    """Analyze chick image and return health metrics"""
-    try:
-        # Read and preprocess image
-        image = Image.open(image_file).convert('RGB')  # Convert to RGB to handle all image types
-        image = image.resize((224, 224))  # Resize for model
-        img_array = np.array(image)
-        
-        # Convert to BGR for OpenCV
-        img_array = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-        
-        # Calculate color metrics with error handling
-        try:
-            hsv = cv2.cvtColor(img_array, cv2.COLOR_BGR2HSV)
-            saturation = np.clip(np.mean(hsv[:,:,1]) / 255.0, 0, 1)  # Normalize to 0-1
-            brightness = np.clip(np.mean(hsv[:,:,2]) / 255.0, 0, 1)  # Normalize to 0-1
-        except:
-            saturation = 0.5  # Default values if conversion fails
-            brightness = 0.5
-        
-        # Calculate texture features
-        try:
-            gray = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
-            texture = np.clip(np.std(gray) / 128.0, 0, 1)  # Normalize to 0-1
-        except:
-            texture = 0.5
-        
-        # Calculate health score with weighted features
-        color_score = (saturation * 0.6 + brightness * 0.4) * 100
-        texture_score = texture * 100
-        overall_score = (color_score * 0.6 + texture_score * 0.4)
-        
-        # Determine status and recommendations
-        if overall_score > 70:
-            status = "Healthy"
-            is_healthy = True
-            recommendations = [
-                "Continue current feeding program",
-                "Maintain clean environment",
-                "Regular health monitoring"
-            ]
-        elif overall_score > 50:
-            status = "Moderate Concerns"
-            is_healthy = False
-            recommendations = [
-                "Check feeding patterns",
-                "Monitor water intake",
-                "Consider supplementary nutrition",
-                "Schedule routine check-up"
-            ]
+
+# stakeholder/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import DiseaseAnalysis, ChickBatch
+from .forms import DiseaseAnalysisForm
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+import io
+
+@login_required
+def disease_analysis_list(request):
+    """View to display list of disease analyses"""
+    analyses = DiseaseAnalysis.objects.filter(
+        batch__user=request.user
+    ).order_by('-analyzed_date')
+    
+    return render(request, 'stakeholder/disease_analysis_list.html', {
+        'analyses': analyses
+    })
+
+@login_required
+def disease_analysis_detail(request, analysis_id):
+    """View to display details of a specific analysis"""
+    analysis = get_object_or_404(DiseaseAnalysis, 
+                                id=analysis_id, 
+                                batch__user=request.user)
+    
+    return render(request, 'stakeholder/disease_analysis_detail.html', {
+        'analysis': analysis
+    })
+
+@login_required
+def create_disease_analysis(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = DiseaseAnalysisForm(request.POST, request.FILES)
+        if form.is_valid():
+            analysis = form.save(commit=False)
+            analysis.batch = batch
+            analysis.created_by = request.user
+            
+            # Process the image and get predictions
+            try:
+                image = request.FILES['image']
+                prediction = predict_disease(image)
+                
+                analysis.predicted_disease = prediction['disease']
+                analysis.confidence_score = prediction['confidence']
+                analysis.symptoms_detected = prediction['symptoms']
+                
+                analysis.save()
+                messages.success(request, 'Disease analysis created successfully!')
+                return redirect('disease_analysis_detail', analysis_id=analysis.id)
+                
+            except Exception as e:
+                messages.error(request, f'Error processing image: {str(e)}')
         else:
-            status = "Requires Attention"
-            is_healthy = False
-            recommendations = [
-                "Schedule veterinary consultation",
-                "Review feeding program",
-                "Check environmental conditions",
-                "Monitor closely for changes"
-            ]
+            form = DiseaseAnalysisForm()
+    
+    return render(request, 'stakeholder/create_disease_analysis.html', {
+        'form': form,
+        'batch': batch
+    })
+
+def predict_disease(image_file):
+    """
+    Process image and predict disease with enhanced coccidiosis detection
+    """
+    try:
+        # 1. Load and preprocess image
+        image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
+        original_image = np.array(image)
         
-        # Calculate detailed metrics
-        metrics = {
-            'feather_quality': round(texture_score, 1),
-            'color_health': round(color_score, 1),
-            'overall_condition': round(overall_score, 1)
+        # 2. Analyze image characteristics
+        def analyze_image_features(img):
+            # Convert to different color spaces
+            hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+            lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+            
+            # Enhanced color analysis for coccidiosis
+            red_channel = img[:,:,0]
+            red_intensity = np.mean(red_channel) / 255.0
+            red_variation = np.std(red_channel) / 255.0
+            
+            # Analyze brown/reddish colors (typical in coccidiosis)
+            brown_mask = (img[:,:,0] > 100) & (img[:,:,1] < 150) & (img[:,:,2] < 150)
+            brown_ratio = np.sum(brown_mask) / (img.shape[0] * img.shape[1])
+            
+            # Return all features in a dictionary
+            return {
+                'red_intensity': red_intensity,
+                'red_variation': red_variation,
+                'brown_ratio': brown_ratio,
+                'texture': np.std(lab[:,:,0]) / 255.0
+            }
+        
+        # Get image features
+        features = analyze_image_features(original_image)
+        print("\nImage Features:")
+        for key, value in features.items():
+            print(f"{key}: {value:.3f}")
+        
+        # 3. Prepare image for model
+        image = image.resize((150, 150))
+        image_array = np.array(image) / 255.0
+        image_array = np.expand_dims(image_array, axis=0)
+        
+        # 4. Get model prediction
+        model = load_disease_model()
+        prediction = model.predict(image_array)
+        raw_predictions = prediction[0]
+        
+        diseases = ['healthy', 'coccidiosis', 'salmonella', 'aspergillosis']
+        
+        # 5. Apply coccidiosis-specific rules
+        coccidiosis_indicators = 0
+        
+        # Check red/brown coloration using features from the dictionary
+        if features['red_intensity'] > 0.4:
+            coccidiosis_indicators += 1
+        if features['brown_ratio'] > 0.2:
+            coccidiosis_indicators += 1
+        if features['red_variation'] > 0.15:
+            coccidiosis_indicators += 1
+        
+        # Get initial predictions
+        initial_predictions = {
+            disease: float(prob)
+            for disease, prob in zip(diseases, raw_predictions)
         }
         
+        print("\nInitial Predictions:")
+        for disease, prob in initial_predictions.items():
+            print(f"{disease}: {prob*100:.2f}%")
+        
+        # 6. Adjust predictions based on visual indicators
+        if coccidiosis_indicators >= 2:
+            print("\nDetected strong visual indicators of coccidiosis")
+            # Boost coccidiosis probability
+            initial_predictions['coccidiosis'] *= 2.0
+            initial_predictions['healthy'] *= 0.5
+        
+        # 7. Make final decision
+        if initial_predictions['coccidiosis'] > 0.3 or coccidiosis_indicators >= 2:
+            predicted_disease = 'coccidiosis'
+            confidence = min(initial_predictions['coccidiosis'] * 100 * 1.5, 100)
+        else:
+            predicted_disease = max(initial_predictions.items(), key=lambda x: x[1])[0]
+            confidence = initial_predictions[predicted_disease] * 100
+        
+        print("\nFinal Decision:")
+        print(f"Selected Disease: {predicted_disease}")
+        print(f"Confidence: {confidence:.2f}%")
+        print(f"Coccidiosis Indicators Found: {coccidiosis_indicators}")
+        
+        # Get symptoms for the predicted disease
+        symptoms = get_disease_symptoms(predicted_disease)
+        
         return {
-            'is_healthy': is_healthy,
-            'status': status,
-            'confidence': round(overall_score, 1),
-            'recommendations': recommendations,
-            'metrics': metrics
+            'disease': predicted_disease,
+            'confidence': float(confidence),
+            'symptoms': symptoms,
+            'all_predictions': {
+                disease: float(initial_predictions[disease] * 100)
+                for disease in diseases
+            },
+            'is_diseased': predicted_disease != 'healthy',
+            'status': 'Healthy' if predicted_disease == 'healthy' else 'Disease Detected',
+            'metrics': {
+                'severity': min(confidence, 100),
+                'urgency': 100 if predicted_disease != 'healthy' else 0
+            }
         }
         
     except Exception as e:
-        print(f"Analysis error: {str(e)}")
-        # Even if there's an error, try to extract some basic information
-        try:
-            img = np.array(Image.open(image_file).convert('RGB'))
-            basic_score = np.mean(img) / 255.0 * 100
-            return {
-                'is_healthy': basic_score > 60,
-                'status': 'Basic Analysis',
-                'confidence': round(basic_score, 1),
-                'recommendations': [
-                    'Image quality could be improved',
-                    'Try with better lighting',
-                    'Ensure camera is focused'
-                ],
-                'metrics': {
-                    'feather_quality': round(basic_score * 0.8, 1),
-                    'color_health': round(basic_score, 1),
-                    'overall_condition': round(basic_score * 0.9, 1)
-                }
-            }
-        except:
-            return {
-                'is_healthy': False,
-                'status': 'Analysis Error',
-                'confidence': 50,  # Default confidence instead of 0
-                'recommendations': [
-                    'Please try with a different image',
-                    'Ensure image is in a common format (JPG, PNG)',
-                    'Check image is not corrupted'
-                ],
-                'metrics': {
-                    'feather_quality': 50,
-                    'color_health': 50,
-                    'overall_condition': 50
-                }
-            }
+        print(f"Prediction error: {str(e)}")
+        raise ValueError(f"Error in disease prediction: {str(e)}")
+
+def get_disease_symptoms(disease):
+    """
+    Return common symptoms for each disease
+    """
+    symptoms_map = {
+        'coccidiosis': ['Bloody droppings', 'Lethargy', 'Ruffled feathers'],
+        'salmonella': ['Diarrhea', 'Loss of appetite', 'Depression'],
+        'aspergillosis': ['Breathing difficulty', 'Gasping', 'Weight loss'],
+        'healthy': []
+    }
+    return symptoms_map.get(disease, [])
+
+def load_disease_model():
+    try:
+        model_path = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier.h5')
+        
+        # Add custom metrics if you used any during training
+        model = tf.keras.models.load_model(model_path, compile=False)
+        
+        # Compile with same settings as training
+        model.compile(
+            optimizer='adam',
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
+        )
+        
+        return model
+        
+    except Exception as e:
+        print(f"Error loading model: {str(e)}")
+        raise
 
 @login_required
 def chick_health_recognition(request):
+    """View for disease prediction page"""
+    # Get user's batches
     batches = ChickBatch.objects.filter(user=request.user).order_by('-batch_date')
     
+    # Get recent analyses
+    recent_analyses = DiseaseAnalysis.objects.filter(
+        batch__user=request.user
+    ).order_by('-analyzed_date')[:5]
+    
     if request.method == 'POST' and request.FILES.get('chick_image'):
-        image_file = request.FILES['chick_image']
-        batch_id = request.POST.get('batch_id')
-        
         try:
-            batch = ChickBatch.objects.get(id=batch_id, user=request.user)
+            image_file = request.FILES['chick_image']
+            batch_id = request.POST.get('batch_id')
             
-            # Analyze the image
-            result = analyze_chick_image(image_file)
-            print("Analysis Result:", result)  # Debug print
+            # Validate batch exists and belongs to user
+            if not batch_id:
+                messages.error(request, "Please select a batch")
+                return render(request, 'chick_health_recognition.html', {
+                    'batches': batches,
+                    'recent_analyses': recent_analyses
+                })
+                
+            batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
             
-            # Store the analysis results
-            analysis = ChickHealthAnalysis.objects.create(
+            # Get prediction
+            result = predict_disease(image_file)
+            
+            # Save analysis
+            analysis = DiseaseAnalysis.objects.create(
                 batch=batch,
+                created_by=request.user,
                 image=image_file,
-                is_healthy=result['is_healthy'],
-                status=result['status'],
+                predicted_disease=result['disease'],
                 confidence_score=result['confidence'],
-                feather_quality=result['metrics']['feather_quality'],
-                color_health=result['metrics']['color_health'],
-                overall_condition=result['metrics']['overall_condition'],
-                recommendations=result['recommendations']
+                symptoms_detected=result.get('symptoms', []),
+                analyzed_date=timezone.now()
             )
             
             messages.success(request, "Analysis completed successfully!")
-            context = {
+            return render(request, 'chick_health_recognition.html', {
                 'result': result,
                 'analysis': analysis,
                 'batches': batches,
-                'selected_batch': batch,
-                'show_result': True  # Add this flag
-            }
-            print("Context being sent to template:", context)  # Debug print
-            return render(request, 'chick_health_recognition.html', context)
+                'recent_analyses': recent_analyses
+            })
             
         except Exception as e:
-            print(f"Error during analysis: {str(e)}")  # Debug print
             messages.error(request, f"Error during analysis: {str(e)}")
     
-    return render(request, 'chick_health_recognition.html', {'batches': batches})
+    return render(request, 'chick_health_recognition.html', {
+        'batches': batches,
+        'recent_analyses': recent_analyses
+    })
+
+@login_required
+def provide_feedback(request, analysis_id):
+    """Handle feedback for model predictions"""
+    analysis = get_object_or_404(DiseaseAnalysis, id=analysis_id, batch__user=request.user)
+    
+    if request.method == 'POST':
+        correct_label = request.POST.get('correct_label')
+        
+        # Save training data
+        TrainingData.objects.create(
+            image=analysis.image,
+            predicted_label=analysis.predicted_disease,
+            correct_label=correct_label,
+            confidence=analysis.confidence_score
+        )
+        
+        # If we have enough new training data, retrain the model
+        if should_retrain_model():
+            retrain_model()
+            
+        messages.success(request, "Thank you for your feedback!")
+        
+    return redirect('disease_analysis_detail', analysis_id=analysis_id)
+
+def should_retrain_model():
+    """Check if we have enough new training data to retrain"""
+    new_data_count = TrainingData.objects.filter(verified=False).count()
+    return new_data_count >= 50  # Retrain after 50 new samples
+
+def retrain_model():
+    """Retrain the model with new data"""
+    try:
+        # Load existing model
+        model = load_disease_model()
+        
+        # Get new training data
+        new_data = TrainingData.objects.filter(verified=False)
+        
+        # Prepare training data
+        X = []
+        y = []
+        
+        for data in new_data:
+            # Preprocess image
+            image = Image.open(data.image.path)
+            image = image.resize((150, 150))
+            image_array = np.array(image) / 255.0
+            X.append(image_array)
+            
+            # One-hot encode label
+            label_index = ['healthy', 'coccidiosis', 'salmonella', 'aspergillosis'].index(data.correct_label)
+            label = np.zeros(4)
+            label[label_index] = 1
+            y.append(label)
+        
+        X = np.array(X)
+        y = np.array(y)
+        
+        # Fine-tune model
+        model.fit(
+            X, y,
+            epochs=5,
+            batch_size=32,
+            validation_split=0.2
+        )
+        
+        # Save updated model
+        model.save(os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'disease_model_updated.h5'))
+        
+        # Mark data as verified
+        new_data.update(verified=True)
+        
+        print("Model successfully retrained!")
+        
+    except Exception as e:
+        print(f"Error retraining model: {str(e)}")

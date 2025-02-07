@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from django.contrib import messages
 from django.http import JsonResponse
 from .utility import send_order_confirmation_email
+
 def hoteldashboard(request):
     batch_type = request.GET.get("batch_type", "")
     query = request.GET.get("q", "")
@@ -27,6 +28,19 @@ def hoteldashboard(request):
         user_lat = hoteluser.latitude
         user_lon = hoteluser.longitude
 
+    # Debugging: Print user coordinates
+    print(f"User Latitude: {user_lat}, User Longitude: {user_lon}")
+
+    # Validate user coordinates
+    try:
+        user_lat = float(user_lat)
+        user_lon = float(user_lon)
+        if not (-90 <= user_lat <= 90) or not (-180 <= user_lon <= 180):
+            raise ValueError("Invalid latitude or longitude values.")
+    except (ValueError, TypeError) as e:
+        messages.error(request, f"Invalid location data: {e}. Please check your coordinates.")
+        return redirect("some_error_handling_view")  # Redirect to an appropriate error handling view
+
     farms = Farm.objects.all()
 
     if batch_type:
@@ -39,8 +53,16 @@ def hoteldashboard(request):
     # Calculate and filter farms based on distance
     for farm in farms:
         if farm.latitude and farm.longitude:
-            distance = calculate_distance(float(user_lat), float(user_lon), farm.latitude, farm.longitude)
-            farm.distance = round(distance, 2)
+            origin = (user_lat, user_lon)
+            destination = (farm.latitude, farm.longitude)
+
+            # Debugging: Print origin and destination
+            print(f"Origin: {origin}, Destination: {destination}")
+
+            distance = calculate_distance(origin, destination)
+
+            farm.distance = round(distance, 2)  # Distance in km
+
             if max_distance and distance <= float(max_distance):
                 recommended_farms.append(farm)
             elif not max_distance and distance <= 50:  # Default 50 km limit

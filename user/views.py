@@ -21,7 +21,10 @@ import pandas as pd
 from math import floor
 from .models import WasteManagementResource, DailyTip
 from django.db import models
-
+from django.views.decorators.http import require_http_methods
+from .models import Vaccine, VaccinationRecord
+from django.http import JsonResponse
+from datetime import datetime
 
 
 def register(request):
@@ -168,17 +171,16 @@ def stakeholderuser(request):
 
 def stakeholderuserprofile(request, id):
     user = User.objects.get(id=id)
-    farm=Farm.objects.filter(owner=user).first()
+    farm = Farm.objects.filter(owner=user).first()  # Get the associated farm
     chick_batches = ChickBatch.objects.filter(user=user)
-    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))[
-        'initial_chick_count__sum'] or 0
+    total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))['initial_chick_count__sum'] or 0
 
     today = date.today()
     day_expiry = None
     if farm.expiry_date:
-        day_expiry = (user.expiry_date - today).days
+        day_expiry = (farm.expiry_date - today).days
 
-    # Calculate square feet based on length and breadth (assuming they're in the User model)
+    # Calculate square feet based on length and breadth
     sqr_feet = 0
     if farm.length and farm.breadth:
         sqr_feet = farm.length * farm.breadth
@@ -186,40 +188,35 @@ def stakeholderuserprofile(request, id):
 
     # Calculate number of birds that can be accommodated
     birds_per_square_feet = 2
-    birds_can_accommodate = floor(
-        sqr_feet * birds_per_square_feet)  # Use floor to round down
+    birds_can_accommodate = floor(sqr_feet * birds_per_square_feet)
 
     if request.method == 'POST':
-
         if not user.is_active:
-            messages.error(
-                request, "You cannot add chicks because the user account is disabled.")
+            messages.error(request, "You cannot add chicks because the user account is disabled.")
             return redirect('stakeholderuserprofile', id=id)
 
         initial_chick_count = request.POST.get('initial_chick_count')
-        batch_size = request.POST.get('batch_size')
-        price_per_kg = request.POST.get('price_per_kg')
-        price_per_batch = request.POST.get('price_per_batch')
+        batch_type = request.POST.get('batch_type')  # Get the type of chickens
+        price_per_kg = request.POST.get('price_per_kg')  # Get the price per kg
 
         # Backend validation: Chick count must not be less than zero
         try:
-            # Ensure integer conversion
             initial_chick_count = int(initial_chick_count)
             if initial_chick_count < 0:
-                messages.error(
-                    request, "Chick count cannot be less than zero.")
+                messages.error(request, "Chick count cannot be less than zero.")
                 return redirect('stakeholderuserprofile', id=id)
         except (ValueError, TypeError):
-            # Catch any errors where the input cannot be converted to an integer
-            messages.error(
-                request, "Invalid chick count entered. Please enter a valid number.")
+            messages.error(request, "Invalid chick count entered. Please enter a valid number.")
             return redirect('stakeholderuserprofile', id=id)
-        # Check if the new chick count exceeds capacity
 
-        # Save the chick count to the user's chick batches or user model (depending on your logic)
-        # Assuming you want to update chick batches:
+        # Save the chick count to the user's chick batches
         ChickBatch.objects.create(
-            user=user, initial_chick_count=initial_chick_count, batch_size=batch_size, price_per_kg=price_per_kg, price_per_batch=price_per_batch)
+            user=user,
+            farm=farm,  # Associate the ChickBatch with the farm
+            initial_chick_count=initial_chick_count,
+            batch_type=batch_type,  # Save the type of chickens
+            price_per_kg=price_per_kg  # Save the price per kg
+        )
         messages.success(request, "Chick count updated successfully.")
         return redirect('stakeholderuserprofile', id=id)
 
@@ -424,53 +421,140 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Vaccine
 from .forms import VaccineForm
 
+def vaccination_main(request):
+    return render(request, 'vaccination_main.html')
+
 def manage_vaccines(request):
+    """View for vaccine dashboard with CRUD operations"""
+    vaccines = Vaccine.objects.all()
+    total_vaccines = vaccines.count()
+    
+    # Get vaccination records
+    vaccination_records = VaccinationRecord.objects.all()
+    completed_vaccinations = vaccination_records.filter(status='completed').count()
+    pending_vaccinations = vaccination_records.filter(status='pending').count()
+    low_stock_count = vaccines.filter(current_stock__lt=30).count()
 
-    return render(request, 'manage_vaccines.html')
+    upcoming_schedules = vaccination_records.filter(
+        status='pending'
+    ).order_by('scheduled_date')[:5]
 
-# View to add a new vaccine
-from django.http import JsonResponse
-from django.shortcuts import render
-from .forms import VaccineForm
+    vaccine_stocks = [{
+        'vaccine_name': vaccine.name,
+        'current_stock': vaccine.current_stock,
+        'max_stock': 100,  # You can adjust this or make it dynamic
+        'stock_percentage': (vaccine.current_stock / 100) * 100 if vaccine.current_stock else 0,
+        'status': 'LOW' if vaccine.current_stock and vaccine.current_stock < 30 else 'OK'
+    } for vaccine in vaccines]
 
+    context = {
+        'total_vaccines': total_vaccines,
+        'completed_vaccinations': completed_vaccinations,
+        'pending_vaccinations': pending_vaccinations,
+        'low_stock_count': low_stock_count,
+        'upcoming_schedules': upcoming_schedules,
+        'vaccine_stocks': vaccine_stocks,
+        'vaccines': vaccines
+    }
+    
+    return render(request, 'vaccine_dashboard.html', context)
+
+@require_http_methods(["POST"])
 def add_vaccine(request):
-    if request.method == 'POST':
-        form = VaccineForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'success': True, 'message': 'Vaccine added successfully'})
-        else:
-            return JsonResponse({'success': False, 'message': 'Form is invalid', 'errors': form.errors})
-    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    try:
+        name = request.POST.get('name').strip()
+        manufacturer = request.POST.get('manufacturer').strip()
+        doses_required = int(request.POST.get('doses_required'))
+        interval_days = int(request.POST.get('interval_days'))
+        current_stock = int(request.POST.get('current_stock', 0))
 
+        if not all([name, manufacturer, doses_required, interval_days]):
+            return JsonResponse({'success': False, 'message': 'All fields are required.'})
 
-# View to edit an existing vaccine
+        vaccine = Vaccine.objects.create(
+            name=name,
+            manufacturer=manufacturer,
+            doses_required=doses_required,
+            interval_days=interval_days,
+            current_stock=current_stock
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Vaccine added successfully!',
+            'vaccine': {
+                'id': vaccine.id,
+                'name': vaccine.name,
+                'manufacturer': vaccine.manufacturer,
+                'doses_required': vaccine.doses_required,
+                'interval_days': vaccine.interval_days,
+                'current_stock': vaccine.current_stock
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@require_http_methods(["POST"])
 def edit_vaccine(request, vaccine_id):
-    vaccine = get_object_or_404(Vaccine, id=vaccine_id)
-    if request.method == 'POST':
-        form = VaccineForm(request.POST, instance=vaccine)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Vaccine updated successfully!")
-            return redirect('vaccine_dashboard')
-    else:
-        form = VaccineForm(instance=vaccine)
-    return render(request, 'edit_vaccine.html', {'form': form})
+    try:
+        vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+        
+        # Update vaccine data
+        vaccine.name = request.POST.get('name').strip()
+        vaccine.manufacturer = request.POST.get('manufacturer').strip()
+        vaccine.doses_required = int(request.POST.get('doses_required'))
+        vaccine.interval_days = int(request.POST.get('interval_days'))
+        vaccine.current_stock = int(request.POST.get('current_stock', 0))
+
+        # Update stock status based on current stock
+        if vaccine.current_stock == 0:
+            vaccine.stock_status = 'OUT_OF_STOCK'
+        elif vaccine.current_stock < 30:
+            vaccine.stock_status = 'LOW_STOCK'
+        else:
+            vaccine.stock_status = 'IN_STOCK'
+
+        vaccine.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Vaccine updated successfully!',
+            'vaccine': {
+                'id': vaccine.id,
+                'name': vaccine.name,
+                'manufacturer': vaccine.manufacturer,
+                'doses_required': vaccine.doses_required,
+                'interval_days': vaccine.interval_days,
+                'current_stock': vaccine.current_stock,
+                'stock_status': vaccine.stock_status
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
 def delete_vaccine(request, vaccine_id):
-    # Get the vaccine object by ID
-    vaccine = get_object_or_404(Vaccine, id=vaccine_id)
-
-    # Delete the vaccine
-    vaccine.delete()
-
-    # Return a JSON response indicating success
-    return JsonResponse({'success': True, 'message': 'Vaccine deleted successfully'})
-
-
-def vaccine_dashboard(request):
-    vaccines = Vaccine.objects.all()
-    return render(request, 'vaccine_dashboard.html', {'vaccines': vaccines})
+    try:
+        vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+        
+        # Check if vaccine is in use
+        if VaccinationSchedule.objects.filter(vaccine=vaccine).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Cannot delete vaccine as it is associated with vaccination schedules.'
+            })
+            
+        vaccine.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Vaccine deleted successfully!'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
 
 
 
@@ -641,5 +725,104 @@ def view_tips(request):
 
 # views.py
 from django.shortcuts import render
+
+def get_vaccine(request, vaccine_id):
+    try:
+        print(f"Getting vaccine with ID: {vaccine_id}")  # Debug log
+        vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+        print(f"Found vaccine: {vaccine.name}")  # Debug log
+        
+        response_data = {
+            'success': True,
+            'vaccine': {
+                'name': vaccine.name,
+                'manufacturer': vaccine.manufacturer,
+                'doses_required': vaccine.doses_required,
+                'interval_days': vaccine.interval_days,
+                'current_stock': vaccine.current_stock,
+                'stock_status': vaccine.stock_status,
+                'expiry_date': vaccine.expiry_date.strftime('%Y-%m-%d') if vaccine.expiry_date else ''
+            }
+        }
+        print(f"Response data: {response_data}")  # Debug log
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error in get_vaccine: {str(e)}")  # Debug log
+        return JsonResponse({
+            'success': False,
+            'message': f"Error retrieving vaccine: {str(e)}"
+        })
+
+def vaccine_stock_level(request):
+    vaccines = Vaccine.objects.all()
+    return render(request, 'vaccine_stock_level.html', {'vaccines': vaccines})
+
+@require_http_methods(["POST"])
+def update_stock(request, vaccine_id):
+    try:
+        print(f"Updating stock for vaccine ID: {vaccine_id}")  # Debug log
+        print(f"POST data: {request.POST}")  # Debug log
+        
+        vaccine = get_object_or_404(Vaccine, id=vaccine_id)
+        
+        # Get and validate current_stock
+        try:
+            current_stock = int(request.POST.get('current_stock', 0))
+            if current_stock < 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Stock level cannot be negative'
+                })
+        except ValueError as e:
+            print(f"Stock validation error: {str(e)}")  # Debug log
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid stock value'
+            })
+        
+        # Update vaccine stock
+        vaccine.current_stock = current_stock
+        
+        # Update stock status
+        if current_stock == 0:
+            vaccine.stock_status = 'OUT_OF_STOCK'
+        elif current_stock < 30:
+            vaccine.stock_status = 'LOW_STOCK'
+        else:
+            vaccine.stock_status = 'IN_STOCK'
+            
+        # Update expiry date if provided
+        expiry_date = request.POST.get('expiry_date')
+        if expiry_date:
+            try:
+                vaccine.expiry_date = datetime.strptime(expiry_date, '%Y-%m-%d').date()
+            except ValueError as e:
+                print(f"Date validation error: {str(e)}")  # Debug log
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid expiry date format'
+                })
+        
+        vaccine.save()
+        print("Stock updated successfully")  # Debug log
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Stock updated successfully',
+            'vaccine': {
+                'id': vaccine.id,
+                'current_stock': current_stock,
+                'stock_status': vaccine.stock_status,
+                'expiry_date': vaccine.expiry_date.strftime('%Y-%m-%d') if vaccine.expiry_date else None
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error updating stock: {str(e)}")  # Debug log
+        return JsonResponse({
+            'success': False,
+            'message': f'Error updating stock: {str(e)}'
+        })
 
 

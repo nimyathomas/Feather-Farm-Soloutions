@@ -25,7 +25,7 @@ from user.views import (
     edit_vaccine,
     manage_records,
     add_record,
-    vaccine_dashboard,
+    
     delete_vaccine,
     assign_vaccine,
     get_active_batches,
@@ -37,6 +37,10 @@ from user.views import (
     # chat_api,
     # chat_room
 #     update_location,
+    get_vaccine,
+    vaccination_main,
+    vaccine_stock_level,
+    update_stock,
 )
 from . import views 
 
@@ -89,7 +93,7 @@ urlpatterns = [
         views.add_or_edit_farm,
         name="stakeholder_registration",
     ),
-    path("vaccination/<int:user_id>/", views.vaccination, name="vaccination"),
+    path("vaccination/", vaccination_main, name="vaccination_main"),
     path("vaccine_admin/", vaccine_admin, name="vaccine_admin"),
     
     
@@ -145,7 +149,7 @@ urlpatterns = [
     path("vaccines/edit/<int:vaccine_id>/", edit_vaccine, name="edit_vaccine"),
     path("records/", manage_records, name="manage_records"),
     path("records/add/", add_record, name="add_record"),
-    path("vaccines/dashboard/", vaccine_dashboard, name="vaccine_dashboard"),
+    # path("vaccines/dashboard/", vaccine_dashboard, name="vaccine_dashboard"),
     path("delete-vaccine/<int:vaccine_id>/", delete_vaccine, name="delete_vaccine"),
     path("assign-vaccine/", assign_vaccine, name="assign_vaccine"),
     path(
@@ -162,10 +166,20 @@ urlpatterns = [
     path('chat/<str:room_name>/',views.chat_room, name='chat_room'),
 
     
-    # path('api/chat/',views.chat_api, name='chat_api')
+    path('api/chat/', views.chat_api, name='chat_api'),
     
     path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
-
-    
-   
+    # path('chat/handle/', views.handle_chat, name='handle_chat'),
+    path('manage-vaccines/', manage_vaccines, name='manage_vaccines'),
+    # path('schedule-vaccination/', views.schedule_vaccination, name='schedule_vaccination'),
+    # path('delete-schedule/<int:schedule_id>/', views.delete_vaccination_schedule, name='delete_schedule'),
+    path('add-vaccine/', add_vaccine, name='add_vaccine'),
+    path('edit-vaccine/<int:vaccine_id>/', edit_vaccine, name='edit_vaccine'),
+    path('delete-vaccine/<int:vaccine_id>/', delete_vaccine, name='delete_vaccine'),
+    path('get-vaccine/<int:vaccine_id>/', get_vaccine, name='get_vaccine'),
+    path('vaccine-stock-level/', vaccine_stock_level, name='vaccine_stock_level'),
+    path('update-stock/<int:vaccine_id>/', update_stock, name='update_stock'),
+    path('disease-analysis/', views.disease_analysis_list, name='disease_analysis_list'),
+    path('disease-analysis/<int:analysis_id>/', views.disease_analysis_detail, name='disease_analysis_detail'),
+    path('analysis/<int:analysis_id>/feedback/', views.provide_feedback, name='provide_feedback'),
 ]

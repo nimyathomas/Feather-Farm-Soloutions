@@ -112,13 +112,24 @@ class ChickBatch(models.Model):
     food_token = models.IntegerField(
         help_text="Reward token for good FCR performance", default=0
     )
+    reward_claimed = models.BooleanField(default=False)
+    reward_claimed_date = models.DateTimeField(null=True, blank=True)
+    completion_date = models.DateTimeField(null=True, blank=True)
+    reward_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Reward amount based on FCR performance"
+    )
+    reward_status = models.BooleanField(default=False)
 
     def check_batch_completion(self):
         today = date.today()
         end_date = self.batch_date + timedelta(days=self.duration)
         if today >= end_date and self.batch_status == "active":
             self.batch_status = "completed"
-            self.save(update_fields=["batch_status"])
+            self.completion_date = timezone.now()  # Set completion date when batch is completed
+            self.save(update_fields=["batch_status", "completion_date"])
 
     def calculate_total_profit(total_weight, price_per_kg):
         """
@@ -136,12 +147,11 @@ class ChickBatch(models.Model):
         Update the price per kg and assign food tokens based on FCR performance when the batch is completed.
         """
         if self.batch_status == "completed":
-            # Fetch total feed consumed
+            # Get total feed consumed from DailyData
             total_feed_consumed = (
-                FeedMonitoring.objects.filter(batch=self).aggregate(
-                    total_feed_consumed=models.Sum("feed_consumed")
-                )["total_feed_consumed"]
-                or 0.0
+                self.daily_data.aggregate(
+                    total_feed=models.Sum("feed_uplifted")
+                )["total_feed"] or 0.0
             )
 
             # Calculate FCR based on total feed consumed and total weight
@@ -367,11 +377,21 @@ class VaccinationSchedule(models.Model):
         return f"{self.batch} - {self.vaccine.name} on {self.vaccination_date}"
 
 class Post(models.Model):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts"
-    )
+    CATEGORY_CHOICES = [
+        ('fcr', 'FCR Discussion'),
+        ('health', 'Health & Safety'),
+        ('best_practices', 'Best Practices'),
+        ('general', 'General Discussion'),
+    ]
+    
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
+    category = models.CharField(
+        max_length=50, 
+        choices=CATEGORY_CHOICES,
+        default='general'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -416,28 +436,161 @@ class SuccessStory(models.Model):
     def __str__(self):
         return f"{self.title} - {self.owner.email}"
 
-class ChickHealthAnalysis(models.Model):
-    batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE, related_name='health_analyses')
-    image = models.ImageField(upload_to='chick_health_images/')
+
+
+# stakeholder/models.py
+
+
+
+class DiseaseAnalysis(models.Model):
+    DISEASE_CHOICES = [
+        ('healthy', 'Healthy'),
+        ('coccidiosis', 'Coccidiosis'),
+        ('salmonella', 'Salmonella'),
+        ('aspergillosis', 'Aspergillosis'),
+        ('colibacillosis', 'Colibacillosis'),
+        ('marek', "Marek's Disease"),
+        ('newcastle', 'Newcastle Disease'),
+        ('infectious_bronchitis', 'Infectious Bronchitis'),
+    ]
+
+    batch = models.ForeignKey(
+        ChickBatch, 
+        on_delete=models.CASCADE, 
+        related_name='disease_analyses'
+    )
+    image = models.ImageField(
+        upload_to='disease_analysis/',
+        help_text="Upload image of the chicken for analysis"
+    )
     analyzed_date = models.DateTimeField(auto_now_add=True)
     
     # Analysis Results
-    is_healthy = models.BooleanField()
-    status = models.CharField(max_length=100)
-    confidence_score = models.FloatField()
+    predicted_disease = models.CharField(
+        max_length=50,
+        choices=DISEASE_CHOICES,
+        help_text="Predicted disease based on image analysis"
+    )
+    confidence_score = models.FloatField(
+        help_text="Confidence score of the prediction (0-1)"
+    )
+    symptoms_detected = models.JSONField(
+        default=list,
+        help_text="List of symptoms detected in the analysis"
+    )
     
-    # Detailed Metrics
-    feather_quality = models.FloatField()
-    color_health = models.FloatField()
-    overall_condition = models.FloatField()
+    # Additional Analysis Data
+    temperature = models.FloatField(
+        null=True, 
+        blank=True,
+        help_text="Body temperature if measured"
+    )
+    behavior_notes = models.TextField(
+        blank=True,
+        help_text="Notes about chicken behavior"
+    )
     
-    # Recommendations stored as JSON
-    recommendations = models.JSONField()
-
-    def __str__(self):
-        return f"Health Analysis for Batch {self.batch.id} on {self.analyzed_date}"
+    # Treatment and Recommendations
+    recommendations = models.JSONField(
+        default=dict,
+        help_text="Treatment recommendations and precautions"
+    )
+    veterinary_referral = models.BooleanField(
+        default=False,
+        help_text="Whether veterinary consultation is recommended"
+    )
+    
+    # Tracking
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='disease_analyses'
+    )
+    is_critical = models.BooleanField(
+        default=False,
+        help_text="Indicates if immediate attention is required"
+    )
+    follow_up_date = models.DateField(
+        null=True, 
+        blank=True,
+        help_text="Recommended date for follow-up analysis"
+    )
 
     class Meta:
+        db_table = 'stakeholder_diseaseanalysis'
         ordering = ['-analyzed_date']
-        
+        verbose_name = 'Disease Analysis'
+        verbose_name_plural = 'Disease Analyses'
 
+    def __str__(self):
+        return f"Disease Analysis for Batch {self.batch.id} on {self.analyzed_date.date()}"
+
+    def save(self, *args, **kwargs):
+        # Set critical flag based on disease and confidence
+        if self.predicted_disease != 'healthy' and self.confidence_score > 0.8:
+            self.is_critical = True
+            
+        # Generate recommendations based on disease
+        self.generate_recommendations()
+        
+        # Set follow-up date for critical cases
+        if self.is_critical and not self.follow_up_date:
+            self.follow_up_date = self.analyzed_date.date() + timezone.timedelta(days=2)
+            
+        super().save(*args, **kwargs)
+
+    def generate_recommendations(self):
+        """Generate disease-specific recommendations"""
+        recommendations = {
+            'treatment_steps': [],
+            'preventive_measures': [],
+            'isolation_required': False,
+            'medication_suggestions': [],
+        }
+        
+        if self.predicted_disease == 'coccidiosis':
+            recommendations.update({
+                'treatment_steps': [
+                    'Administer anticoccidial medication',
+                    'Maintain clean and dry litter',
+                    'Increase ventilation'
+                ],
+                'preventive_measures': [
+                    'Regular cleaning and disinfection',
+                    'Proper litter management',
+                    'Avoid overcrowding'
+                ],
+                'isolation_required': True,
+                'medication_suggestions': ['Amprolium', 'Sulfadimethoxine']
+            })
+        # Add more disease-specific recommendations
+        
+        self.recommendations = recommendations
+
+    @property
+    def severity_level(self):
+        """Calculate severity level based on confidence score and disease type"""
+        if self.predicted_disease == 'healthy':
+            return 'Normal'
+        elif self.confidence_score > 0.8:
+            return 'High'
+        elif self.confidence_score > 0.6:
+            return 'Medium'
+        else:
+            return 'Low'
+
+    def get_similar_cases(self):
+        """Find similar disease cases in the same batch"""
+        return DiseaseAnalysis.objects.filter(
+            batch=self.batch,
+            predicted_disease=self.predicted_disease
+        ).exclude(id=self.id)
+
+    def should_notify_veterinary(self):
+        """Determine if veterinary notification is needed"""
+        return (
+            self.is_critical or 
+            self.confidence_score > 0.9 or 
+            self.predicted_disease in ['newcastle', 'marek']
+        )
+        
