@@ -2,223 +2,281 @@
 {% load static %}
 
 {% block body %}
-<div class="vaccine-dashboard">
-    <!-- Header Section -->
-    <div class="page-header">
-        <div class="header-content">
-            <h1><i class="fas fa-chart-line"></i> Vaccine Dashboard</h1>
-            <p>Real-time overview of vaccination program</p>
+<div class="container-fluid px-4">
+    <div class="row my-4">
+        <div class="col">
+            <h2 class="text-primary">
+                <i class="fas fa-syringe me-2"></i>Vaccine Dashboard
+            </h2>
         </div>
-        <div class="header-actions">
-            <button class="btn-primary" onclick="openAddVaccineModal()">
-                <i class="fas fa-plus"></i> Add New Vaccine
+        <div class="col text-end">
+            <button class="btn btn-primary" onclick="openAddVaccineModal()">
+                <i class="fas fa-plus me-2"></i>Add New Vaccine
             </button>
         </div>
     </div>
 
-    <!-- Stats Overview -->
-    <div class="stats-grid">
-        <div class="stat-card primary-gradient">
-            <div class="stat-icon">
-                <i class="fas fa-syringe"></i>
-            </div>
-            <div class="stat-info">
-                <h3>Total Vaccines</h3>
-                <div class="stat-value">{{ total_vaccines }}</div>
-                <div class="stat-change increase">
-                    <i class="fas fa-arrow-up"></i> 12% from last month
+    <!-- Vaccine Overview Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>7th Day Vaccines</h5>
+                    <h3>{{ day_7_vaccines.count }}</h3>
                 </div>
             </div>
         </div>
-
-        <div class="stat-card success-gradient">
-            <div class="stat-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="stat-info">
-                <h3>Vaccinations Done</h3>
-                <div class="stat-value">{{ completed_vaccinations }}</div>
-                <div class="stat-change increase">
-                    <i class="fas fa-arrow-up"></i> 8% this week
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>14th Day Vaccines</h5>
+                    <h3>{{ day_14_vaccines.count }}</h3>
                 </div>
             </div>
         </div>
-
-        <div class="stat-card warning-gradient">
-            <div class="stat-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-info">
-                <h3>Pending</h3>
-                <div class="stat-value">{{ pending_vaccinations }}</div>
-                <div class="stat-change">
-                    Next in 2 days
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card danger-gradient">
-            <div class="stat-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stat-info">
-                <h3>Stock Alerts</h3>
-                <div class="stat-value">{{ low_stock_count }}</div>
-                <div class="stat-change">
-                    Requires attention
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>21st Day Vaccines</h5>
+                    <h3>{{ day_21_vaccines.count }}</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Vaccine List -->
-        <div class="dashboard-card vaccine-list-card">
-            <div class="card-header">
-                <h2>Manage Vaccines</h2>
-                <div class="search-box">
-                    <input type="text" id="vaccineSearch" placeholder="Search vaccines...">
-                    <i class="fas fa-search"></i>
+    <!-- Vaccine List -->
+    <div class="card">
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">Manage Vaccines</h5>
+                </div>
+                <div class="col-auto">
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="dayFilter">
+                            <option value="all">All Days</option>
+                            <option value="7">7th Day</option>
+                            <option value="14">14th Day</option>
+                            <option value="21">21st Day</option>
+                        </select>
+                        <input type="text" class="form-control" placeholder="Search vaccines..." id="searchVaccine">
+                    </div>
                 </div>
             </div>
-            <div class="vaccine-list">
-                <table class="table">
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Manufacturer</th>
-                            <th>Doses</th>
-                            <th>Interval</th>
-                            <th>Stock</th>
+                            <th>Vaccination Day</th>
+                            <th>Current Stock</th>
+                            <th>Min. Stock</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="vaccineTableBody">
+                    <tbody>
                         {% for vaccine in vaccines %}
-                        <tr data-vaccine-id="{{ vaccine.id }}">
+                        <tr data-vaccination-day="{{ vaccine.vaccination_day }}">
                             <td>{{ vaccine.name }}</td>
                             <td>{{ vaccine.manufacturer }}</td>
-                            <td>{{ vaccine.doses_required }}</td>
-                            <td>{{ vaccine.interval_days }} days</td>
                             <td>
-                                <div class="stock-indicator {% if vaccine.current_stock < 30 %}low{% endif %}">
-                                    {{ vaccine.current_stock }}
-                                </div>
+                                <span class="badge {% if vaccine.vaccination_day == 7 %}bg-primary
+                                      {% elif vaccine.vaccination_day == 14 %}bg-success
+                                      {% else %}bg-info{% endif %}">
+                                    {{ vaccine.get_vaccination_day_display }}
+                                </span>
+                            </td>
+                            <td data-stock="{{ vaccine.id }}">{{ vaccine.current_stock }}</td>
+                            <td>{{ vaccine.minimum_stock_level }}</td>
+                            <td>
+                                <span data-status="{{ vaccine.id }}" class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                                      {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                                      {% else %}bg-success{% endif %}">
+                                    {{ vaccine.stock_status }}
+                                </span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <button onclick="editVaccine({{ vaccine.id }})" class="btn-icon">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button onclick="deleteVaccine({{ vaccine.id }})" class="btn-icon danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
+                                <button class="btn btn-sm btn-primary" onclick="editVaccine({{ vaccine.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteVaccine({{ vaccine.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">No vaccines found</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Stock Overview -->
-        <div class="dashboard-card stock-card">
-            <div class="card-header">
-                <h2>Stock Overview</h2>
-                <button class="btn-outline-small" onclick="location.href='{% url 'vaccine_stock_level' %}'">
-                    Manage Stock
-                </button>
-            </div>
-            <div class="stock-list">
-                {% for stock in vaccine_stocks %}
-                <div class="stock-item">
-                    <div class="stock-info">
-                        <h4>{{ stock.vaccine_name }}</h4>
-                        <div class="stock-progress">
-                            <div class="progress-bar">
-                                <div class="progress" style="width: {{ stock.stock_percentage }}%"></div>
-                            </div>
-                            <span class="stock-count">{{ stock.current_stock }}/{{ stock.max_stock }}</span>
-                        </div>
-                    </div>
-                    {% if stock.status == 'LOW' %}
-                    <div class="stock-alert">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Low Stock
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
     </div>
 </div>
 
-<!-- Add/Edit Vaccine Modal -->
-<div class="modal" id="vaccineModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">Add New Vaccine</h3>
-            <button onclick="closeModal()" class="close-btn">&times;</button>
-        </div>
-        <form id="vaccineForm" onsubmit="handleVaccineSubmit(event)">
-            {% csrf_token %}
-            <input type="hidden" id="vaccineId">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="vaccineName" required>
+<!-- Add/Edit/Update Modal -->
+<div class="modal fade" id="vaccineModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Vaccine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="form-group">
-                <label>Manufacturer</label>
-                <input type="text" id="manufacturer" required>
-            </div>
-            <div class="form-group">
-                <label>Doses Required</label>
-                <input type="number" id="dosesRequired" min="1" required>
-            </div>
-            <div class="form-group">
-                <label>Interval (days)</label>
-                <input type="number" id="intervalDays" min="1" required>
-            </div>
-            <div class="form-group">
-                <label>Current Stock</label>
-                <input type="number" id="currentStock" min="0" required>
+            <div class="modal-body">
+                <!-- Add/Edit Form -->
+                <form id="vaccineForm" method="POST" class="d-none">
+                    {% csrf_token %}
+                    <input type="hidden" id="vaccineId">
+                    <div class="mb-3">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manufacturer">Manufacturer</label>
+                        <input type="text" class="form-control" id="manufacturer" name="manufacturer" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vaccination_day">Vaccination Day</label>
+                        <select class="form-select" id="vaccination_day" name="vaccination_day" required>
+                            <option value="">Select vaccination day...</option>
+                            <option value="7">7th Day</option>
+                            <option value="14">14th Day</option>
+                            <option value="21">21st Day</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="current_stock">Current Stock*</label>
+                        <input type="number" class="form-control" id="current_stock" name="current_stock" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="minimum_stock_level">Minimum Stock Level</label>
+                        <input type="number" class="form-control" id="minimum_stock_level" name="minimum_stock_level" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="batch_number">Batch Number</label>
+                        <input type="text" class="form-control" id="batch_number" name="batch_number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date">Expiry Date</label>
+                        <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveButton">Save</button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <script>
+// Store all modal instances
+const modalInstances = {
+    vaccineModal: null,
+    restockModal: null
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all modals once
+    const vaccineModalElement = document.getElementById('vaccineModal');
+    if (vaccineModalElement) {
+        modalInstances.vaccineModal = new bootstrap.Modal(vaccineModalElement, {
+            backdrop: 'static',
+            keyboard: false
+        });
+    }
+
+    const restockModalElement = document.getElementById('restockModal');
+    if (restockModalElement) {
+        modalInstances.restockModal = new bootstrap.Modal(restockModalElement, {
+            backdrop: 'static',
+            keyboard: false
+        });
+    }
+
+    // Add event listeners for modal cleanup
+    vaccineModalElement?.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('vaccineForm')?.reset();
+    });
+
+    restockModalElement?.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('restockForm')?.reset();
+    });
+});
+
+let currentVaccineId = null;
+let currentModalMode = null;
+
 function openAddVaccineModal() {
+    currentModalMode = 'add';
+    currentVaccineId = null;
     document.getElementById('modalTitle').textContent = 'Add New Vaccine';
-    document.getElementById('vaccineForm').reset();
-    document.getElementById('vaccineId').value = '';
-    document.getElementById('vaccineModal').style.display = 'block';
+    document.getElementById('vaccineForm').classList.remove('d-none');
+    document.getElementById('saveButton').onclick = saveVaccine;
+    modalInstances.vaccineModal?.show();
 }
+
+// Add filtering functionality
+document.getElementById('dayFilter').addEventListener('change', function() {
+    const day = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        if (day === 'all' || row.dataset.vaccinationDay === day) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Add search functionality
+document.getElementById('searchVaccine').addEventListener('input', function() {
+    const searchText = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchText) ? '' : 'none';
+    });
+});
 
 async function editVaccine(id) {
     try {
-        const response = await fetch(`/get-vaccine/${id}/`);
+        const response = await fetch(`/vaccine/${id}/`);
         const data = await response.json();
         
         if (data.success) {
+            currentVaccineId = id;
+            currentModalMode = 'edit';
+            
             // Fill the modal with vaccine data
             document.getElementById('modalTitle').textContent = 'Edit Vaccine';
             document.getElementById('vaccineId').value = id;
-            document.getElementById('vaccineName').value = data.vaccine.name;
+            document.getElementById('name').value = data.vaccine.name;
             document.getElementById('manufacturer').value = data.vaccine.manufacturer;
-            document.getElementById('dosesRequired').value = data.vaccine.doses_required;
-            document.getElementById('intervalDays').value = data.vaccine.interval_days;
-            document.getElementById('currentStock').value = data.vaccine.current_stock;
+            document.getElementById('vaccination_day').value = data.vaccine.vaccination_day;
+            document.getElementById('current_stock').value = data.vaccine.current_stock;
+            document.getElementById('minimum_stock_level').value = data.vaccine.minimum_stock_level;
+            document.getElementById('batch_number').value = data.vaccine.batch_number || '';
+            document.getElementById('expiry_date').value = data.vaccine.expiry_date || '';
+            document.getElementById('notes').value = data.vaccine.notes || '';
             
-            // Show the modal
-            document.getElementById('vaccineModal').style.display = 'block';
+            document.getElementById('vaccineForm').classList.remove('d-none');
+            document.getElementById('saveButton').onclick = () => saveVaccineEdit(id);
+            
+            modalInstances.vaccineModal?.show();
         } else {
             alert('Error loading vaccine data');
         }
@@ -228,275 +286,93 @@ async function editVaccine(id) {
     }
 }
 
-function closeModal() {
-    document.getElementById('vaccineModal').style.display = 'none';
-}
-
-async function handleVaccineSubmit(event) {
-    event.preventDefault();
-    const vaccineId = document.getElementById('vaccineId').value;
+async function saveVaccineEdit(id) {
+    const form = document.getElementById('vaccineForm');
+    const formData = new FormData(form);
     
-    const formData = new FormData();
-    formData.append('name', document.getElementById('vaccineName').value);
-    formData.append('manufacturer', document.getElementById('manufacturer').value);
-    formData.append('doses_required', document.getElementById('dosesRequired').value);
-    formData.append('interval_days', document.getElementById('intervalDays').value);
-    formData.append('current_stock', document.getElementById('currentStock').value);
-
     try {
-        const url = vaccineId ? `/edit-vaccine/${vaccineId}/` : '/add-vaccine/';
-        const response = await fetch(url, {
+        const response = await fetch(`/vaccine/${id}/edit/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             },
             body: formData
         });
         
         const data = await response.json();
         if (data.success) {
-            closeModal();
-            location.reload(); // Refresh to show updated data
+            modalInstances.vaccineModal?.hide();
+            window.location.reload();
         } else {
-            alert(data.message || 'Error saving vaccine');
+            alert('Error updating vaccine: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
-        alert('Error saving vaccine');
-        console.error(error);
+        console.error('Error:', error);
+        alert('Error updating vaccine');
     }
 }
+
+function closeModal(modalName) {
+    modalInstances[modalName]?.hide();
+}
+
+async function saveVaccine() {
+    console.log('Saving vaccine...');
+    const form = document.getElementById('vaccineForm');
+    const formData = new FormData(form);
+    
+    // Log form data
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    try {
+        const response = await fetch('/vaccine/add/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('vaccineModal'));
+            modal.hide();
+            window.location.reload();
+        } else {
+            const errorMessages = Object.values(data.errors).flat().join('\n');
+            alert('Error saving vaccine:\n' + errorMessages);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving vaccine: ' + error.message);
+    }
+}
+
+// Add this to debug the form submission
+document.getElementById('vaccineForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    saveVaccine();
+});
 
 async function deleteVaccine(id) {
     if (!confirm('Are you sure you want to delete this vaccine?')) return;
     
     try {
-        const response = await fetch(`/delete-vaccine/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
+        const response = await fetch(`/vaccine/${id}/delete/`, {
+            method: 'POST'
         });
-        const data = await response.json();
         
-        if (data.success) {
-            location.reload();
+        if (response.ok) {
+            window.location.reload();
         } else {
-            alert(data.message);
+            alert('Error deleting vaccine');
         }
     } catch (error) {
-        alert('An error occurred. Please try again.');
+        console.error('Error:', error);
+        alert('Error deleting vaccine');
     }
 }
-
-// Update the search functionality to be more robust
-document.getElementById('vaccineSearch').addEventListener('input', function(e) {
-    const searchText = e.target.value.toLowerCase();
-    const rows = document.getElementById('vaccineTableBody').getElementsByTagName('tr');
-    
-    for (let row of rows) {
-        const cells = row.getElementsByTagName('td');
-        let found = false;
-        
-        // Search through each cell in the row
-        for (let cell of cells) {
-            if (cell.textContent.toLowerCase().includes(searchText)) {
-                found = true;
-                break;
-            }
-        }
-        
-        // Show/hide row based on search
-        row.style.display = found ? '' : 'none';
-    }
-});
 </script>
-
-<style>
-    .vaccine-dashboard {
-        padding: 2rem;
-        background: var(--light-bg);
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        padding: 1.5rem;
-        border-radius: 12px;
-        color: white;
-    }
-
-    .primary-gradient { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
-    .success-gradient { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
-    .warning-gradient { background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%); }
-    .danger-gradient { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); }
-
-    /* Content Grid */
-    .content-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-    }
-
-    .dashboard-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    /* Schedule Styling */
-    .schedule-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .schedule-date {
-        text-align: center;
-        min-width: 60px;
-    }
-
-    .schedule-date .date {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--primary-color);
-    }
-
-    .schedule-date .month {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    /* Stock Styling */
-    .stock-item {
-        padding: 1rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .stock-progress {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-top: 0.5rem;
-    }
-
-    .progress-bar {
-        flex: 1;
-        height: 6px;
-        background: var(--light-bg);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .progress {
-        height: 100%;
-        background: var(--accent-color);
-        border-radius: 3px;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 1024px) {
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .content-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .vaccine-dashboard {
-            padding: 1rem;
-        }
-        
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-    }
-
-    .modal-content {
-        background: white;
-        width: 90%;
-        max-width: 500px;
-        margin: 50px auto;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .modal-header {
-        padding: 1rem;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .form-group {
-        margin: 1rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: var(--text-secondary);
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .modal-footer {
-        padding: 1rem;
-        border-top: 1px solid #eee;
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-    }
-
-    .btn-icon {
-        background: none;
-        border: none;
-        padding: 0.5rem;
-        cursor: pointer;
-        color: var(--primary-color);
-    }
-
-    .btn-icon.danger {
-        color: var(--danger-color);
-    }
-
-    .stock-indicator {
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        background: var(--success-color);
-        color: white;
-        display: inline-block;
-    }
-
-    .stock-indicator.low {
-        background: var(--danger-color);
-    }
-</style>
 {% endblock %}

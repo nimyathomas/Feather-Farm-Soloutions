@@ -1,0 +1,138 @@
+{% extends 'admindash.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Feed Management System</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Manage Feed Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Manage Feed</div>
+                            <p class="text-muted mt-2">Add, edit, and manage different types of feed</p>
+                            <a href="{% url 'feed_manage' %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-cog fa-sm"></i> Manage Feed
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            
+                            <i class="fas fa-feed fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed Stock Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Feed Stock</div>
+                            <p class="text-muted mt-2">Monitor and manage feed stock levels</p>
+                            <a href="{% url 'feed_dashboard' %}" class="btn btn-success mt-3">
+                                <i class="fas fa-box fa-sm"></i> View Stock
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-warehouse fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Feed Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">Assign Feed</div>
+                            <p class="text-muted mt-2">Assign feed to batches and farms</p>
+                            <a href="#" class="btn btn-info mt-3">
+                                <i class="fas fa-tasks fa-sm"></i> Assign Feed
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% comment %} 
+    <!-- Quick Stats Row -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Feed Stock Overview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Feed Type</th>
+                                    <th>Available Stock</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in feed_stocks %}
+                                <tr>
+                                    <td>{{ stock.get_feed_type_display }}</td>
+                                    <td>{{ stock.number_of_sacks }} sacks</td>
+                                    <td>
+                                        {% if stock.number_of_sacks <= stock.minimum_sacks %}
+                                        <span class="badge bg-danger">Low Stock</span>
+                                        {% else %}
+                                        <span class="badge bg-success">In Stock</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+
+
+
+                            
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div> {% endcomment %}
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Activities</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.action }}</h6>
+                                <small>{{ activity.date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">{{ activity.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

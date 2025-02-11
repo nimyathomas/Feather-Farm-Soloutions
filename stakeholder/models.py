@@ -3,6 +3,12 @@ from django.utils import timezone
 from user.models import User, Vaccine
 from datetime import timedelta, date
 from django.conf import settings
+import qrcode
+from io import BytesIO
+from django.core.files import File
+from PIL import Image
+import uuid
+import os
 
 
 
@@ -122,6 +128,8 @@ class ChickBatch(models.Model):
         help_text="Reward amount based on FCR performance"
     )
     reward_status = models.BooleanField(default=False)
+    batch_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    qr_code = models.ImageField(upload_to='batch_qr_codes/', blank=True)
 
     def check_batch_completion(self):
         today = date.today()
@@ -224,14 +232,53 @@ class ChickBatch(models.Model):
             self.save(update_fields=["price_per_batch"])
         return self.price_per_batch or 0
     
+    def generate_qr_code(self):
+        try:
+            # Ensure SITE_URL is correctly set
+            base_url = settings.SITE_URL.rstrip("/")  # Remove trailing slash if present
+            qr_url = f"{base_url}{reverse('batch_detail_qr', args=[str(self.batch_uuid)])}"
+            
+            print(f"✅ Debug QR Code URL: {qr_url}")  # Debugging: Print the generated URL
+
+            # Create QR code
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(qr_url)
+            qr.make(fit=True)
+
+            # Generate QR code image
+            qr_image = qr.make_image(fill_color="black", back_color="white")
+
+            # Save to buffer
+            buffer = BytesIO()
+            qr_image.save(buffer, format='PNG')
+            buffer.seek(0)
+
+            # Generate a unique filename
+            filename = f'batch_qr_{self.batch_uuid}.png'
+
+            # Delete old QR code if exists
+            if self.qr_code and os.path.isfile(self.qr_code.path):
+                os.remove(self.qr_code.path)
+
+            # Save new QR code
+            self.qr_code.save(filename, File(buffer), save=False)
+
+        except Exception as e:
+            print(f"❌ Error generating QR code: {str(e)}")
+
     def save(self, *args, **kwargs):
-        if self.batch_status == "completed" and not self.food_token:
-            self.update_price_and_tokens()  # Update tokens when batch is completed
+        """Ensure QR code is generated when batch is created or updated"""
+        if not self.qr_code:
+            self.generate_qr_code()
         super().save(*args, **kwargs)
+    
+    
 
-
-    def __str__(self):
-        return f"Batch on {self.batch_date} for {self.user.full_name}: {self.initial_chick_count} chicks, {self.live_chick_count} alive"
 
 
 class DailyData(models.Model):
@@ -298,6 +345,7 @@ class DailyData(models.Model):
         return (self.batch.batch_date - timezone.now().date()).days <= 7
 
     def total_mortality_count(self):
+        
         """Calculate the total mortality count for the batch."""
         return (
             self.batch.daily_data.aggregate(
@@ -526,18 +574,24 @@ class DiseaseAnalysis(models.Model):
         return f"Disease Analysis for Batch {self.batch.id} on {self.analyzed_date.date()}"
 
     def save(self, *args, **kwargs):
-        # Set critical flag based on disease and confidence
+    # Set critical flag based on disease and confidence
         if self.predicted_disease != 'healthy' and self.confidence_score > 0.8:
             self.is_critical = True
-            
+
         # Generate recommendations based on disease
         self.generate_recommendations()
-        
-        # Set follow-up date for critical cases
-        if self.is_critical and not self.follow_up_date:
-            self.follow_up_date = self.analyzed_date.date() + timezone.timedelta(days=2)
-            
+
+        # First, save the object so that auto_now_add fields (like analyzed_date) are set.
         super().save(*args, **kwargs)
+
+        # Then, set follow-up date for critical cases if it's not already set.
+        if self.is_critical and not self.follow_up_date:
+            # Use analyzed_date if available, or fallback to timezone.now()
+            analysis_date = self.analyzed_date if self.analyzed_date else timezone.now()
+            self.follow_up_date = analysis_date.date() + timezone.timedelta(days=2)
+            # Save the update
+            super().save(update_fields=["follow_up_date"])  
+
 
     def generate_recommendations(self):
         """Generate disease-specific recommendations"""
@@ -594,3 +648,4 @@ class DiseaseAnalysis(models.Model):
             self.predicted_disease in ['newcastle', 'marek']
         )
         
+

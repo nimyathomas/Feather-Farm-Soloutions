@@ -1,0 +1,171 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Manufacturer</th>
+                <th>Vaccination Day</th>
+                <th>Current Stock</th>
+                <th>Min. Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vaccine in vaccines %}
+            <tr data-vaccination-day="{{ vaccine.vaccination_day }}">
+                <td>{{ vaccine.name }}</td>
+                <td>{{ vaccine.manufacturer }}</td>
+                <td>
+                    <span class="badge {% if vaccine.vaccination_day == 7 %}bg-primary
+                          {% elif vaccine.vaccination_day == 14 %}bg-success
+                          {% else %}bg-info{% endif %}">
+                        {{ vaccine.get_vaccination_day_display }}
+                    </span>
+                </td>
+                <td>{{ vaccine.current_stock }}</td>
+                <td>{{ vaccine.minimum_stock_level }}</td>
+                <td>
+                    <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                          {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                          {% else %}bg-success{% endif %}">
+                        {{ vaccine.stock_status }}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editVaccine({{ vaccine.id }})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="restockVaccine({{ vaccine.id }})">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteVaccine({{ vaccine.id }})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No vaccines found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restock Vaccine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="restockForm" onsubmit="return false;">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Amount to Add</label>
+                        <input type="number" class="form-control" name="restock_amount" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Batch Number</label>
+                        <input type="text" class="form-control" name="batch_number">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" name="expiry_date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitRestock()">Restock</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentVaccineId = null;
+let restockModalInstance = null;
+
+// Initialize modal when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('restockModal');
+    if (modalEl) {
+        restockModalInstance = new bootstrap.Modal(modalEl, {
+            keyboard: false,
+            backdrop: 'static'
+        });
+
+        // Reset form when modal is hidden
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('restockForm').reset();
+            currentVaccineId = null;
+        });
+    }
+});
+
+function restockVaccine(vaccineId) {
+    if (!restockModalInstance) {
+        const modalEl = document.getElementById('restockModal');
+        restockModalInstance = new bootstrap.Modal(modalEl, {
+            keyboard: false,
+            backdrop: 'static'
+        });
+    }
+    
+    currentVaccineId = vaccineId;
+    restockModalInstance.show();
+}
+
+async function submitRestock() {
+    if (!currentVaccineId) return;
+    
+    const form = document.getElementById('restockForm');
+    const formData = new FormData(form);
+    
+    try {
+        const response = await fetch(`/vaccine/${currentVaccineId}/restock/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update the stock level
+            const stockCell = document.querySelector(`td[data-stock="${currentVaccineId}"]`);
+            if (stockCell) {
+                stockCell.textContent = data.new_stock;
+            }
+            
+            // Update the status badge
+            const statusBadge = document.querySelector(`span[data-status="${currentVaccineId}"]`);
+            if (statusBadge) {
+                statusBadge.className = `badge ${getStatusClass(data.stock_status)}`;
+                statusBadge.textContent = data.stock_status;
+            }
+            
+            restockModalInstance.hide();
+            setTimeout(() => alert(data.message), 300); // Delay alert to avoid modal issues
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating stock');
+    }
+}
+
+function getStatusClass(status) {
+    switch(status) {
+        case 'OUT_OF_STOCK': return 'bg-danger';
+        case 'LOW_STOCK': return 'bg-warning';
+        default: return 'bg-success';
+    }
+}
+</script> 

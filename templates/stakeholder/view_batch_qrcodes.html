@@ -1,0 +1,121 @@
+
+{% extends 'admindash.html' %}
+{% block body %}
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Batch QR Codes</h2>
+                        <p class="text-muted">Scan the QR code to view batch details.</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for batch in batches %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Batch #{{ batch.id }}</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        {% if batch.qr_code %}
+                                            <div class="qr-code-container">
+                                                <p class="text-muted mb-2">Scan QR Code for Batch #{{ batch.id }}</p>
+                                                
+                                                <!-- QR Code Image -->
+                                                <a href="{% url 'batch_detail_qr' batch.batch_uuid %}">
+                                                    <img src="{{ batch.qr_code.url }}" 
+                                                         alt="QR Code for Batch #{{ batch.id }}" 
+                                                         class="img-fluid mb-3" 
+                                                         style="max-width: 200px; border: 1px solid #ddd; padding: 10px;">
+                                                </a>
+                                                
+                                                <div class="small text-muted">
+                                                    <p><strong>Type:</strong> {{ batch.batch_type }}</p>
+                                                    <p><strong>Status:</strong> {{ batch.batch_status }}</p>
+                                                    <p><strong>Chick Count:</strong> {{ batch.live_chick_count }} / {{ batch.initial_chick_count }}</p>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <p class="text-danger">No QR code available</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+{% comment %} {% extends 'admindash.html' %}
+
+
+{% block body %}
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Batch QR Codes</h2>
+                        <p class="text-muted">Debug: User Email: {{ user_email }}, Is Admin: {{ is_admin }}</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for batch in batches %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Batch #{{ batch.id }}
+                                        {% if is_admin %}
+                                            <small class="text-muted">(Owner: {{ batch.user.email }})</small>
+                                        {% endif %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        {% if batch.qr_code %}
+                                            <div class="qr-code-container">
+                                                <p class="text-muted mb-2">QR Code for Batch #{{ batch.id }}</p>
+                                                
+                                                <!-- QR Code Image -->
+                                                <img src="{{ batch.qr_code.url }}" 
+                                                     alt="QR Code for Batch #{{ batch.id }}" 
+                                                     class="img-fluid mb-3" 
+                                                     style="max-width: 200px; border: 1px solid #ddd; padding: 10px;">
+                                                
+                                                {% if debug %}
+                                                <div class="debug-info small text-muted">
+                                                    <p>QR Code Path: {{ batch.qr_code.name }}</p>
+                                                    <p>QR Code URL: {{ batch.qr_code.url }}</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <p class="text-danger">No QR code available for this batch</p>
+                                        {% endif %}
+                                        <p><strong>Date:</strong> {{ batch.batch_date }}</p>
+                                        <p><strong>Type:</strong> {{ batch.batch_type }}</p>
+                                        <p><strong>Status:</strong> {{ batch.batch_status }}</p>
+                                        <p><strong>Count:</strong> {{ batch.live_chick_count }} / {{ batch.initial_chick_count }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}  {% endcomment %}

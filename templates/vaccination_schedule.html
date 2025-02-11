@@ -1,0 +1,376 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="vaccination-schedule">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-left">
+            <h1><i class="fas fa-syringe"></i> Vaccination Schedule</h1>
+            <p class="text-muted">Track and manage vaccination schedules</p>
+        </div>
+        <div class="header-right">
+            <button class="btn-outline" onclick="exportSchedule()">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-container">
+        <div class="stat-card primary">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Due Today</h3>
+                <div class="stat-value">{{ today_count }}</div>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-details">
+                <h3>This Week</h3>
+                <div class="stat-value">{{ week_count }}</div>
+            </div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Completed</h3>
+                <div class="stat-value">{{ completed_count }}</div>
+            </div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Upcoming</h3>
+                <div class="stat-value">{{ upcoming_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Table Card -->
+    <div class="content-card">
+        <div class="card-header">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="scheduleSearch" placeholder="Search stakeholder or batch...">
+            </div>
+            <div class="filter-actions">
+                <div class="filter-group">
+                    <select class="select-filter" id="roundFilter">
+                        <option value="all">All Rounds</option>
+                        <option value="1st">1st Round</option>
+                        <option value="2nd">2nd Round</option>
+                        <option value="3rd">3rd Round</option>
+                    </select>
+                    <select class="select-filter" id="dateFilter">
+                        <option value="all">All Dates</option>
+                        <option value="today">Due Today</option>
+                        <option value="week">This Week</option>
+                        <option value="upcoming">Upcoming</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Stakeholder</th>
+                        <th>Batch Number</th>
+                        <th>Vaccination Round</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleTableBody">
+                    {% for schedule in upcoming_vaccinations %}
+                    <tr class="{% if schedule.vaccine_date == today %}due-today{% endif %}">
+                        <td>
+                            <div class="stakeholder-info">
+                                <span class="name">{{ schedule.user.username }}</span>
+                                <span class="email text-muted">{{ schedule.user.email }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="batch-info">
+                                <span class="batch-number">{{ schedule.batch_number }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="round-badge {{ schedule.vaccine_type|lower }}">
+                                {{ schedule.vaccine_type }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="schedule-date">
+                                <i class="fas fa-calendar"></i>
+                                {{ schedule.vaccine_date|date:"M d, Y" }}
+                                {% if schedule.vaccine_date == today %}
+                                <span class="due-tag">Due Today</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge pending">Pending</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-success-sm" onclick="markComplete({{ schedule.schedule_id }})" title="Mark as Complete">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn-primary-sm" onclick="sendReminder({{ schedule.batch_id }})" title="Send Reminder">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                                <button class="btn-info-sm" onclick="viewDetails({{ schedule.batch_id }})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>No vaccination schedules found</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add this modal to your existing template -->
+<div class="modal" id="completeVaccinationModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Complete Vaccination</h3>
+            <button onclick="closeModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="completeVaccinationForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="quantityUsed">Quantity Used</label>
+                    <input type="number" class="form-control" id="quantityUsed" required min="1">
+                </div>
+                <div class="mb-3">
+                    <label for="completionNotes">Notes</label>
+                    <textarea class="form-control" id="completionNotes" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+            <button type="button" onclick="submitCompletion()" class="btn-primary">Complete</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.vaccination-schedule {
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.round-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.round-badge.1st-round { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+.round-badge.2nd-round { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+.round-badge.3rd-round { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
+
+.due-today {
+    background: rgba(241, 196, 15, 0.1);
+}
+
+.due-tag {
+    background: #e74c3c;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.status-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.pending { background: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+.status-badge.completed { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-success-sm, .btn-primary-sm, .btn-info-sm {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-success-sm { background: #2ecc71; color: white; }
+.btn-primary-sm { background: #3498db; color: white; }
+.btn-info-sm { background: #95a5a6; color: white; }
+
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: #95a5a6;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 1200px) {
+    .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .vaccination-schedule {
+        padding: 1rem;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+let currentRecordId = null;
+
+function markComplete(recordId) {
+    currentRecordId = recordId;
+    document.getElementById('completeVaccinationModal').style.display = 'block';
+}
+
+function submitCompletion() {
+    const quantity = document.getElementById('quantityUsed').value;
+    const notes = document.getElementById('completionNotes').value;
+    
+    const formData = new FormData();
+    formData.append('quantity_used', quantity);
+    formData.append('notes', notes);
+    
+    fetch(`/vaccination/complete/${currentRecordId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            closeModal();
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function closeModal() {
+    document.getElementById('completeVaccinationModal').style.display = 'none';
+    document.getElementById('completeVaccinationForm').reset();
+    currentRecordId = null;
+}
+
+function sendReminder(batchId) {
+    // Implement reminder functionality
+    alert('Reminder sent to stakeholder');
+}
+
+function viewDetails(batchId) {
+    // Implement view details functionality
+    window.location.href = `/batch/${batchId}/details/`;
+}
+
+function exportSchedule() {
+    // Implement export functionality
+    alert('Exporting schedule...');
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 

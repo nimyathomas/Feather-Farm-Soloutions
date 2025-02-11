@@ -40,7 +40,8 @@ from user.views import (
     get_vaccine,
     vaccination_main,
     vaccine_stock_level,
-    update_stock,
+  
+   
 )
 from . import views 
 
@@ -178,8 +179,18 @@ urlpatterns = [
     path('delete-vaccine/<int:vaccine_id>/', delete_vaccine, name='delete_vaccine'),
     path('get-vaccine/<int:vaccine_id>/', get_vaccine, name='get_vaccine'),
     path('vaccine-stock-level/', vaccine_stock_level, name='vaccine_stock_level'),
-    path('update-stock/<int:vaccine_id>/', update_stock, name='update_stock'),
     path('disease-analysis/', views.disease_analysis_list, name='disease_analysis_list'),
     path('disease-analysis/<int:analysis_id>/', views.disease_analysis_detail, name='disease_analysis_detail'),
     path('analysis/<int:analysis_id>/feedback/', views.provide_feedback, name='provide_feedback'),
+    path('batch/<uuid:batch_uuid>/detail/', views.batch_detail_qr, name='batch_detail_qr'),
+    path('batches/qrcodes/', views.view_batch_qrcodes, name='view_batch_qrcodes'),
+    # path('test-media/<str:filename>/', views.test_media, name='test_media'),
+    path('feed-main-dashboard/', views.feed_main_dashboard, name='feed_main_dashboard'),
+
+    path('feed-dashboard/', views.feed_dashboard, name='feed_dashboard'),
+    path('feed-manage/', views.feed_manage, name='feed_manage'),
+    path('feed-stock/add/', views.add_feed_stock, name='add_feed_stock'),
+    path('feed-stock/<int:pk>/edit/', views.edit_feed_stock, name='edit_feed_stock'),
+    path('feed-stock/<int:pk>/delete/', views.delete_feed_stock, name='delete_feed_stock'),
+    path('feed-stock/create/', views.feed_stock_create, name='feed_stock_create'),
 ]

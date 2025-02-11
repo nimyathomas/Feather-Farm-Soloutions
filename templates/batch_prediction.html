@@ -1,0 +1,118 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <div class="row my-4">
+        <div class="col">
+            <h2 class="text-primary">
+                <i class="fas fa-chart-line me-2"></i>Batch Performance Prediction
+            </h2>
+        </div>
+        <div class="col text-end">
+            <button class="btn btn-primary" onclick="generatePrediction()">
+                Generate New Prediction
+            </button>
+        </div>
+    </div>
+
+    <!-- Performance Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Predicted Weight</h5>
+                    <h3 id="predicted-weight">{{ predictions.first.predicted_weight|floatformat:2 }} g</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Predicted FCR</h5>
+                    <h3 id="predicted-fcr">{{ predictions.first.predicted_fcr|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>Predicted Feed Consumption</h5>
+                    <h3 id="predicted-feed">{{ predictions.first.predicted_feed_consumption|floatformat:2 }} g</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historical Data -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Historical Performance</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize chart with historical data
+const ctx = document.getElementById('performanceChart').getContext('2d');
+const performanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ performance_data|safe }}.map(d => d.date),
+        datasets: [{
+            label: 'Actual Weight',
+            data: {{ performance_data|safe }}.map(d => d.average_weight),
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        },
+        {
+            label: 'Predicted Weight',
+            data: {{ predictions|safe }}.map(d => d.predicted_weight),
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+async function generatePrediction() {
+    try {
+        const response = await fetch(`/batch/${{{ batch.id }}}/predict/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update display
+            document.getElementById('predicted-weight').textContent = 
+                `${data.prediction.predicted_weight.toFixed(2)} g`;
+            document.getElementById('predicted-fcr').textContent = 
+                data.prediction.predicted_fcr.toFixed(2);
+            document.getElementById('predicted-feed').textContent = 
+                `${data.prediction.predicted_feed.toFixed(2)} g`;
+                
+            // Update chart
+            performanceChart.data.datasets[1].data.push(data.prediction.predicted_weight);
+            performanceChart.update();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error generating prediction');
+    }
+}
+</script>
+{% endblock %} 

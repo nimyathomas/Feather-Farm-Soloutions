@@ -198,6 +198,14 @@
             background: rgba(255,255,255,0.3);
         }
     </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all modals
+        document.querySelectorAll('.modal').forEach(modalEl => {
+            new bootstrap.Modal(modalEl);
+        });
+    });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -231,9 +239,9 @@
                 <li><a href="#">
                     <i class="fas fa-chart-line"></i> Sales
                 </a></li>
-                <li><a href="{% url 'feed_admin' %}">
+                {% comment %} <li><a href="{% url 'feed_main_dashboard' %}">
                     <i class="fas fa-drumstick-bite"></i> Feeds
-                </a></li>
+                </a></li> {% endcomment %}
                 <li><a href="{% url 'vaccination_main' %}" class="{% if 'vaccination' in request.path %}active{% endif %}">
                     <i class="fas fa-syringe"></i> Vaccinations
                 </a></li>
@@ -243,6 +251,12 @@
                 <li><a href="{% url 'logout' %}">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'feed_main_dashboard' %}">
+                        <i class="fas fa-drumstick-bite"></i>
+                        <span>Feed Management</span>
+                    </a>
+                </li>
             </ul>
         </aside>
 

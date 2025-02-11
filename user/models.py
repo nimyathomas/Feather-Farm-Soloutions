@@ -122,6 +122,15 @@ def save(self, *args, **kwargs):
 class Vaccine(models.Model):
     name = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=100)
+    VACCINATION_DAY_CHOICES = [
+        (7, '7th Day'),
+        (14, '14th Day'),
+        (21, '21st Day')
+    ]
+    vaccination_day = models.IntegerField(
+        choices=VACCINATION_DAY_CHOICES,
+        help_text="Day of vaccination administration"
+    )
     doses_required = models.PositiveIntegerField()
     interval_days = models.PositiveIntegerField()  # Days between doses
     expiry_date = models.DateField(null=True, blank=True)  # Add this field if not present
@@ -138,6 +147,36 @@ class Vaccine(models.Model):
         choices=STOCK_STATUS_CHOICES,
         default='OUT_OF_STOCK'
     )
+    minimum_stock_level = models.PositiveIntegerField(
+        default=100,
+        help_text="Minimum stock level before warning"
+    )
+    batch_number = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Vaccine batch number"
+    )
+    notes = models.TextField(blank=True)
+
+    def update_stock_status(self):
+        """Update stock status based on current stock level"""
+        if self.current_stock == 0:
+            self.stock_status = 'OUT_OF_STOCK'
+        elif self.current_stock < self.minimum_stock_level:
+            self.stock_status = 'LOW_STOCK'
+        else:
+            self.stock_status = 'IN_STOCK'
+        self.save()
+
+    def save(self, *args, **kwargs):
+        # Update stock status before saving
+        if self.current_stock == 0:
+            self.stock_status = 'OUT_OF_STOCK'
+        elif self.current_stock < self.minimum_stock_level:
+            self.stock_status = 'LOW_STOCK'
+        else:
+            self.stock_status = 'IN_STOCK'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -207,3 +246,106 @@ class DailyTip(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class BatchPerformanceBenchmark(models.Model):
+    PERFORMANCE_LEVEL_CHOICES = [
+        ('EXCELLENT', 'Excellent'),
+        ('GOOD', 'Good'),
+        ('AVERAGE', 'Average'),
+        ('POOR', 'Poor'),
+        ('CRITICAL', 'Critical')
+    ]
+
+    performance_level = models.CharField(
+        max_length=20,
+        choices=PERFORMANCE_LEVEL_CHOICES
+    )
+    
+    # Target metrics
+    min_weight = models.FloatField()
+    max_weight = models.FloatField()
+    min_fcr = models.FloatField()
+    max_fcr = models.FloatField()
+    
+    # Environmental conditions
+    min_temperature = models.FloatField()
+    max_temperature = models.FloatField()
+    min_humidity = models.FloatField()
+    max_humidity = models.FloatField()
+    
+    # Consumption metrics
+    min_feed_intake = models.FloatField()
+    max_feed_intake = models.FloatField()
+    min_water_consumption = models.FloatField()
+    max_water_consumption = models.FloatField()
+    
+    # Health metrics
+    max_mortality_rate = models.FloatField()
+
+    class Meta:
+        ordering = ['performance_level']
+
+    @classmethod
+    def get_performance_level(cls, 
+                            weight, 
+                            fcr, 
+                            temperature, 
+                            humidity,
+                            feed_intake,
+                            water_consumption,
+                            mortality_rate):
+        """
+        Determines performance level based on current metrics
+        """
+        benchmarks = cls.objects.all()
+        
+        for benchmark in benchmarks:
+            if (benchmark.min_weight <= weight <= benchmark.max_weight and
+                benchmark.min_fcr <= fcr <= benchmark.max_fcr and
+                benchmark.min_temperature <= temperature <= benchmark.max_temperature and
+                benchmark.min_humidity <= humidity <= benchmark.max_humidity and
+                benchmark.min_feed_intake <= feed_intake <= benchmark.max_feed_intake and
+                benchmark.min_water_consumption <= water_consumption <= benchmark.max_water_consumption and
+                mortality_rate <= benchmark.max_mortality_rate):
+                return benchmark.performance_level
+                
+        return 'CRITICAL'
+    
+    
+    
+class FeedStock(models.Model):
+    FEED_TYPE_CHOICES = [
+        ('starter', 'Starter Feed (0-21 days)'),
+        ('grower', 'Grower Feed (22-35 days)'),
+        ('finisher', 'Finisher Feed (36+ days)')
+    ]
+    
+    feed_type = models.CharField(max_length=20, choices=FEED_TYPE_CHOICES)
+    number_of_sacks = models.PositiveIntegerField(
+        help_text="Number of 50kg sacks available"
+    )
+    price_per_sack = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=1750.00,  # 50kg × ₹35 = ₹1,750
+        help_text="Price for one 50kg sack"
+    )
+    minimum_sacks = models.PositiveIntegerField(
+        default=20,
+        help_text="Minimum number of sacks to maintain"
+    )
+    last_updated = models.DateTimeField(auto_now=True)
+
+    @property
+    def quantity_in_kg(self):
+        """Convert sacks to kilograms"""
+        return self.number_of_sacks * 50
+
+    @property
+    def price_per_kg(self):
+        """Calculate price per kg"""
+        return self.price_per_sack / 50
+
+    def __str__(self):
+        return f"{self.get_feed_type_display()} - {self.number_of_sacks} sacks ({self.quantity_in_kg}kg)"

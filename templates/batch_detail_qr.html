@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3>Batch Details</h3>
+            <span class="badge bg-light text-dark">{{ batch_status }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h4>Basic Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>Batch Type:</strong> {{ batch_type }}</li>
+                                <li class="list-group-item"><strong>Start Date:</strong> {{ batch.batch_date }}</li>
+                                <li class="list-group-item"><strong>Age:</strong> {{ age_days }} days</li>
+                                <li class="list-group-item"><strong>Duration:</strong> {{ duration }} days</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Performance Metrics</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center mb-4">
+                                <div class="col-6">
+                                    <h5>FCR</h5>
+                                    <div class="display-4">{{ fcr }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <h5>Mortality Rate</h5>
+                                    <div class="display-4">
+                                        {% widthratio total_mortality initial_count 100 %}%
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>Total Feed:</strong> {{ total_feed|floatformat:2 }} kg</li>
+                                <li class="list-group-item"><strong>Weight Gain:</strong> {{ total_weight_gain|floatformat:2 }} kg</li>
+                                <li class="list-group-item"><strong>Avg Weight:</strong> {{ avg_weight|floatformat:2 }} kg</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h4>Population Status</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <h5>Initial</h5>
+                                    <div class="display-6">{{ initial_count }}</div>
+                                </div>
+                                <div class="col-4">
+                                    <h5>Current</h5>
+                                    <div class="display-6">{{ current_count }}</div>
+                                </div>
+                                <div class="col-4">
+                                    <h5>Lost</h5>
+                                    <div class="display-6">{{ total_mortality }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if analyses %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Recent Health Analysis</h4>
+                        </div>
+                        <div class="card-body">
+                            {% for analysis in analyses|slice:":3" %}
+                            <div class="alert {% if analysis.predicted_disease == 'Healthy' %}alert-success{% else %}alert-warning{% endif %} mb-2">
+                                <h5>{{ analysis.analyzed_date|date:"M d, Y" }}</h5>
+                                <p class="mb-0">
+                                    <strong>Status:</strong> {{ analysis.predicted_disease }}<br>
+                                    <strong>Confidence:</strong> {{ analysis.confidence_score }}%
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

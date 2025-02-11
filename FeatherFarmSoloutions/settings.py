@@ -4,7 +4,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+SITE_URL = 'http://localhost:8000'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -14,7 +14,7 @@ SECRET_KEY = "django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Add your domain here
 
 
 # Application definition
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
@@ -171,8 +172,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

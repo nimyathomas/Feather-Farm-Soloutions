@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from .models import FeedMonitoring
+from .models import FeedMonitoring, ChickBatch, DiseaseAnalysis
 from django.shortcuts import render, redirect
 from .forms import BatchSelectionForm, ChickenBatchForm, CompletedBatchUpdateForm
 from django.shortcuts import render
@@ -19,12 +19,12 @@ from datetime import timedelta
 from django.contrib.auth import logout
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from stakeholder.models import ChickBatch
-from user.models import User
+from user.models import User, FeedStock
 from django.urls import reverse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -41,8 +41,87 @@ from PIL import Image
 import io
 import os
 from django.conf import settings
+import tensorflow as tf
 
+from .forms import FeedStockForm  # Add this import
 
+# At the top of views.py, add this debug code
+MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
+print(f"\nAttempting to load model from: {MODEL_PATH}")
+print(f"File exists: {os.path.exists(MODEL_PATH)}")
+
+try:
+    if os.path.exists(MODEL_PATH):
+        model = tf.keras.models.load_model(MODEL_PATH)
+        # Test model with random data
+        test_input = np.random.random((1, 150, 150, 3))
+        test_pred = model.predict(test_input)
+        print("\nModel test prediction shape:", test_pred.shape)
+        print("Model loaded and tested successfully")
+    else:
+        print("Model file not found!")
+        model = None
+except Exception as e:
+    print(f"Error loading model: {str(e)}")
+    model = None
+
+CLASS_MAPPING = {
+    0: "Coccidiosis",
+    1: "Healthy", 
+    2: "New Castle Disease",
+    3: "Salmonella"
+}
+
+def predict_disease(image_file):
+    """ML-based disease detection"""
+    try:
+        # Preprocess image
+        img = Image.open(image_file).convert('RGB')
+        img = img.resize((150, 150))
+        img_array = np.array(img) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        # Make prediction using model
+        if model is not None:
+            # Get model predictions with debug info
+            prediction = model.predict(img_array)
+            print("\nRaw Predictions:", prediction[0])  # Debug print
+            
+            predicted_class = np.argmax(prediction[0])
+            confidence = float(prediction[0][predicted_class]) * 100
+            
+            # Print debug information
+            print(f"\nPredicted Class Index: {predicted_class}")
+            print(f"Class Mapping: {CLASS_MAPPING}")
+            print(f"Predicted Disease: {CLASS_MAPPING[predicted_class]}")
+            print(f"Confidence: {confidence:.2f}%")
+            
+            # Add probabilities for all classes
+            all_probs = {
+                CLASS_MAPPING[i]: f"{float(prediction[0][i])*100:.2f}%"
+                for i in range(len(CLASS_MAPPING))
+            }
+            print("\nAll Probabilities:", all_probs)
+            
+            return {
+                "disease": CLASS_MAPPING[predicted_class],
+                "confidence": f"{confidence:.2f}%",
+                "severity": "High" if confidence > 80 else "Medium" if confidence > 60 else "Low",
+                "symptoms": get_disease_symptoms(CLASS_MAPPING[predicted_class].lower()),
+                "all_probabilities": all_probs
+            }
+        else:
+            print("Model is None - falling back to rule-based prediction")
+            return {
+                "disease": "Error",
+                "confidence": "0.00%",
+                "severity": "Unknown",
+                "symptoms": [],
+                "error": "Model not loaded properly"
+            }
+    except Exception as e:
+        print(f"Error in prediction: {str(e)}")
+        return {"error": f"Analysis failed: {str(e)}"}
 
 def add_or_edit_farm(request, id):
     # Fetch the user by ID
@@ -222,7 +301,7 @@ def contact(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("/")
+    return redirect('login')  # or whatever URL you want to redirect to after logout
 
 
 # views.py
@@ -943,17 +1022,77 @@ import os
 from django.shortcuts import render
 from django.contrib import messages
 
+@login_required
+@login_required
+def chick_health_recognition(request):
+    """View for disease prediction"""
+    batches = ChickBatch.objects.filter(batch_status='active').order_by('-batch_date')
+    
+    if request.method == 'POST' and request.FILES.get('chick_image'):
+        try:
+            image_file = request.FILES['chick_image']
+            batch_id = request.POST.get('batch_id')
+            
+            # Ensure batch_id is provided
+            if not batch_id:
+                messages.error(request, 'Please select a batch')
+                return redirect('chick_health_recognition')
 
-# stakeholder/views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import DiseaseAnalysis, ChickBatch
-from .forms import DiseaseAnalysisForm
-import tensorflow as tf
-import numpy as np
-from PIL import Image
-import io
+            # Fetch the batch safely
+            selected_batch = ChickBatch.objects.filter(id=batch_id).first()
+            if not selected_batch:
+                messages.error(request, f'Batch with ID {batch_id} not found.')
+                return redirect('chick_health_recognition')
+
+            # Process the image file directly
+            result = predict_disease(image_file)
+            print(f"🔍 Debug Output from predict_disease: {result}")  # ✅ Debugging step
+            
+            # Ensure result is a dictionary
+            if isinstance(result, dict) and "disease" in result and "confidence" in result:
+                predicted_class = result["disease"]
+                confidence_score = float(result["confidence"].strip('%'))  # Convert to float
+                symptoms_detected = result.get("symptoms", [])  # Get symptoms if available
+                severity = result.get("severity", "Unknown")  # Default to "Unknown" if missing
+            else:
+                raise ValueError(f"Unexpected return value from predict_disease: {result}")
+
+            # Save the analysis
+            analysis = DiseaseAnalysis.objects.create(
+                image=image_file,
+                predicted_disease=predicted_class,
+                confidence_score=confidence_score,
+                symptoms_detected=symptoms_detected,
+                batch=selected_batch,
+                created_by=request.user
+            )
+            
+            messages.success(request, 'Analysis completed successfully!')
+            return redirect('disease_analysis_detail', analysis_id=analysis.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error processing image: {str(e)}')
+            return redirect('chick_health_recognition')
+    
+    context = {
+        'batches': batches,
+        'recent_analyses': DiseaseAnalysis.objects.all().order_by('-analyzed_date')[:5]
+    }
+    
+    return render(request, 'chick_health_recognition.html', context)
+
+
+
+
+def get_disease_symptoms(disease):
+    """Return common symptoms for each disease"""
+    symptoms_map = {
+        'healthy': [],
+        'coccidiosis': ['Bloody droppings', 'Lethargy', 'Ruffled feathers'],
+        'new castle disease': ['Respiratory distress', 'Nervous symptoms', 'Drop in egg production'],
+        'salmonella': ['Diarrhea', 'Loss of appetite', 'Depression']
+    }
+    return symptoms_map.get(disease.lower(), [])
 
 @login_required
 def disease_analysis_list(request):
@@ -977,241 +1116,33 @@ def disease_analysis_detail(request, analysis_id):
         'analysis': analysis
     })
 
-@login_required
-def create_disease_analysis(request, batch_id):
-    batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
-    
-    if request.method == 'POST':
-        form = DiseaseAnalysisForm(request.POST, request.FILES)
-        if form.is_valid():
-            analysis = form.save(commit=False)
-            analysis.batch = batch
-            analysis.created_by = request.user
+# def load_disease_model():
+#     """Load the trained disease detection model"""
+#     try:
+#         model_path = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
+        
+#         if os.path.exists(model_path):
+#             # Load model with custom metrics if used during training
+#             model = tf.keras.models.load_model(model_path, compile=False)
             
-            # Process the image and get predictions
-            try:
-                image = request.FILES['image']
-                prediction = predict_disease(image)
-                
-                analysis.predicted_disease = prediction['disease']
-                analysis.confidence_score = prediction['confidence']
-                analysis.symptoms_detected = prediction['symptoms']
-                
-                analysis.save()
-                messages.success(request, 'Disease analysis created successfully!')
-                return redirect('disease_analysis_detail', analysis_id=analysis.id)
-                
-            except Exception as e:
-                messages.error(request, f'Error processing image: {str(e)}')
-        else:
-            form = DiseaseAnalysisForm()
-    
-    return render(request, 'stakeholder/create_disease_analysis.html', {
-        'form': form,
-        'batch': batch
-    })
+#             # Compile with same settings as training
+#             model.compile(
+#                 optimizer='adam',
+#                 loss='categorical_crossentropy',
+#                 metrics=['accuracy']
+#             )
+#             print(f"Model loaded successfully from {model_path}")
+#             return model
+#         else:
+#             print(f"Model file not found at {model_path}")
+#             return None
+            
+#     except Exception as e:
+#         print(f"Error loading model: {str(e)}")
+#         return None
 
-def predict_disease(image_file):
-    """
-    Process image and predict disease with enhanced coccidiosis detection
-    """
-    try:
-        # 1. Load and preprocess image
-        image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
-        original_image = np.array(image)
-        
-        # 2. Analyze image characteristics
-        def analyze_image_features(img):
-            # Convert to different color spaces
-            hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-            lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
-            
-            # Enhanced color analysis for coccidiosis
-            red_channel = img[:,:,0]
-            red_intensity = np.mean(red_channel) / 255.0
-            red_variation = np.std(red_channel) / 255.0
-            
-            # Analyze brown/reddish colors (typical in coccidiosis)
-            brown_mask = (img[:,:,0] > 100) & (img[:,:,1] < 150) & (img[:,:,2] < 150)
-            brown_ratio = np.sum(brown_mask) / (img.shape[0] * img.shape[1])
-            
-            # Return all features in a dictionary
-            return {
-                'red_intensity': red_intensity,
-                'red_variation': red_variation,
-                'brown_ratio': brown_ratio,
-                'texture': np.std(lab[:,:,0]) / 255.0
-            }
-        
-        # Get image features
-        features = analyze_image_features(original_image)
-        print("\nImage Features:")
-        for key, value in features.items():
-            print(f"{key}: {value:.3f}")
-        
-        # 3. Prepare image for model
-        image = image.resize((150, 150))
-        image_array = np.array(image) / 255.0
-        image_array = np.expand_dims(image_array, axis=0)
-        
-        # 4. Get model prediction
-        model = load_disease_model()
-        prediction = model.predict(image_array)
-        raw_predictions = prediction[0]
-        
-        diseases = ['healthy', 'coccidiosis', 'salmonella', 'aspergillosis']
-        
-        # 5. Apply coccidiosis-specific rules
-        coccidiosis_indicators = 0
-        
-        # Check red/brown coloration using features from the dictionary
-        if features['red_intensity'] > 0.4:
-            coccidiosis_indicators += 1
-        if features['brown_ratio'] > 0.2:
-            coccidiosis_indicators += 1
-        if features['red_variation'] > 0.15:
-            coccidiosis_indicators += 1
-        
-        # Get initial predictions
-        initial_predictions = {
-            disease: float(prob)
-            for disease, prob in zip(diseases, raw_predictions)
-        }
-        
-        print("\nInitial Predictions:")
-        for disease, prob in initial_predictions.items():
-            print(f"{disease}: {prob*100:.2f}%")
-        
-        # 6. Adjust predictions based on visual indicators
-        if coccidiosis_indicators >= 2:
-            print("\nDetected strong visual indicators of coccidiosis")
-            # Boost coccidiosis probability
-            initial_predictions['coccidiosis'] *= 2.0
-            initial_predictions['healthy'] *= 0.5
-        
-        # 7. Make final decision
-        if initial_predictions['coccidiosis'] > 0.3 or coccidiosis_indicators >= 2:
-            predicted_disease = 'coccidiosis'
-            confidence = min(initial_predictions['coccidiosis'] * 100 * 1.5, 100)
-        else:
-            predicted_disease = max(initial_predictions.items(), key=lambda x: x[1])[0]
-            confidence = initial_predictions[predicted_disease] * 100
-        
-        print("\nFinal Decision:")
-        print(f"Selected Disease: {predicted_disease}")
-        print(f"Confidence: {confidence:.2f}%")
-        print(f"Coccidiosis Indicators Found: {coccidiosis_indicators}")
-        
-        # Get symptoms for the predicted disease
-        symptoms = get_disease_symptoms(predicted_disease)
-        
-        return {
-            'disease': predicted_disease,
-            'confidence': float(confidence),
-            'symptoms': symptoms,
-            'all_predictions': {
-                disease: float(initial_predictions[disease] * 100)
-                for disease in diseases
-            },
-            'is_diseased': predicted_disease != 'healthy',
-            'status': 'Healthy' if predicted_disease == 'healthy' else 'Disease Detected',
-            'metrics': {
-                'severity': min(confidence, 100),
-                'urgency': 100 if predicted_disease != 'healthy' else 0
-            }
-        }
-        
-    except Exception as e:
-        print(f"Prediction error: {str(e)}")
-        raise ValueError(f"Error in disease prediction: {str(e)}")
-
-def get_disease_symptoms(disease):
-    """
-    Return common symptoms for each disease
-    """
-    symptoms_map = {
-        'coccidiosis': ['Bloody droppings', 'Lethargy', 'Ruffled feathers'],
-        'salmonella': ['Diarrhea', 'Loss of appetite', 'Depression'],
-        'aspergillosis': ['Breathing difficulty', 'Gasping', 'Weight loss'],
-        'healthy': []
-    }
-    return symptoms_map.get(disease, [])
-
-def load_disease_model():
-    try:
-        model_path = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier.h5')
-        
-        # Add custom metrics if you used any during training
-        model = tf.keras.models.load_model(model_path, compile=False)
-        
-        # Compile with same settings as training
-        model.compile(
-            optimizer='adam',
-            loss='categorical_crossentropy',
-            metrics=['accuracy']
-        )
-        
-        return model
-        
-    except Exception as e:
-        print(f"Error loading model: {str(e)}")
-        raise
-
-@login_required
-def chick_health_recognition(request):
-    """View for disease prediction page"""
-    # Get user's batches
-    batches = ChickBatch.objects.filter(user=request.user).order_by('-batch_date')
-    
-    # Get recent analyses
-    recent_analyses = DiseaseAnalysis.objects.filter(
-        batch__user=request.user
-    ).order_by('-analyzed_date')[:5]
-    
-    if request.method == 'POST' and request.FILES.get('chick_image'):
-        try:
-            image_file = request.FILES['chick_image']
-            batch_id = request.POST.get('batch_id')
-            
-            # Validate batch exists and belongs to user
-            if not batch_id:
-                messages.error(request, "Please select a batch")
-                return render(request, 'chick_health_recognition.html', {
-                    'batches': batches,
-                    'recent_analyses': recent_analyses
-                })
-                
-            batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
-            
-            # Get prediction
-            result = predict_disease(image_file)
-            
-            # Save analysis
-            analysis = DiseaseAnalysis.objects.create(
-                batch=batch,
-                created_by=request.user,
-                image=image_file,
-                predicted_disease=result['disease'],
-                confidence_score=result['confidence'],
-                symptoms_detected=result.get('symptoms', []),
-                analyzed_date=timezone.now()
-            )
-            
-            messages.success(request, "Analysis completed successfully!")
-            return render(request, 'chick_health_recognition.html', {
-                'result': result,
-                'analysis': analysis,
-                'batches': batches,
-                'recent_analyses': recent_analyses
-            })
-            
-        except Exception as e:
-            messages.error(request, f"Error during analysis: {str(e)}")
-    
-    return render(request, 'chick_health_recognition.html', {
-        'batches': batches,
-        'recent_analyses': recent_analyses
-    })
+# # Load model once when module is imported
+# model = load_disease_model()
 
 @login_required
 def provide_feedback(request, analysis_id):
@@ -1221,71 +1152,265 @@ def provide_feedback(request, analysis_id):
     if request.method == 'POST':
         correct_label = request.POST.get('correct_label')
         
-        # Save training data
-        TrainingData.objects.create(
-            image=analysis.image,
-            predicted_label=analysis.predicted_disease,
-            correct_label=correct_label,
-            confidence=analysis.confidence_score
-        )
-        
-        # If we have enough new training data, retrain the model
-        if should_retrain_model():
-            retrain_model()
+        if correct_label:
+            # Update the analysis with feedback
+            analysis.predicted_disease = correct_label
+            analysis.save()
             
-        messages.success(request, "Thank you for your feedback!")
-        
+            messages.success(request, "Thank you for your feedback!")
+        else:
+            messages.error(request, "Please provide a correct label")
+            
     return redirect('disease_analysis_detail', analysis_id=analysis_id)
 
-def should_retrain_model():
-    """Check if we have enough new training data to retrain"""
-    new_data_count = TrainingData.objects.filter(verified=False).count()
-    return new_data_count >= 50  # Retrain after 50 new samples
+# @login_required
+# def batch_detail_qr(request, batch_uuid):
+#     """View batch details via QR code"""
+#     batch = get_object_or_404(ChickBatch, batch_uuid=batch_uuid)
+    
+#     # Get all analyses for this batch
+#     analyses = DiseaseAnalysis.objects.filter(batch=batch).order_by('-analyzed_date')
+    
+#     # Get daily data
+#     daily_data = DailyData.objects.filter(batch=batch).order_by('-date')
+    
+#     # Calculate key metrics
+#     mortality_data = daily_data.aggregate(
+#         total_mortality=Sum('mortality_count'),
+#         avg_weight=Avg('weight_gain')
+#     )
+    
+#     # Calculate FCR if possible
+#     total_feed = daily_data.aggregate(total_feed=Sum('feed_consumed'))['total_feed'] or 0
+#     total_weight_gain = daily_data.aggregate(total_gain=Sum('weight_gain'))['total_gain'] or 0
+#     fcr = total_feed / total_weight_gain if total_weight_gain > 0 else 0
+    
+#     context = {
+#         'batch': batch,
+#         'analyses': analyses,
+#         'daily_data': daily_data,
+#         'total_mortality': mortality_data['total_mortality'] or 0,
+#         'avg_weight': mortality_data['avg_weight'] or 0,
+#         'age_days': (timezone.now().date() - batch.batch_date).days,
+#         'batch_type': batch.batch_type,
+#         'initial_count': batch.initial_chick_count,
+#         'current_count': batch.live_chick_count,
+#         'batch_status': batch.batch_status,
+#         'duration': batch.duration,
+#         'fcr': round(fcr, 2) if fcr else 0,
+#         'total_feed': total_feed,
+#         'total_weight_gain': total_weight_gain
+#     }
+    
+#     return render(request, 'stakeholder/batch_detail_qr.html', context)
+from django.shortcuts import render, get_object_or_404
+from stakeholder.models import ChickBatch
+from django.conf import settings
 
-def retrain_model():
-    """Retrain the model with new data"""
-    try:
-        # Load existing model
-        model = load_disease_model()
+def batch_detail_qr(request, batch_uuid):
+    """View batch details via QR code"""
+    batch = get_object_or_404(ChickBatch, batch_uuid=batch_uuid)
+    
+    context = {
+        'batch': batch,
+        'batch_uuid': batch_uuid,  # Include batch_uuid for debugging
+        'MEDIA_URL': settings.MEDIA_URL,  # Ensure MEDIA_URL is available
+    }
+    
+    return render(request, 'stakeholder/batch_detail_qr.html', context)
+
+
+@login_required
+def view_batch_qrcodes(request):
+    batches = ChickBatch.objects.all()
+    context = {
+        'batches': batches,
+        'is_admin': request.user.is_staff,
+        'debug': settings.DEBUG,
+        'MEDIA_URL': settings.MEDIA_URL,
+    }
+    return render(request, 'stakeholder/view_batch_qrcodes.html', context)
+
+def test_media(request, filename):
+    file_path = os.path.join(settings.MEDIA_ROOT, 'batch_qr_codes', filename)
+    print(f"\nTest Media Debug:")
+    print(f"Requested filename: {filename}")
+    print(f"Full file path: {file_path}")
+    print(f"File exists: {os.path.exists(file_path)}")
+    print(f"Media root: {settings.MEDIA_ROOT}")
+    
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'rb') as f:
+                response = FileResponse(f, content_type='image/png')
+                print("File opened successfully")
+                return response
+        except Exception as e:
+            print(f"Error opening file: {str(e)}")
+            return HttpResponse(f"Error opening file: {str(e)}", status=500)
+    else:
+        print(f"File not found at path: {file_path}")
+        # List contents of the directory
+        qr_dir = os.path.join(settings.MEDIA_ROOT, 'batch_qr_codes')
+        if os.path.exists(qr_dir):
+            print("\nDirectory contents:")
+            for file in os.listdir(qr_dir):
+                print(f"- {file}")
+        return HttpResponse(f"File not found: {file_path}", status=404)
+from .forms import FeedStockForm  # Add this import
+
+@login_required
+def feed_main_dashboard(request):
+    feed_stocks = FeedStock.objects.all()
+    form = FeedStockForm()
+    context = {
+        'feed_stocks': feed_stocks,
+        'form': form,
+        'is_admin': request.user.is_staff
+    }
+    return render(request, 'stakeholder/feed_main_dashboard.html', context)
+
+@login_required
+def add_feed_stock(request):
+    if not request.user.is_staff:
+        messages.error(request, 'Only admin can add feed stock')
+        return redirect('feed_main_dashboard')
         
-        # Get new training data
-        new_data = TrainingData.objects.filter(verified=False)
-        
-        # Prepare training data
-        X = []
-        y = []
-        
-        for data in new_data:
-            # Preprocess image
-            image = Image.open(data.image.path)
-            image = image.resize((150, 150))
-            image_array = np.array(image) / 255.0
-            X.append(image_array)
-            
-            # One-hot encode label
-            label_index = ['healthy', 'coccidiosis', 'salmonella', 'aspergillosis'].index(data.correct_label)
-            label = np.zeros(4)
-            label[label_index] = 1
-            y.append(label)
-        
-        X = np.array(X)
-        y = np.array(y)
-        
-        # Fine-tune model
-        model.fit(
-            X, y,
-            epochs=5,
-            batch_size=32,
-            validation_split=0.2
-        )
-        
-        # Save updated model
-        model.save(os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'disease_model_updated.h5'))
-        
-        # Mark data as verified
-        new_data.update(verified=True)
-        
-        print("Model successfully retrained!")
-        
-    except Exception as e:
-        print(f"Error retraining model: {str(e)}")
+    if request.method == 'POST':
+        form = FeedStockForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Feed stock added successfully')
+            return redirect('feed_main_dashboard')
+    else:
+        form = FeedStockForm()  # Initialize an empty form for GET requests
+
+    return render(request, 'stakeholder/feed_form.html', {'form': form})
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from user.models import FeedStock
+from .forms import FeedStockForm
+
+@login_required
+def feed_manage(request):
+    """Feed management view"""
+    feed_stocks = FeedStock.objects.all()
+
+    if request.method == 'POST':
+        # Check if it's an edit or add operation
+        if 'edit' in request.POST:
+            # Edit existing feed stock
+            feed_stock = get_object_or_404(FeedStock, pk=request.POST.get('id'))
+            form = FeedStockForm(request.POST, instance=feed_stock)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Feed stock updated successfully!')
+                return redirect('feed_manage')
+            else:
+                messages.error(request, 'Error updating feed stock. Please check the form.')
+        else:
+            # Add new feed stock
+            form = FeedStockForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Feed stock added successfully!')
+                return redirect('feed_manage')
+            else:
+                messages.error(request, 'Error adding feed stock. Please check the form.')
+    else:
+        form = FeedStockForm()
+
+    context = {
+        'feed_stocks': feed_stocks,
+        'form': form,
+        'title': 'Feed Management'
+    }
+    return render(request, 'stakeholder/feed_manage.html', context)
+
+@login_required
+def delete_feed_stock(request, pk):
+    """Delete feed stock"""
+    feed_stock = get_object_or_404(FeedStock, pk=pk)
+    
+    if request.method == 'POST':
+        feed_stock.delete()
+        messages.success(request, f'{feed_stock.get_feed_type_display()} stock has been deleted successfully.')
+        return redirect('feed_manage')
+    
+    context = {
+        'feed_stock': feed_stock,
+        'title': 'Delete Feed Stock'
+    }
+    return render(request, 'stakeholder/feed_manage.html', context)
+
+def edit_feed_stock(request, pk):
+    """Edit existing feed stock"""
+    feed_stock = get_object_or_404(FeedStock, pk=pk)
+
+    if request.method == 'POST':
+        form = FeedStockForm(request.POST, instance=feed_stock)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Feed stock updated successfully!')
+            return redirect('feed_manage')
+        else:
+            messages.error(request, 'Error updating feed stock. Please check the form.')
+    else:
+        form = FeedStockForm(instance=feed_stock)
+
+    context = {
+        'form': form,
+        'feed_stock': feed_stock,
+        'title': 'Edit Feed Stock'
+    }
+    return render(request, 'stakeholder/feed_manage.html', context)
+
+  
+
+@login_required
+def feed_stock_create(request):
+       """Create new feed stock"""
+       if request.method == 'POST':
+           form = FeedStockForm(request.POST)
+           if form.is_valid():
+               form.save()
+               messages.success(request, 'Feed stock created successfully!')
+               return redirect('feed_manage')
+           else:
+               messages.error(request, 'Error creating feed stock. Please check the form.')
+       else:
+           form = FeedStockForm()
+
+       context = {
+           'form': form,
+           'title': 'Add New Feed Stock'
+       }
+       return render(request, 'stakeholder/feed_manage.html', context)
+
+
+@login_required
+def feed_dashboard(request):
+   
+    # Get all feed stocks
+    feed_stocks = FeedStock.objects.all()
+    
+    # Calculate totals
+    total_sacks = sum(stock.number_of_sacks for stock in feed_stocks)
+    total_value = sum(stock.number_of_sacks * stock.price_per_sack for stock in feed_stocks)
+    
+    # Get low stock items
+    low_stock_items = [stock for stock in feed_stocks if stock.number_of_sacks <= stock.minimum_sacks]
+    
+    context = {
+        'feed_stocks': feed_stocks,
+        'total_sacks': total_sacks,
+        'total_value': total_value,
+        'low_stock_items': low_stock_items,
+        'is_admin': request.user.is_staff,
+    }
+    
+    return render(request, 'stakeholder/feed_dashboard.html', context)

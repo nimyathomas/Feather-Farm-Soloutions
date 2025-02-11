@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="batch-details">
+    <div class="card">
+        <div class="card-header">
+            <h2>Batch #{{ batch.id }} Details</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Basic Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Batch Date:</th>
+                            <td>{{ batch.batch_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td>{{ batch_type }}</td>
+                        </tr>
+                        <tr>
+                            <th>Age:</th>
+                            <td>{{ age_days }} days</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>{{ batch_status }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>Performance Metrics</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Initial Count:</th>
+                            <td>{{ initial_count }}</td>
+                        </tr>
+                        <tr>
+                            <th>Current Count:</th>
+                            <td>{{ current_count }}</td>
+                        </tr>
+                        <tr>
+                            <th>FCR:</th>
+                            <td>{{ fcr }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Feed Used:</th>
+                            <td>{{ total_feed }} kg</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Add more sections for daily data, analyses, etc. -->
+        </div>
+    </div>
+</div>
+{% endblock %} 

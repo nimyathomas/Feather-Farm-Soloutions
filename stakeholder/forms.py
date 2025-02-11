@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from .models import FeedMonitoring, DiseaseAnalysis
+from user.models import FeedStock  # Import FeedStock from user.models instead
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now  # Use timezone-aware date
@@ -212,4 +213,30 @@ class DiseaseAnalysisForm(forms.ModelForm):
                 'class': 'form-control',
                 'accept': 'image/*'
             })
+        }
+
+class FeedStockForm(forms.ModelForm):
+    class Meta:
+        model = FeedStock
+        fields = ['feed_type', 'number_of_sacks', 'price_per_sack', 'minimum_sacks']
+        widgets = {
+            'number_of_sacks': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'min': '0'
+                }
+            ),
+            'price_per_sack': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'min': '0',
+                    'step': '0.01'
+                }
+            ),
+            'minimum_sacks': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'min': '0'
+                }
+            )
         }
