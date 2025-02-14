@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from .models import FeedMonitoring, ChickBatch, DiseaseAnalysis
+from .models import FeedMonitoring, ChickBatch, DiseaseAnalysis, FeedCalculator
 from django.shortcuts import render, redirect
 from .forms import BatchSelectionForm, ChickenBatchForm, CompletedBatchUpdateForm
 from django.shortcuts import render
@@ -66,8 +66,8 @@ except Exception as e:
     model = None
 
 CLASS_MAPPING = {
-    0: "Coccidiosis",
-    1: "Healthy", 
+    0: "Healthy",
+    1: "Coccidiosis",
     2: "New Castle Disease",
     3: "Salmonella"
 }
@@ -947,8 +947,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 import json
-from .models import Farm, ChickBatch
-from django.contrib.auth.decorators import login_required
+
 
 @login_required
 @csrf_protect
@@ -1289,11 +1288,6 @@ def add_feed_stock(request):
 
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from user.models import FeedStock
-from .forms import FeedStockForm
 
 @login_required
 def feed_manage(request):
@@ -1331,45 +1325,7 @@ def feed_manage(request):
     }
     return render(request, 'stakeholder/feed_manage.html', context)
 
-@login_required
-def delete_feed_stock(request, pk):
-    """Delete feed stock"""
-    feed_stock = get_object_or_404(FeedStock, pk=pk)
-    
-    if request.method == 'POST':
-        feed_stock.delete()
-        messages.success(request, f'{feed_stock.get_feed_type_display()} stock has been deleted successfully.')
-        return redirect('feed_manage')
-    
-    context = {
-        'feed_stock': feed_stock,
-        'title': 'Delete Feed Stock'
-    }
-    return render(request, 'stakeholder/feed_manage.html', context)
 
-def edit_feed_stock(request, pk):
-    """Edit existing feed stock"""
-    feed_stock = get_object_or_404(FeedStock, pk=pk)
-
-    if request.method == 'POST':
-        form = FeedStockForm(request.POST, instance=feed_stock)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Feed stock updated successfully!')
-            return redirect('feed_manage')
-        else:
-            messages.error(request, 'Error updating feed stock. Please check the form.')
-    else:
-        form = FeedStockForm(instance=feed_stock)
-
-    context = {
-        'form': form,
-        'feed_stock': feed_stock,
-        'title': 'Edit Feed Stock'
-    }
-    return render(request, 'stakeholder/feed_manage.html', context)
-
-  
 
 @login_required
 def feed_stock_create(request):
@@ -1394,23 +1350,298 @@ def feed_stock_create(request):
 
 @login_required
 def feed_dashboard(request):
-   
-    # Get all feed stocks
-    feed_stocks = FeedStock.objects.all()
+    # Get feed stocks by exact type names matching the database
+    starter_stocks = FeedStock.objects.filter(feed_type='starter')
+    grower_stocks = FeedStock.objects.filter(feed_type='grower')
+    finisher_stocks = FeedStock.objects.filter(feed_type='finisher')
     
-    # Calculate totals
-    total_sacks = sum(stock.number_of_sacks for stock in feed_stocks)
-    total_value = sum(stock.number_of_sacks * stock.price_per_sack for stock in feed_stocks)
+    # Calculate totals for each type
+    starter_feed = {
+        'total_sacks': sum(s.number_of_sacks for s in starter_stocks),
+        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in starter_stocks),
+        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in starter_stocks),
+        'stocks': starter_stocks,
+        'display_name': 'Starter Feed'
+    }
     
-    # Get low stock items
-    low_stock_items = [stock for stock in feed_stocks if stock.number_of_sacks <= stock.minimum_sacks]
+    grower_feed = {
+        'total_sacks': sum(s.number_of_sacks for s in grower_stocks),
+        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in grower_stocks),
+        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in grower_stocks),
+        'stocks': grower_stocks,
+        'display_name': 'Grower Feed'
+    }
+    
+    finisher_feed = {
+        'total_sacks': sum(s.number_of_sacks for s in finisher_stocks),
+        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in finisher_stocks),
+        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in finisher_stocks),
+        'stocks': finisher_stocks,
+        'display_name': 'Finisher Feed'
+    }
+    
+    # Get all stocks for the table
+    all_stocks = FeedStock.objects.all()
+    
+    # Calculate total value for each stock
+    for stock in all_stocks:
+        stock.total_value = stock.number_of_sacks * stock.price_per_sack
     
     context = {
-        'feed_stocks': feed_stocks,
-        'total_sacks': total_sacks,
-        'total_value': total_value,
-        'low_stock_items': low_stock_items,
+        'starter_feed': starter_feed,
+        'grower_feed': grower_feed,
+        'finisher_feed': finisher_feed,
+        'feed_stocks': all_stocks,
         'is_admin': request.user.is_staff,
+        'form': FeedStockForm() if request.user.is_staff else None,
+        'debug': True  # Add this to see debug information
     }
     
     return render(request, 'stakeholder/feed_dashboard.html', context)
+
+@require_http_methods(["GET"])
+def calculate_feed(request, chick_count):
+    try:
+        # Calculate feed requirements
+        calculations = FeedCalculator.calculate_feed_requirements(chick_count)
+        return JsonResponse(calculations)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def update_feed(request):
+    """Update existing feed stock"""
+    if request.method == 'POST':
+        feed_id = request.POST.get('feed_id')
+        add_sacks = int(request.POST.get('add_sacks'))
+        new_price = Decimal(request.POST.get('price_per_sack'))
+        
+        try:
+            feed_stock = get_object_or_404(FeedStock, id=feed_id)
+            feed_stock.number_of_sacks += add_sacks
+            feed_stock.price_per_sack = new_price
+            feed_stock.save()
+            messages.success(request, f'Successfully updated {feed_stock.feed_type} stock')
+        except Exception as e:
+            messages.error(request, f'Error updating feed stock: {str(e)}')
+            
+    return redirect('feed_manage')
+
+@login_required
+def delete_feed(request, feed_id):
+    """Delete feed stock"""
+    if request.method == 'POST':
+        try:
+            feed_stock = get_object_or_404(FeedStock, id=feed_id)
+            feed_type = feed_stock.feed_type
+            feed_stock.delete()
+            messages.success(request, f'Successfully deleted {feed_type}')
+        except Exception as e:
+            messages.error(request, f'Error deleting feed stock: {str(e)}')
+            
+    return redirect('feed_manage')
+
+
+
+def view_stakeholder_view(request, id):
+    user = get_object_or_404(User, id=id)
+    batches = ChickBatch.objects.filter(user=user).order_by('-batch_date')
+    
+    # Calculate feed statistics for each batch
+    for batch in batches:
+        batch.feed_stats = {
+            'total_assigned': batch.total_feed_sacks,
+            'starter_assigned': batch.starter_feed_sacks,
+            'remaining': batch.remaining_feed_sacks,
+        }
+    
+    context = {
+        'user': user,
+        'batches': batches,
+    }
+    
+    return render(request, 'stakeholder.html', context)
+
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
+from .models import ChickBatch, FeedAssignment
+from user.models import FeedStock
+
+@login_required
+def active_batches_feed(request):
+    """View for listing active batches with their feed status"""
+    # Get filter parameters
+    farm_search = request.GET.get('farm_search', '')
+    feed_type = request.GET.get('feed_type', '')
+    week_filter = request.GET.get('week', '')
+    
+    # Get active batches
+    batches = ChickBatch.objects.filter(batch_status='active')
+    
+    if farm_search:
+        batches = batches.filter(farm__farm_name__icontains=farm_search)
+    
+    batch_feed_data = []
+    for batch in batches:
+        days_since_start = (timezone.now().date() - batch.batch_date).days
+        current_week = min((days_since_start // 7) + 1, 6)
+        
+        # Determine feed type based on week
+        if current_week == 1:
+            feed_type = 'Starter Feed'
+            week_percentage = 0.15
+        elif 2 <= current_week <= 4:
+            feed_type = 'Grower Feed'
+            week_percentage = 0.20
+        else:
+            feed_type = 'Finisher Feed'
+            week_percentage = 0.125
+        
+        # Get available feed stocks for this type
+        available_feed_stocks = FeedStock.objects.filter(
+            feed_type=feed_type,
+            number_of_sacks__gt=0
+        )
+        
+        batch_feed_data.append({
+            'batch': batch,
+            'current_week': current_week,
+            'feed_type': feed_type,
+            'recommended_sacks': round(week_percentage * batch.initial_chick_count),
+            'total_sacks_needed': round(batch.initial_chick_count * 4.2 / 50),
+            'sacks_assigned': 0,
+            'can_assign': False,
+            'available_feed_stocks': available_feed_stocks,
+            'assigned_weeks': []
+        })
+    
+    context = {
+        'batch_feed_data': batch_feed_data,
+        'active_filters': {
+            'farm_search': farm_search,
+            'feed_type': feed_type,
+            'week': week_filter
+        }
+    }
+    
+    return render(request, 'stakeholder/active_batch_feed.html', context)
+
+@login_required
+@transaction.atomic
+def batch_feed_assignment(request, batch_id):
+    """Handle feed assignment for a specific batch"""
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    
+    if request.method == 'POST':
+        try:
+            week_number = int(request.POST.get('week_number'))
+            sacks_assigned = int(request.POST.get('sacks_assigned'))
+            feed_stock_id = request.POST.get('feed_stock')
+            
+            # Validate feed stock
+            feed_stock = get_object_or_404(FeedStock, id=feed_stock_id)
+            
+            # Create feed assignment
+            FeedAssignment.objects.create(
+                batch=batch,
+                week_number=week_number,
+                sacks_assigned=sacks_assigned,
+                cost_per_sack=feed_stock.price_per_sack,
+                total_cost=sacks_assigned * feed_stock.price_per_sack
+            )
+            
+            messages.success(request, f'Successfully assigned feed for Week {week_number}')
+            
+        except Exception as e:
+            messages.error(request, f"Error assigning feed: {str(e)}")
+    
+    return redirect('active_batches_feed')
+
+
+
+
+@login_required
+@transaction.atomic
+def batch_feed_assignment(request, batch_id):
+    """Handle feed assignment for a specific batch"""
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            week_number = int(request.POST.get('week_number'))
+            sacks_assigned = int(request.POST.get('sacks_assigned'))
+            feed_stock_id = request.POST.get('feed_stock')
+            
+            # Validate feed stock
+            feed_stock = get_object_or_404(FeedStock, id=feed_stock_id)
+            
+            # Check if week is already assigned
+            if FeedAssignment.objects.filter(batch=batch, week_number=week_number).exists():
+                raise ValueError(f"Week {week_number} already has a feed assignment")
+            
+            # Validate sequential assignment
+            if week_number > 1:
+                prev_week = FeedAssignment.objects.filter(
+                    batch=batch, 
+                    week_number=week_number-1
+                ).exists()
+                if not prev_week:
+                    raise ValueError(f"Must assign Week {week_number-1} first")
+            
+            # Check feed stock availability
+            if feed_stock.number_of_sacks < sacks_assigned:
+                raise ValueError("Not enough feed stock available")
+            
+            # Create feed assignment
+            assignment = FeedAssignment.objects.create(
+                batch=batch,
+                week_number=week_number,
+                sacks_assigned=sacks_assigned,
+                cost_per_sack=feed_stock.price_per_sack,
+                total_cost=sacks_assigned * feed_stock.price_per_sack
+            )
+            
+            # Update feed stock
+            feed_stock.number_of_sacks -= sacks_assigned
+            feed_stock.save()
+            
+            messages.success(
+                request, 
+                f'Successfully assigned {sacks_assigned} sacks for Week {week_number}'
+            )
+            
+            # Return JSON response for AJAX requests
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f'Successfully assigned {sacks_assigned} sacks of {feed_stock.get_feed_type_display()} for Week {week_number}'
+                })
+            
+        except ValueError as e:
+            messages.error(request, str(e))
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                })
+        except Exception as e:
+            messages.error(request, f"Error assigning feed: {str(e)}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f"Error assigning feed: {str(e)}"
+                })
+    
+    # For non-AJAX requests, redirect back to the list
+    return redirect('active_batches_feed')

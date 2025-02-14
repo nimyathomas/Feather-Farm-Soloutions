@@ -13,27 +13,18 @@
     <div class="form-group">
       <label for="batch-select">Select Batch:</label>
       <select name="batch" id="batch-select" class="form-control" required>
-        <option
-          value=""
-          disabled
-          {%
-          if
-          not
-          selected_batch
-          %}selected{%
-          endif
-          %}
-        >
+        <option value="" disabled {% if not selected_batch %}selected{% endif %}>
           Select a batch
         </option>
         {% for b in all_batches %}
         <option value="{{ b.id }}"
-        data-initial-chick-count="{{ b.initial_chick_count }}"
-        data-live-chick-count="{{ b.live_chick_count }}"
-        data-mortality-count="{{ b.total_mortality_count }}" 
-        {% if selected_batch and selected_batch.id == b.id %} selected {% endif %}> 
-        {{b.batch_date|date:"F j, Y" }}
-         
+                data-initial-chick-count="{{ b.initial_chick_count }}"
+                data-live-chick-count="{{ b.live_chick_count }}"
+                data-mortality-count="{{ b.total_mortality_count }}" 
+                {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}> 
+          {{b.batch_date|date:"F j, Y" }}
+        </option>
+        {% endfor %}
       </select>
     </div>
 
@@ -51,7 +42,6 @@
         <span id="updated-mortality-count">{{ b.batch_type }}</span>
       </p>
     </div>
-    {% endfor %}
     <!-- Wrapper div with a fixed height for scrollable table -->
     <div class="scrollable-table-wrapper">
         <table id="daily-entries" class="table">

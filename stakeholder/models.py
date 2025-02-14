@@ -9,6 +9,7 @@ from django.core.files import File
 from PIL import Image
 import uuid
 import os
+import math
 
 
 
@@ -130,6 +131,51 @@ class ChickBatch(models.Model):
     reward_status = models.BooleanField(default=False)
     batch_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     qr_code = models.ImageField(upload_to='batch_qr_codes/', blank=True)
+ 
+    # ... your existing fields ...
+    total_feed_sacks = models.IntegerField(default=0)
+    assigned_feed_sacks = models.IntegerField(default=0)
+    remaining_feed_sacks = models.IntegerField(default=0)
+    
+    # Add these new fields with default values
+    starter_feed_consumed = models.IntegerField(default=0)
+    grower_feed_consumed = models.IntegerField(default=0)
+    finisher_feed_consumed = models.IntegerField(default=0)
+    
+    # Feed assignment tracking
+    starter_feed_sacks = models.IntegerField(
+        default=0,
+        help_text="Number of starter feed sacks assigned"
+    )
+    grower_feed_sacks = models.IntegerField(default=0)
+    finisher_feed_sacks = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        """Handle all save operations for ChickBatch"""
+        if not self.pk:  # Only on creation
+            self.available_chickens = self.initial_chick_count
+            self.remaining_feed_sacks = self.total_feed_sacks
+            
+            # Calculate feed requirements based on chick count
+            chicks = self.initial_chick_count
+            self.total_feed_sacks = (chicks // 100 + (1 if chicks % 100 else 0)) * 6
+            self.remaining_feed_sacks = self.total_feed_sacks
+            
+            # Initialize feed consumption
+            self.starter_feed_consumed = 0
+            self.grower_feed_consumed = 0
+            self.finisher_feed_consumed = 0
+            
+            # Initialize feed assignments
+            self.starter_feed_sacks = 0
+            self.grower_feed_sacks = 0
+            self.finisher_feed_sacks = 0
+
+        # Generate QR code if needed
+        if not self.qr_code:
+            self.generate_qr_code()
+            
+        super().save(*args, **kwargs)
 
     def check_batch_completion(self):
         today = date.today()
@@ -501,6 +547,12 @@ class DiseaseAnalysis(models.Model):
         ('newcastle', 'Newcastle Disease'),
         ('infectious_bronchitis', 'Infectious Bronchitis'),
     ]
+    CONFIDENCE_LEVELS = [
+        ('High', 'High'),
+        ('Medium', 'Medium'),
+        ('Low', 'Low'),
+        ('Error', 'Error'),
+    ]
 
     batch = models.ForeignKey(
         ChickBatch, 
@@ -522,11 +574,15 @@ class DiseaseAnalysis(models.Model):
     confidence_score = models.FloatField(
         help_text="Confidence score of the prediction (0-1)"
     )
+    confidence_level = models.CharField(max_length=20, choices=CONFIDENCE_LEVELS)
+    needs_review = models.BooleanField(default=False)
+
     symptoms_detected = models.JSONField(
         default=list,
         help_text="List of symptoms detected in the analysis"
     )
-    
+    warning_message = models.TextField(null=True, blank=True)
+
     # Additional Analysis Data
     temperature = models.FloatField(
         null=True, 
@@ -649,3 +705,72 @@ class DiseaseAnalysis(models.Model):
         )
         
 
+class FeedCalculator(models.Model):
+    # Constants for feed calculation
+    FEED_PER_CHICK_40_DAYS = 4.2  # kg per chick for 40 days
+    SACK_WEIGHT = 50  # kg per sack
+    
+    batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE)
+    number_of_chicks = models.IntegerField()
+    calculated_feed_kg = models.FloatField()
+    calculated_sacks = models.FloatField()
+    safety_margin_sacks = models.FloatField()  # Additional 5% for safety
+    
+    # Break down by feed types
+    starter_feed_sacks = models.FloatField()   # 0-14 days (30%)
+    grower_feed_sacks = models.FloatField()    # 15-28 days (35%)
+    finisher_feed_sacks = models.FloatField()  # 29-40 days (35%)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    @staticmethod
+    def calculate_feed_requirements(number_of_chicks):
+        total_feed_kg = number_of_chicks * FeedCalculator.FEED_PER_CHICK_40_DAYS
+        base_sacks = total_feed_kg / FeedCalculator.SACK_WEIGHT
+        safety_margin = base_sacks * 0.05  # 5% extra
+        total_sacks = base_sacks + safety_margin
+        
+        # Calculate feed type breakdown
+        starter_sacks = total_sacks * 0.30   # 30% starter feed
+        grower_sacks = total_sacks * 0.35    # 35% grower feed
+        finisher_sacks = total_sacks * 0.35  # 35% finisher feed
+        
+        return {
+            'total_feed_kg': total_feed_kg,
+            'base_sacks': base_sacks,
+            'safety_margin': safety_margin,
+            'total_sacks': total_sacks,
+            'starter_sacks': starter_sacks,
+            'grower_sacks': grower_sacks,
+            'finisher_sacks': finisher_sacks
+        }
+        
+class FeedAssignment(models.Model):
+    FEED_TYPES = [
+        ('Starter Feed', 'Starter Feed'),
+        ('Grower Feed', 'Grower Feed'),
+        ('Finisher Feed', 'Finisher Feed')
+    ]
+
+    batch = models.ForeignKey('stakeholder.ChickBatch',  # Specify the full path
+                             on_delete=models.CASCADE)
+    feed_stock = models.ForeignKey('user.FeedStock',  
+                                  on_delete=models.CASCADE)
+    week_number = models.IntegerField()
+    feed_type = models.CharField(max_length=50, choices=FEED_TYPES)
+    sacks_assigned = models.IntegerField()
+    cost_per_sack = models.DecimalField(max_digits=10, decimal_places=2)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    assigned_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'feed_assignment'
+        unique_together = ['batch', 'week_number']
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Only for new records
+            self.total_cost = self.sacks_assigned * self.cost_per_sack
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}"

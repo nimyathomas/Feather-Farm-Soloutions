@@ -25,144 +25,241 @@
     </div>
   </div>
 
-  <div class="main-content">
-    <div class="profile-grid">
-      <!-- Left Column -->
-      <div class="profile-info">
-        <div class="card info-card">
-          <div class="card-header">
-            <h3><i class="fas fa-user"></i> Profile Information</h3>
+  <!-- 2x2 Grid Layout -->
+  <div class="info-grid">
+    <!-- Row 1 -->
+    <div class="grid-item">
+      <div class="card info-card">
+        <div class="card-header">
+          <h3><i class="fas fa-user"></i> Profile Information</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-item">
+            <label>Name:</label>
+            <span>{{ user.full_name }}</span>
           </div>
-          <div class="card-body">
-            <div class="info-item">
-              <label>Name:</label>
-              <span>{{ user.full_name }}</span>
-            </div>
-            <div class="info-item">
-              <label>Email:</label>
-              <span>{{ user.email }}</span>
-            </div>
-            <div class="info-item">
-              <label>Address:</label>
-              <span>{{ user.address }}</span>
-            </div>
-            <div class="info-item">
-              <label>Phone:</label>
-              <span>{{ user.phone_number }}</span>
-            </div>
+          <div class="info-item">
+            <label>Email:</label>
+            <span>{{ user.email }}</span>
+          </div>
+          <div class="info-item">
+            <label>Address:</label>
+            <span>{{ user.address }}</span>
+          </div>
+          <div class="info-item">
+            <label>Phone:</label>
+            <span>{{ user.phone_number }}</span>
           </div>
         </div>
-
-        <div class="card coop-card">
-          <div class="card-header">
-            <h3><i class="fas fa-home"></i> Coop Information</h3>
-          </div>
-          <div class="card-body">
-            <div class="coop-grid">
-              <div class="coop-item">
-                <label>Length:</label>
-                <span>{{ user.length }} meters</span>
-              </div>
-              <div class="coop-item">
-                <label>Breadth:</label>
-                <span>{{ user.breadth }} meters</span>
-              </div>
-              <div class="coop-item">
-                <label>Total Area:</label>
-                <span>{{sqr_feet}} sq ft</span>
-              </div>
-              <div class="coop-item">
-                <label>Chicken Count:</label>
-                <span>{{ total_chick_count }}</span>
-              </div>
-              <div class="coop
-              -item">
-                <label>Certificate Expiry:</label>
-                <span>{{ user.expiry_date }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="farm-details">
-        <div class="card image-card">
-          <div class="card-header">
-            <h3><i class="fas fa-image"></i> Farm Image</h3>
-          </div>
-          <div class="card-body">
-            {% if user.farm_image %}
-            <img src="{{ user.farm_image.url }}" alt="Farm Image" class="farm-image">
-            {% else %}
-            <div class="no-image">
-              <i class="fas fa-image"></i>
-              <p>No farm image available</p>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="card certificate-card">
-          <div class="card-header">
-            <h3><i class="fas fa-certificate"></i> Certificates</h3>
-          </div>
-          <div class="card-body">
-            {% if user.pollution_certificate %}
-            <div class="certificate-preview">
-              <i class="fas fa-file-pdf"></i>
-              <a href="{{ user.pollution_certificate.url }}" download class="download-link">
-                <i class="fas fa-download"></i> Download Certificate
-              </a>
-            </div>
-            {% else %}
-            <div class="no-certificate">
-              <i class="fas fa-exclamation-circle"></i>
-              <p>No certificate available</p>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-
-        {% if user.is_active %}
-        <div class="card action-card">
-          <div class="card-header">
-            <h3><i class="fas fa-plus-circle"></i> Add Chickens</h3>
-          </div>
-          <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" class="add-chickens-form">
-              {% csrf_token %}
-              <div class="form-group">
-                <label for="batch_type">Type of Chickens</label>
-                <select name="batch_type" id="batch_type" class="form-control" required>
-                  <option value="broiler" {% if batch_type == 'broiler' %}selected{% endif %}>Broiler</option>
-                  <option value="organic" {% if batch_type == 'organic' %}selected{% endif %}>Organic</option>
-                  <option value="kada" {% if batch_type == 'kada' %}selected{% endif %}>Kada</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label for="initial_chick_count">Chicken Count</label>
-                <input type="number" id="chickCount" name="initial_chick_count" 
-                       class="form-control" required>
-                <span id="error-msg" class="error-message"></span>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit" class="submit-btn">
-                  <i class="fas fa-check"></i> Submit
-                </button>
-                <a href="{% url 'view_stakeholder_view' user.id %}" class="view-btn">
-                  <i class="fas fa-eye"></i> View Batches
-                </a>
-                <a href="{% url 'view_batch_qrcodes' %}" class="btn btn-primary">View All Batch QR Codes</a>
-              </div>
-            </form>
-          </div>
-        </div>
-        {% endif %}
       </div>
     </div>
+
+    <div class="grid-item">
+      <div class="card image-card">
+        <div class="card-header">
+          <h3><i class="fas fa-image"></i> Farm Image</h3>
+        </div>
+        <div class="card-body">
+          {% if user.farm_image %}
+          <img src="{{ user.farm_image.url }}" alt="Farm Image" class="farm-image">
+          {% else %}
+          <div class="no-image">
+            <i class="fas fa-image"></i>
+            <p>No farm image available</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="grid-item">
+      <div class="card coop-card">
+        <div class="card-header">
+          <h3><i class="fas fa-home"></i> Coop Information</h3>
+        </div>
+        <div class="card-body">
+          <div class="coop-grid">
+            <div class="coop-item">
+              <label>Length:</label>
+              <span>{{ user.length }} meters</span>
+            </div>
+            <div class="coop-item">
+              <label>Breadth:</label>
+              <span>{{ user.breadth }} meters</span>
+            </div>
+            <div class="coop-item">
+              <label>Total Area:</label>
+              <span>{{sqr_feet}} sq ft</span>
+            </div>
+            <div class="coop-item">
+              <label>Chicken Count:</label>
+              <span>{{ total_chick_count }}</span>
+            </div>
+            <div class="coop-item">
+              <label>Certificate Expiry:</label>
+              <span>{{ user.expiry_date }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-item">
+      <div class="card certificate-card">
+        <div class="card-header">
+          <h3><i class="fas fa-certificate"></i> Certificates</h3>
+        </div>
+        <div class="card-body">
+          {% if user.pollution_certificate %}
+          <div class="certificate-preview">
+            <i class="fas fa-file-pdf"></i>
+            <a href="{{ user.pollution_certificate.url }}" download class="download-link">
+              <i class="fas fa-download"></i> Download Certificate
+            </a>
+          </div>
+          {% else %}
+          <div class="no-certificate">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>No certificate available</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Chickens Section (Full Width) -->
+  <div class="add-chickens-section">
+    {% if user.is_active %}
+    <div class="card action-card">
+      <div class="card-header">
+        <h3><i class="fas fa-plus-circle"></i> Add Chickens</h3>
+      </div>
+      <div class="card-body">
+        <form method="POST" class="add-chickens-form">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="batch_type">Batch Type</label>
+            <select class="form-control" id="batch_type" name="batch_type" required>
+              <option value="broiler">Broiler</option>
+              <option value="organic">Organic</option>
+              <option value="kada">Kada</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="initial_chick_count">Number of Chicks</label>
+            <input type="number" class="form-control" id="chickCount" name="initial_chick_count" required>
+          </div>
+
+          <div class="form-group">
+            <label for="price_per_kg">Price per KG</label>
+            <input type="number" step="0.01" class="form-control" id="price_per_kg" name="price_per_kg" required>
+          </div>
+
+          <div class="form-group">
+            <div id="feedCalculations" style="display: none;">
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-calculator"></i> Feed Requirements</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Week</th>
+                                        <th>Feed Type</th>
+                                        <th>Daily Feed/Bird (g)</th>
+                                        <th>Weekly Feed (kg)</th>
+                                        <th>Sacks (50kg)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feedTableBody">
+                                    <!-- Table content will be dynamically added -->
+                                </tbody>
+                                <tfoot class="table-info">
+                                    <tr>
+                                        <td colspan="3"><strong>Total Requirements</strong></td>
+                                        <td><strong id="totalKg">-</strong></td>
+                                        <td><strong id="totalSacks">-</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="total_feed_sacks">Total Feed Sacks Required</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="total_feed_sacks" 
+                   name="total_feed_sacks" 
+                   min="0"
+                   required
+                   placeholder="Enter total number of feed sacks">
+            <small class="text-muted" id="recommendedSacks"></small>
+        </div>
+
+          <div class="form-group">
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-drumstick-bite"></i> Starter Feed Assignment (Weeks 1-2)</h5>
+                </div>
+                <div class="card-body">
+                    <label for="starter_feed_sacks">Starter Feed Sacks</label>
+                    <input type="number" 
+                           class="form-control" 
+                           id="starter_feed_sacks" 
+                           name="starter_feed_sacks" 
+                           min="0"
+                           value="{{ form.starter_feed_sacks.value|default:0 }}"
+                           required
+                           placeholder="Enter starter feed sacks">
+                    <small class="text-muted" id="recommendedStarterSacks"></small>
+                    <div class="mt-2">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Period</th>
+                                    <th>Daily Feed/Bird</th>
+                                    <th>Required Sacks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="starterFeedDetails">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-info">
+                                    <td colspan="2"><strong>Total Starter Feed Required</strong></td>
+                                    <td id="totalStarterSacks"><strong>-</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <!-- Add this before form-actions div -->
+          <div id="feedValidationErrors" class="mt-3" style="display: none;"></div>
+
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-check"></i> Submit
+            </button>
+            <a href="{% url 'view_stakeholder_view' user.id %}" class="view-btn">
+              <i class="fas fa-eye"></i> View Batches
+            </a>
+            <a href="{% url 'view_batch_qrcodes' %}" class="btn btn-primary">View All Batch QR Codes</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -216,18 +313,27 @@
   color: #c53030;
 }
 
-.profile-grid {
+.info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.grid-item {
+  min-height: 300px;
 }
 
 .card {
+  height: 100%;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
 }
 
 .card-header {
@@ -328,20 +434,44 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 1024px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
-  }
+.add-chickens-section {
+  margin-top: 2rem;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .profile-container {
     padding: 1rem;
   }
-  
-  .form-actions {
-    flex-direction: column;
-  }
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.text-center {
+    text-align: center;
+}
+
+#feedCalculations {
+    transition: all 0.3s ease;
+}
+
+.card-header i {
+    margin-right: 0.5rem;
 }
 </style>
 
@@ -371,6 +501,230 @@ form.addEventListener('submit', function(event) {
     event.preventDefault();
     errorMsg.style.display = 'block';
   }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chickCountInput = document.getElementById('chickCount');
+    const feedCalculations = document.getElementById('feedCalculations');
+    const totalFeedSacksInput = document.getElementById('total_feed_sacks');
+    const recommendedSacksText = document.getElementById('recommendedSacks');
+
+    chickCountInput.addEventListener('input', function() {
+        const chickCount = parseInt(this.value) || 0;
+        if (chickCount > 0) {
+            const feedData = [
+                { week: 1, type: 'Starter', daily: 15 },
+                { week: 2, type: 'Starter', daily: 35 },
+                { week: 3, type: 'Grower', daily: 59 },
+                { week: 4, type: 'Grower', daily: 88 },
+                { week: 5, type: 'Finisher', daily: 102 },
+                { week: 6, type: 'Finisher', daily: 121 }
+            ];
+
+            let tableHTML = '';
+            let totalKg = 0;
+
+            feedData.forEach(week => {
+                const weeklyKg = (week.daily * chickCount * 7) / 1000;
+                const sacks = Math.ceil(weeklyKg / 50);
+                totalKg += weeklyKg;
+
+                tableHTML += `
+                    <tr>
+                        <td class="text-center">Week ${week.week}</td>
+                        <td>${week.type}</td>
+                        <td class="text-center">${week.daily}</td>
+                        <td class="text-center">${weeklyKg.toFixed(2)}</td>
+                        <td class="text-center">${sacks}</td>
+                    </tr>
+                `;
+            });
+
+            // Update table content
+            document.getElementById('feedTableBody').innerHTML = tableHTML;
+            
+            // Calculate total sacks needed
+            const totalSacks = Math.ceil(totalKg / 50);
+            document.getElementById('totalKg').textContent = totalKg.toFixed(2);
+            document.getElementById('totalSacks').textContent = totalSacks;
+            
+            // Show recommended sacks but don't force it
+            recommendedSacksText.textContent = `Recommended minimum: ${totalSacks} sacks`;
+            
+            // Don't automatically set the input value
+            if (!totalFeedSacksInput.value) {
+                totalFeedSacksInput.value = totalSacks; // Only set if empty
+            }
+            
+            // Show t
+            feedCalculations.style.display = 'block';
+        } else {
+            // Hide the calculations if no valid input
+            feedCalculations.style.display = 'none';
+            recommendedSacksText.textContent = '';
+        }
+    });
+
+    // Add validation for manual input
+    totalFeedSacksInput.addEventListener('input', function() {
+        const calculatedSacks = parseInt(document.getElementById('totalSacks').textContent) || 0;
+        const enteredSacks = parseInt(this.value) || 0;
+        
+        if (calculatedSacks > 0 && enteredSacks < calculatedSacks) {
+            recommendedSacksText.textContent = `Warning: The minimum recommended number is ${calculatedSacks} sacks`;
+            recommendedSacksText.style.color = '#dc3545'; // Bootstrap danger color
+        } else {
+            recommendedSacksText.textContent = calculatedSacks > 0 ? 
+                `Recommended minimum: ${calculatedSacks} sacks` : '';
+            recommendedSacksText.style.color = '#6c757d'; // Bootstrap muted color
+        }
+    });
+});
+
+document.getElementById('chickCount').addEventListener('input', function() {
+    const chickCount = parseInt(this.value) || 0;
+    if (chickCount > 0) {
+        // Calculate starter feed requirements
+        const week1Daily = 15; // grams per bird
+        const week2Daily = 35; // grams per bird
+        
+        // Calculate weekly requirements
+        const week1Kg = (week1Daily * chickCount * 7) / 1000;
+        const week2Kg = (week2Daily * chickCount * 7) / 1000;
+        
+        const week1Sacks = Math.ceil(week1Kg / 50);
+        const week2Sacks = Math.ceil(week2Kg / 50);
+        const totalStarterSacks = week1Sacks + week2Sacks;
+
+        // Update starter feed details table
+        document.getElementById('starterFeedDetails').innerHTML = `
+            <tr>
+                <td>Week 1</td>
+                <td>${week1Daily}g</td>
+                <td>${week1Sacks} sacks</td>
+            </tr>
+            <tr>
+                <td>Week 2</td>
+                <td>${week2Daily}g</td>
+                <td>${week2Sacks} sacks</td>
+            </tr>
+        `;
+        
+        document.getElementById('totalStarterSacks').innerHTML = 
+            `<strong>${totalStarterSacks} sacks</strong>`;
+        
+        // Update recommendation text
+        document.getElementById('recommendedStarterSacks').textContent = 
+            `Recommended starter feed: ${totalStarterSacks} sacks (Week 1: ${week1Sacks}, Week 2: ${week2Sacks})`;
+        
+        // Set initial value if empty
+        const starterInput = document.getElementById('starter_feed_sacks');
+        if (!starterInput.value) {
+            starterInput.value = totalStarterSacks;
+        }
+    }
+});
+
+document.getElementById('total_feed_sacks').addEventListener('change', function() {
+    const totalSacks = parseInt(this.value) || 0;
+    if (totalSacks > 0) {
+        // Calculate recommended starter feed (typically 40% of total feed)
+        const recommendedStarter = Math.ceil(totalSacks * 0.4);
+        
+        // Update recommendation text
+        document.getElementById('recommendedStarterSacks').textContent = 
+            `Recommended starter feed: ${recommendedStarter} sacks (40% of total)`;
+        
+        // Set initial value if empty
+        const starterInput = document.getElementById('starter_feed_sacks');
+        if (!starterInput.value) {
+            starterInput.value = recommendedStarter;
+        }
+    }
+});
+
+// Validate that starter feed doesn't exceed total
+document.getElementById('starter_feed_sacks').addEventListener('input', function() {
+    const totalSacks = parseInt(document.getElementById('total_feed_sacks').value) || 0;
+    const starterSacks = parseInt(this.value) || 0;
+    
+    if (starterSacks > totalSacks) {
+        this.setCustomValidity('Starter feed cannot exceed total feed sacks');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
+// Add this validation function
+function validateFeedAmounts() {
+    const chickCount = parseInt(document.getElementById('chickCount').value) || 0;
+    const totalFeedInput = parseInt(document.getElementById('total_feed_sacks').value) || 0;
+    const starterFeedInput = parseInt(document.getElementById('starter_feed_sacks').value) || 0;
+    
+    // Calculate recommended amounts
+    const week1Daily = 15;
+    const week2Daily = 35;
+    const week1Kg = (week1Daily * chickCount * 7) / 1000;
+    const week2Kg = (week2Daily * chickCount * 7) / 1000;
+    const recommendedStarterSacks = Math.ceil((week1Kg + week2Kg) / 50);
+    
+    // Calculate total recommended from feed table
+    const feedData = [
+        { daily: 15 }, { daily: 35 }, { daily: 59 },
+        { daily: 88 }, { daily: 102 }, { daily: 121 }
+    ];
+    const totalKg = feedData.reduce((sum, week) => 
+        sum + (week.daily * chickCount * 7) / 1000, 0);
+    const recommendedTotalSacks = Math.ceil(totalKg / 50);
+
+    let isValid = true;
+    const errors = [];
+
+    // Validate total feed sacks
+    if (totalFeedInput < recommendedTotalSacks) {
+        errors.push(`Total feed sacks should be at least ${recommendedTotalSacks}`);
+        isValid = false;
+    }
+
+    // Validate starter feed sacks
+    if (starterFeedInput < recommendedStarterSacks) {
+        errors.push(`Starter feed sacks should be at least ${recommendedStarterSacks}`);
+        isValid = false;
+    }
+
+    if (starterFeedInput > totalFeedInput) {
+        errors.push('Starter feed cannot exceed total feed');
+        isValid = false;
+    }
+
+    // Show errors if any
+    const errorDiv = document.getElementById('feedValidationErrors') || 
+        createErrorDiv();
+    
+    if (!isValid) {
+        errorDiv.innerHTML = errors.map(err => `<div class="alert alert-danger">${err}</div>`).join('');
+        errorDiv.style.display = 'block';
+    } else {
+        errorDiv.style.display = 'none';
+    }
+
+    return isValid;
+}
+
+// Create error div if it doesn't exist
+function createErrorDiv() {
+    const div = document.createElement('div');
+    div.id = 'feedValidationErrors';
+    div.className = 'mt-3';
+    document.querySelector('.form-actions').before(div);
+    return div;
+}
+
+// Add this to your form submit handler
+document.querySelector('form').addEventListener('submit', function(event) {
+    if (!validateFeedAmounts()) {
+        event.preventDefault();
+    }
 });
 </script>
 {% endblock %}

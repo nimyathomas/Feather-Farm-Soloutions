@@ -5,6 +5,17 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- In your sidebar/navigation -->
+    <div class="sidebar">
+        <!-- ... other menu items ... -->
+        <div class="nav-item">
+            <a href="{% url 'new_batches_feed' %}" class="nav-link">
+                <i class="fas fa-drumstick-bite"></i>
+                <span>Initial Feed Assignment</span>
+            </a>
+        </div>
+        <!-- ... other menu items ... -->
+    </div>
     {% block content %}{% endblock %}
     {% block extra_js %}{% endblock %}
 </body>

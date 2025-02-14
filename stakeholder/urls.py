@@ -190,7 +190,14 @@ urlpatterns = [
     path('feed-dashboard/', views.feed_dashboard, name='feed_dashboard'),
     path('feed-manage/', views.feed_manage, name='feed_manage'),
     path('feed-stock/add/', views.add_feed_stock, name='add_feed_stock'),
-    path('feed-stock/<int:pk>/edit/', views.edit_feed_stock, name='edit_feed_stock'),
-    path('feed-stock/<int:pk>/delete/', views.delete_feed_stock, name='delete_feed_stock'),
+
     path('feed-stock/create/', views.feed_stock_create, name='feed_stock_create'),
+    
+    path('api/calculate-feed/<int:chick_count>/', views.calculate_feed, name='calculate_feed'),
+    
+    
+    path('feed/active-batches/', views.active_batches_feed, name='active_batches_feed'),
+    path('feed/assign/<int:batch_id>/', views.batch_feed_assignment, name='batch_feed_assignment'),
+    # path('feed-stock/update/', views.update_feed_stock, name='update_feed'),
+    # path('feed-stock/delete/<int:feed_id>/', views.delete_feed, name='delete_feed'),
 ]

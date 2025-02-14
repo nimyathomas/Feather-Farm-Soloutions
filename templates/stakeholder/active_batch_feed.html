@@ -1,0 +1,252 @@
+{% extends 'admindash.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Feed Assignment</h1>
+    </div>
+
+    <!-- Search and Filter Section in a Collapsible Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter"></i> Search & Filters
+                {% if active_filters.farm_search or active_filters.feed_type or active_filters.week %}
+                <span class="badge bg-primary ms-2">Active Filters</span>
+                {% endif %}
+            </h6>
+            <div>
+                {% if active_filters.farm_search or active_filters.feed_type or active_filters.week %}
+                <a href="{% url 'active_batches_feed' %}" class="btn btn-sm btn-outline-secondary me-2">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+                {% endif %}
+                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" class="row g-3" id="filterForm">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Farm Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" 
+                                   name="farm_search" 
+                                   class="form-control" 
+                                   placeholder="Search farms..."
+                                   value="{{ active_filters.farm_search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Feed Type</label>
+                        <select name="feed_type" class="form-select filter-select">
+                            <option value="">All Feed Types</option>
+                            <option value="Starter Feed" {% if active_filters.feed_type == 'Starter Feed' %}selected{% endif %}>Starter Feed</option>
+                            <option value="Grower Feed" {% if active_filters.feed_type == 'Grower Feed' %}selected{% endif %}>Grower Feed</option>
+                            <option value="Finisher Feed" {% if active_filters.feed_type == 'Finisher Feed' %}selected{% endif %}>Finisher Feed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Week</label>
+                        <select name="week" class="form-select filter-select">
+                            <option value="">All Weeks</option>
+                            {% for week in "123456" %}
+                            <option value="{{ week }}" {% if active_filters.week == week %}selected{% endif %}>Week {{ week }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i> Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Cards Section -->
+    <div class="row">
+        {% if batch_feed_data %}
+            {% for data in batch_feed_data %}
+            <div class="col-xl-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-gradient-light">
+                        <div>
+                            <h5 class="mb-0">
+                                Batch #{{ data.batch.id }}
+                                <span class="badge {% if data.can_assign %}bg-warning{% else %}bg-secondary{% endif %} ms-2">
+                                    Week {{ data.current_week }}
+                                </span>
+                            </h5>
+                            <small class="text-muted">Farm: {{ data.batch.farm.farm_name }}</small>
+                        </div>
+                        <span class="badge bg-info">{{ data.feed_type }}</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Batch Info -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Chicks:</strong> {{ data.batch.initial_chick_count }}</p>
+                                <p class="mb-1"><strong>Start Date:</strong> {{ data.batch.batch_date }}</p>
+                                <p class="mb-1"><strong>Total Sacks Needed:</strong> {{ data.total_sacks_needed }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Sacks Assigned:</strong> {{ data.sacks_assigned }}</p>
+                                <p class="mb-1"><strong>Recommended for Week:</strong> {{ data.recommended_sacks }}</p>
+                                <p class="mb-1">
+                                    <strong>Status:</strong>
+                                    {% if data.can_assign %}
+                                        <span class="text-warning">Needs Assignment</span>
+                                    {% else %}
+                                        <span class="text-success">Up to Date</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Feed Assignment Form -->
+                        {% if data.can_assign %}
+                            <div class="feed-assignment-section mt-3">
+                                <!-- Your existing form content -->
+                                {% include "stakeholder/includes/feed_assignment_form.html" with data=data %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Weekly Progress -->
+                        {% include "stakeholder/includes/weekly_progress.html" with data=data %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No active batches found matching your criteria.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Custom styles */
+.card {
+    border: none;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: none;
+}
+
+.form-select:focus {
+    border-color: #4e73df;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2e59d9;
+}
+
+#filterCollapse {
+    transition: all 0.3s ease;
+}
+
+.feed-stock-option {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.feed-stock-option:hover {
+    background-color: #f8f9fa;
+    border-color: #4e73df;
+}
+
+.feed-stock-radio:checked + .form-check-label .feed-stock-option {
+    background-color: #e8f0fe;
+    border-color: #4e73df;
+}
+
+.feed-stock-option label {
+    width: 100%;
+    cursor: pointer;
+    margin: 0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form when select fields change
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+
+    const forms = document.querySelectorAll('.feed-assignment-form');
+    
+    forms.forEach(form => {
+        const radioButtons = form.querySelectorAll('.feed-stock-radio');
+        const costInput = form.querySelector('.cost-input');
+        const sacksInput = form.querySelector('.sacks-input');
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    costInput.value = '₹' + this.dataset.price;
+                    sacksInput.max = this.dataset.available;
+                    
+                    if (parseInt(sacksInput.value) > parseInt(this.dataset.available)) {
+                        sacksInput.value = this.dataset.available;
+                    }
+                }
+            });
+        });
+
+        sacksInput.addEventListener('change', function() {
+            const selectedRadio = form.querySelector('.feed-stock-radio:checked');
+            if (selectedRadio && parseInt(this.value) > parseInt(selectedRadio.dataset.available)) {
+                this.value = selectedRadio.dataset.available;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

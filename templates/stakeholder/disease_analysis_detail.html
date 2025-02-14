@@ -122,5 +122,26 @@
             </div>
         </div>
     </div>
+
+    {% if analysis.warning_message %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ analysis.warning_message }}
+    </div>
+    {% endif %}
+
+    <div class="confidence-info">
+        <h4>Prediction Confidence</h4>
+        <div class="confidence-meter {% if analysis.confidence_score < 50 %}low{% elif analysis.confidence_score < 70 %}medium{% else %}high{% endif %}">
+            <div class="confidence-bar" style="width: {{ analysis.confidence_score }}%"></div>
+            <span class="confidence-label">{{ analysis.confidence_score|floatformat:1 }}%</span>
+        </div>
+        <p class="confidence-level">
+            Confidence Level: 
+            <span class="badge {% if analysis.confidence_level == 'High' %}bg-success{% elif analysis.confidence_level == 'Medium' %}bg-warning{% else %}bg-danger{% endif %}">
+                {{ analysis.confidence_level }}
+            </span>
+        </p>
+    </div>
 </div>
 {% endblock %} 

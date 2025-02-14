@@ -23,6 +23,10 @@ from .models import WasteManagementResource, DailyTip
 from django.db import models
 from django.views.decorators.http import require_http_methods
 
+from django.core.exceptions import ValidationError
+from decimal import Decimal  # Add this import at the top
+from django.db import transaction
+from django.db import connection
 
 def register(request):
     user_type_param = request.GET.get('user_type')
@@ -166,20 +170,23 @@ def stakeholderuser(request):
     return render(request, 'stakeholderuser.html', context)
 
 
+@transaction.atomic
 def stakeholderuserprofile(request, id):
     user = User.objects.get(id=id)
-    farm = Farm.objects.filter(owner=user).first()  # Get the associated farm
+    farm = Farm.objects.filter(owner=user).first()
+    
+    # Calculate all required context data
     chick_batches = ChickBatch.objects.filter(user=user)
     total_chick_count = chick_batches.aggregate(Sum('initial_chick_count'))['initial_chick_count__sum'] or 0
 
     today = date.today()
     day_expiry = None
-    if farm.expiry_date:
+    if farm and farm.expiry_date:
         day_expiry = (farm.expiry_date - today).days
 
     # Calculate square feet based on length and breadth
     sqr_feet = 0
-    if farm.length and farm.breadth:
+    if farm and farm.length and farm.breadth:
         sqr_feet = farm.length * farm.breadth
     sqr_feet_rounded = round(sqr_feet, 0)
 
@@ -188,37 +195,67 @@ def stakeholderuserprofile(request, id):
     birds_can_accommodate = floor(sqr_feet * birds_per_square_feet)
 
     if request.method == 'POST':
-        if not user.is_active:
-            messages.error(request, "You cannot add chicks because the user account is disabled.")
-            return redirect('stakeholderuserprofile', id=id)
-
-        initial_chick_count = request.POST.get('initial_chick_count')
-        batch_type = request.POST.get('batch_type')  # Get the type of chickens
-        price_per_kg = request.POST.get('price_per_kg')  # Get the price per kg
-
-        # Backend validation: Chick count must not be less than zero
         try:
-            initial_chick_count = int(initial_chick_count)
-            if initial_chick_count < 0:
-                messages.error(request, "Chick count cannot be less than zero.")
-                return redirect('stakeholderuserprofile', id=id)
-        except (ValueError, TypeError):
-            messages.error(request, "Invalid chick count entered. Please enter a valid number.")
-            return redirect('stakeholderuserprofile', id=id)
+            # Print all POST data
+            print("POST data received:", request.POST)
+            
+            batch_type = request.POST.get('batch_type')
+            if not batch_type:
+                raise ValueError("Batch type is required")
 
-        # Save the chick count to the user's chick batches
-        ChickBatch.objects.create(
-            user=user,
-            farm=farm,  # Associate the ChickBatch with the farm
-            initial_chick_count=initial_chick_count,
-            batch_type=batch_type,  # Save the type of chickens
-            price_per_kg=price_per_kg  # Save the price per kg
-        )
-        messages.success(request, "Chick count updated successfully.")
+            try:
+                initial_chick_count = int(request.POST.get('initial_chick_count', 0))
+                price_per_kg = Decimal(request.POST.get('price_per_kg', 0))
+                total_feed_sacks = int(request.POST.get('total_feed_sacks', 0))
+                starter_feed_sacks = int(request.POST.get('starter_feed_sacks', 0))
+                
+                # Print processed values
+                print("Processed values:", {
+                    'batch_type': batch_type,
+                    'initial_chick_count': initial_chick_count,
+                    'price_per_kg': price_per_kg,
+                    'total_feed_sacks': total_feed_sacks,
+                    'starter_feed_sacks': starter_feed_sacks
+                })
+
+            except (TypeError, ValueError) as e:
+                print(f"Form data: {request.POST}")
+                raise ValueError(f"Invalid number format: {str(e)}")
+
+            with transaction.atomic():
+                batch = ChickBatch.objects.create(
+                    user=user,
+                    farm=farm,
+                    batch_type=batch_type,
+                    initial_chick_count=initial_chick_count,
+                    price_per_kg=price_per_kg,
+                    total_feed_sacks=total_feed_sacks,
+                    starter_feed_sacks=starter_feed_sacks,
+                    available_chickens=initial_chick_count,
+                    remaining_feed_sacks=total_feed_sacks
+                )
+                
+                # Verify the saved data
+                saved_batch = ChickBatch.objects.get(id=batch.id)
+                print("Saved batch data:", {
+                    'id': saved_batch.id,
+                    'starter_feed_sacks': saved_batch.starter_feed_sacks,
+                    'total_feed_sacks': saved_batch.total_feed_sacks
+                })
+
+                messages.success(request, "Batch created successfully with feed assignments.")
+
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            messages.error(request, f"Error creating batch: {str(e)}")
+        
         return redirect('stakeholderuserprofile', id=id)
 
     context = {
         'user': user,
+        'farm': farm,
         'total_chick_count': total_chick_count,
         'day_expiry': day_expiry,
         'sqr_feet': sqr_feet_rounded,

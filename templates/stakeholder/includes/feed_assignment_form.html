@@ -1,0 +1,25 @@
+<form method="post" action="{% url 'batch_feed_assignment' data.batch.id %}" class="feed-assignment-form">
+    {% csrf_token %}
+    <input type="hidden" name="week_number" value="{{ data.current_week }}">
+    
+    <!-- Feed Assignment Status Card -->
+    <div class="alert {% if data.available_feed_stocks %}alert-info{% else %}alert-warning{% endif %} mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if data.available_feed_stocks %}fa-info-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+            <div>
+                <strong>Week {{ data.current_week }} - {{ data.feed_type }}</strong><br>
+                {% if data.available_feed_stocks %}
+                    Available feed stocks for assignment
+                {% else %}
+                    No feed stock available for {{ data.feed_type }}
+                    <a href="{% url 'feed_manage' %}" class="alert-link">Add Feed Stock</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if data.available_feed_stocks %}
+        <!-- Your existing form fields -->
+        <!-- ... rest of your form content ... -->
+    {% endif %}
+</form> 

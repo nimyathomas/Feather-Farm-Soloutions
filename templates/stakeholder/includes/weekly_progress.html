@@ -1,0 +1,20 @@
+<div class="mt-4">
+    <h6>Weekly Progress</h6>
+    <div class="progress" style="height: 25px;">
+        {% for i in "123456" %}
+            <div class="progress-bar 
+                {% if forloop.counter == data.current_week %}
+                    bg-warning
+                {% elif forloop.counter < data.current_week %}
+                    bg-success
+                {% else %}
+                    bg-secondary
+                {% endif %}" 
+                role="progressbar" 
+                style="width: 16.66%"
+                title="Week {{ forloop.counter }}">
+                {{ forloop.counter }}
+            </div>
+        {% endfor %}
+    </div>
+</div> 

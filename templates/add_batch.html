@@ -1,0 +1,92 @@
+<!-- Add this to your form -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="initial_chick_count">Number of Chicks</label>
+            <input type="number" class="form-control" id="initial_chick_count" 
+                   name="initial_chick_count" required>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                Feed Requirements (40 Days)
+            </div>
+            <div class="card-body">
+                <div class="feed-calculations" id="feedCalculations" style="display: none;">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Total Feed Required:</strong></td>
+                            <td><span id="totalFeedKg">-</span> kg</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Sacks (50kg):</strong></td>
+                            <td><span id="totalSacks">-</span> sacks</td>
+                        </tr>
+                        <tr class="table-info">
+                            <td colspan="2"><strong>Feed Type Breakdown:</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Starter Feed (0-14 days):</td>
+                            <td><span id="starterSacks">-</span> sacks</td>
+                        </tr>
+                        <tr>
+                            <td>Grower Feed (15-28 days):</td>
+                            <td><span id="growerSacks">-</span> sacks</td>
+                        </tr>
+                        <tr>
+                            <td>Finisher Feed (29-40 days):</td>
+                            <td><span id="finisherSacks">-</span> sacks</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>Safety Margin (5%):</strong></td>
+                            <td><span id="safetyMargin">-</span> sacks</td>
+                        </tr>
+                    </table>
+                    <small class="text-muted">
+                        * Calculations based on average consumption of 4.2kg per chick over 40 days
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chickCountInput = document.getElementById('initial_chick_count');
+    const feedCalculations = document.getElementById('feedCalculations');
+    
+    async function calculateFeedRequirements(chickCount) {
+        try {
+            const response = await fetch(`/api/calculate-feed/${chickCount}/`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            
+            // Update the display
+            document.getElementById('totalFeedKg').textContent = data.total_feed_kg.toFixed(2);
+            document.getElementById('totalSacks').textContent = Math.ceil(data.total_sacks);
+            document.getElementById('starterSacks').textContent = Math.ceil(data.starter_sacks);
+            document.getElementById('growerSacks').textContent = Math.ceil(data.grower_sacks);
+            document.getElementById('finisherSacks').textContent = Math.ceil(data.finisher_sacks);
+            document.getElementById('safetyMargin').textContent = Math.ceil(data.safety_margin);
+            
+            feedCalculations.style.display = 'block';
+            
+        } catch (error) {
+            console.error('Error calculating feed:', error);
+        }
+    }
+    
+    // Calculate feed requirements when chick count changes
+    chickCountInput.addEventListener('input', function() {
+        const chickCount = parseInt(this.value);
+        if (chickCount > 0) {
+            calculateFeedRequirements(chickCount);
+        } else {
+            feedCalculations.style.display = 'none';
+        }
+    });
+});
+</script> 

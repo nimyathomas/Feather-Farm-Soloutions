@@ -50,87 +50,90 @@
             </div>
         </div>
 
-        <!-- Assign Feed Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+     
+
+    <!-- New Content Row -->
+    <div class="row mt-4">
+        <!-- Feed Statistics Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Feed Statistics</h6>
+                </div>
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">Assign Feed</div>
-                            <p class="text-muted mt-2">Assign feed to batches and farms</p>
-                            <a href="#" class="btn btn-info mt-3">
-                                <i class="fas fa-tasks fa-sm"></i> Assign Feed
-                            </a>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <h6 class="text-muted">Active Batches</h6>
+                            <h3>{{ active_batches_count }}</h3>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        <div class="col-6 mb-3">
+                            <h6 class="text-muted">Pending Assignments</h6>
+                            <h3>{{ pending_assignments }}</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-{% comment %} 
-    <!-- Quick Stats Row -->
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="card shadow mb-4">
+
+        <!-- Feed Management Actions Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Feed Stock Overview</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Feed Type</th>
-                                    <th>Available Stock</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for stock in feed_stocks %}
-                                <tr>
-                                    <td>{{ stock.get_feed_type_display }}</td>
-                                    <td>{{ stock.number_of_sacks }} sacks</td>
-                                    <td>
-                                        {% if stock.number_of_sacks <= stock.minimum_sacks %}
-                                        <span class="badge bg-danger">Low Stock</span>
-                                        {% else %}
-                                        <span class="badge bg-success">In Stock</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-
-
-
-                            
-                        </table>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'active_batches_feed' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Assign Feed
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-history me-2"></i>Feed History
+                        </a>
                     </div>
                 </div>
             </div>
-        </div> {% endcomment %}
+        </div>
+    </div>
 
-        <div class="col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Activities</h6>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        {% for activity in recent_activities %}
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ activity.action }}</h6>
-                                <small>{{ activity.date|date:"M d, Y" }}</small>
-                            </div>
-                            <p class="mb-1">{{ activity.description }}</p>
-                        </div>
+    <!-- Recent Feed Assignments Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Feed Assignments</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Batch</th>
+                            <th>Week</th>
+                            <th>Feed Type</th>
+                            <th>Sacks</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in recent_assignments %}
+                        <tr>
+                            <td>Batch #{{ assignment.batch.id }}</td>
+                            <td>Week {{ assignment.week_number }}</td>
+                            <td>{{ assignment.feed_type }}</td>
+                            <td>{{ assignment.sacks_assigned }}</td>
+                            <td>{{ assignment.assigned_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if assignment.status == 'Completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ assignment.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No recent assignments</td>
+                        </tr>
                         {% endfor %}
-                    </div>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

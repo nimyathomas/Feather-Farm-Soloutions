@@ -347,5 +347,15 @@ class FeedStock(models.Model):
         """Calculate price per kg"""
         return self.price_per_sack / 50
 
+    def get_feed_type_display(self):
+        FEED_TYPES = {
+            'starter': 'Starter Feed',
+            'grower': 'Grower Feed',
+            'finisher': 'Finisher Feed'
+        }
+        return FEED_TYPES.get(self.feed_type, self.feed_type)
+
     def __str__(self):
-        return f"{self.get_feed_type_display()} - {self.number_of_sacks} sacks ({self.quantity_in_kg}kg)"
+        return f"{self.get_feed_type_display()} - {self.number_of_sacks} sacks"
+    
+    

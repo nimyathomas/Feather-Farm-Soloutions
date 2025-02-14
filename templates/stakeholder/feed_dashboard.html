@@ -3,16 +3,53 @@
 
 {% block body %}
 <div class="container-fluid">
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Feed Stock Dashboard</h1>
+        {% if is_admin %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStockModal">
+            <i class="fas fa-plus"></i> Add New Stock
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Add this temporarily at the top of your template for debugging -->
+    {% comment %} {% if debug %}
+    <div class="card mb-4">
+        <div class="card-header">Debug Information</div>
+        <div class="card-body">
+            <h5>Starter Feed:</h5>
+            <pre>{{ starter_feed|pprint }}</pre>
+            <h5>Grower Feed:</h5>
+            <pre>{{ grower_feed|pprint }}</pre>
+            <h5>Finisher Feed:</h5>
+            <pre>{{ finisher_feed|pprint }}</pre>
+            <h5>All Stocks:</h5>
+            {% for stock in feed_stocks %}
+            <pre>{{ stock.feed_type }} - {{ stock.number_of_sacks }} sacks</pre>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %} {% endcomment %}
+
+    <!-- Feed Type Cards -->
+    <div class="row">
+        <!-- Starter Feed Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Starter Feed Stock</h6>
+                    {% if starter_feed.is_low %}
+                    <span class="badge bg-warning">Low Stock</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ starter_feed.total_sacks }} Sacks</div>
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Feed Sacks</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_sacks }}</div>
+                                Available Stock (Week 1)
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-box fa-2x text-gray-300"></i>
@@ -22,34 +59,50 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+        <!-- Grower Feed Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-success">Grower Feed Stock</h6>
+                    {% if grower_feed.is_low %}
+                    <span class="badge bg-warning">Low Stock</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ grower_feed.total_sacks }} Sacks</div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Total Stock Value</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">₹{{ total_value|floatformat:2 }}</div>
+                                Available Stock (Week 2-4)
+                            </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+        <!-- Finisher Feed Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-info">Finisher Feed Stock</h6>
+                    {% if finisher_feed.is_low %}
+                    <span class="badge bg-warning">Low Stock</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Low Stock Alerts</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ low_stock_items.count }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ finisher_feed.total_sacks }} Sacks</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Available Stock (Week 5-6)
+                            </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -57,19 +110,14 @@
         </div>
     </div>
 
-    <!-- Current Stock Table -->
+    <!-- Stock Details Table -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Current Feed Stock</h6>
-            {% if is_admin %}
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStockModal">
-                <i class="fas fa-plus"></i> Add Stock
-            </button>
-            {% endif %}
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Current Stock Details</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
+                <table class="table table-bordered">
                     <thead>
                         <tr>
                             <th>Feed Type</th>
@@ -77,35 +125,21 @@
                             <th>Price/Sack</th>
                             <th>Total Value</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for stock in feed_stocks %}
-                        <tr data-stock-id="{{ stock.id }}">
-                            <td class="feed-type">{{ stock.get_feed_type_display }}</td>
+                        <tr>
+                            <td>{{ stock.get_feed_type_display }}</td>
                             <td>{{ stock.number_of_sacks }}</td>
                             <td>₹{{ stock.price_per_sack }}</td>
-                            <td>₹{{ stock.number_of_sacks|multiply:stock.price_per_sack }}</td>
+                            <td>₹{{ stock.total_value }}</td>
                             <td>
                                 {% if stock.number_of_sacks <= stock.minimum_sacks %}
-                                <span class="badge bg-danger">Low Stock</span>
+                                <span class="badge bg-warning">Low Stock</span>
                                 {% else %}
-                                <span class="badge bg-success">In Stock</span>
+                                <span class="badge bg-success">Adequate</span>
                                 {% endif %}
-                            </td>
-                            <td>
-                                {% if is_admin %}
-                                <a href="{% url 'edit_feed_stock' stock.id %}" class="btn btn-sm btn-warning" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'delete_feed_stock' stock.id %}" class="btn btn-sm btn-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                                {% endif %}
-                                <button class="btn btn-sm btn-info" title="View Details" onclick="viewDetails({{ stock.id }})">
-                                    <i class="fas fa-eye"></i>
-                                </button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -114,32 +148,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Low Stock Alerts -->
-    {% if low_stock_items %}
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-warning">Low Stock Alerts</h6>
-        </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for item in low_stock_items %}
-                <div class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-1">{{ item.get_feed_type_display }}</h6>
-                        <small>Current stock: {{ item.number_of_sacks }} sacks (Minimum: {{ item.minimum_sacks }})</small>
-                    </div>
-                    {% if is_admin %}
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addStockModal">
-                        Restock
-                    </button>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <!-- Add Stock Modal -->
@@ -165,17 +173,4 @@
     </div>
 </div>
 {% endif %}
-
-<script>
-function viewDetails(stockId) {
-    // Get the stock details
-    const stock = document.querySelector(`tr[data-stock-id="${stockId}"]`);
-    const type = stock.querySelector('.feed-type').textContent;
-    const sacks = stock.querySelector('.sacks').textContent;
-    const price = stock.querySelector('.price').textContent;
-    
-    // Show details in a modal or alert
-    alert(`Feed Type: ${type}\nAvailable Sacks: ${sacks}\nPrice per Sack: ${price}`);
-}
-</script>
 {% endblock %} 

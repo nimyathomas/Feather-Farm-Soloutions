@@ -194,6 +194,68 @@
     </div>
 </div>
 
+<!-- Update Feed Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Feed Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'update_feed_stock' %}" id="updateFeedForm">
+                {% csrf_token %}
+                <input type="hidden" id="updateFeedId" name="feed_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Feed Type</label>
+                        <input type="text" class="form-control bg-light" id="updateFeedType" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Available Sacks</label>
+                        <input type="number" class="form-control bg-light" id="currentSacks" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Add Sacks</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="add_sacks" 
+                               id="addSacks" 
+                               required 
+                               min="1" 
+                               placeholder="Enter number of sacks to add"
+                               onchange="updateTotalSacks()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Total Sacks After Update</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="totalSacks" 
+                               readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Price per Sack (₹)</label>
+                        <input type="number" class="form-control bg-light" id="currentPrice" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">New Price per Sack (Optional)</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="price_per_sack" 
+                               id="updatePrice" 
+                               step="0.01" 
+                               min="0" 
+                               placeholder="Leave empty to keep current price">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
