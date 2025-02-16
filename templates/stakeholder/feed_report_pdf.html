@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Feed Assignment Report</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        .report-title {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .summary-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #f8f9fc;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .summary-item {
+            padding: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4e73df;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fc;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">{{ company_name }}</div>
+        <div class="report-title">Feed Assignment Report</div>
+        <div>Date: {{ report_date|date:"F d, Y" }}</div>
+    </div>
+
+    <div class="summary-box">
+        <h3>Daily Summary</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <strong>Total Assignments:</strong> {{ total_assignments }}
+            </div>
+            <div class="summary-item">
+                <strong>Active Batches:</strong> {{ active_batches }}
+            </div>
+            <div class="summary-item">
+                <strong>Total Sacks:</strong> {{ total_sacks }}
+            </div>
+            <div class="summary-item">
+                <strong>Total Cost:</strong> ₹{{ total_cost|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Batch #</th>
+                <th>Farm</th>
+                <th>Feed Type</th>
+                <th>Week</th>
+                <th>Sacks</th>
+                <th>Cost/Sack</th>
+                <th>Total Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in assignments %}
+            <tr>
+                <td>{{ a.assigned_date|time:"H:i" }}</td>
+                <td>{{ a.batch.id }}</td>
+                <td>{{ a.batch.farm.name }}</td>
+                <td>{{ a.feed_type }}</td>
+                <td>Week {{ a.week_number }}</td>
+                <td>{{ a.sacks_assigned }}</td>
+                <td>₹{{ a.cost_per_sack|floatformat:2 }}</td>
+                <td>₹{{ a.total_cost|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated on {{ generated_at|date:"F d, Y" }} at {{ generated_at|time:"H:i" }}</p>
+        <p>{{ company_name }} - Feed Management System</p>
+    </div>
+</body>
+</html> 

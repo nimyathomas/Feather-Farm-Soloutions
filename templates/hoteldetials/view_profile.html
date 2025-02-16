@@ -1,189 +1,323 @@
 {% extends 'hoteldetials/dashboard.html' %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <!-- User Information Form -->
-        <form method="POST" enctype="multipart/form-data" class="col-md-6">
-            {% csrf_token %}
-            <h3>User Information</h3>
-            <fieldset>
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    {{ user_form.email }}
-                    {% if user_form.email.errors %}
-                        <div class="errorlist">
-                            {% for error in user_form.email.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+<div class="container py-5">
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-primary">Profile Management</h2>
+        <p class="text-muted">Manage your profile, hotel information, and wallet</p>
+    </div>
 
-                <!-- Full Name -->
-                <div class="form-group">
-                    <label for="full_name">Full Name</label>
-                    {{ user_form.full_name }}
-                    {% if user_form.full_name.errors %}
-                        <div class="errorlist">
-                            {% for error in user_form.full_name.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Phone Number -->
-                <div class="form-group">
-                    <label for="phone_number">Phone Number</label>
-                    {{ user_form.phone_number }}
-                    {% if user_form.phone_number.errors %}
-                        <div class="errorlist">
-                            {% for error in user_form.phone_number.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <button type="submit" name="update_profile" class="btn btn-primary mt-3">Update</button>
-            </fieldset>
-        </form>
-
-        <!-- Hotel Information Form -->
-        <form method="POST" enctype="multipart/form-data" class="col-md-6">
-            {% csrf_token %}
-            <h3>Hotel Information</h3>
-            <fieldset>
-                <!-- Hotel Name -->
-                <div class="form-group">
-                    <label for="hotel_name">Hotel Name</label>
-                    {{ hotel_form.hotel_name }}
-                    {% if hotel_form.hotel_name.errors %}
-                        <div class="errorlist">
-                            {% for error in hotel_form.hotel_name.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <!-- Longitude -->
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    {{ hotel_form.address }}
-                    {% if hotel_form.address.errors %}
-                        <div class="errorlist">
-                            {% for error in hotel_form.address.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Latitude -->
-                <div class="form-group">
-                    <label for="latitude">Latitude</label>
-                    {{ hotel_form.latitude }}
-                    {% if hotel_form.latitude.errors %}
-                        <div class="errorlist">
-                            {% for error in hotel_form.latitude.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Longitude -->
-                <div class="form-group">
-                    <label for="longitude">Longitude</label>
-                    {{ hotel_form.longitude }}
-                    {% if hotel_form.longitude.errors %}
-                        <div class="errorlist">
-                            {% for error in hotel_form.longitude.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Hotel License -->
-                <div class="form-group">
-                    <label for="hotel_license">Hotel License</label>
-                    {{ hotel_form.hotel_license }}
-                    {% if hotel_form.hotel_license.errors %}
-                        <div class="errorlist">
-                            {% for error in hotel_form.hotel_license.errors %}
-                                <p class="error">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            </fieldset>
-
-            <!-- Button to Get Location -->
-            <button type="button" id="get-location" class="btn btn-info mt-3">
-                Allow Location Access
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
+                <i class="fas fa-user me-2"></i>Profile
             </button>
-            <small class="form-text text-muted">
-                Click the button to fetch your current location.
-            </small>
-            <div id="location-feedback" class="text-info mt-2"></div>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="hotel-tab" data-bs-toggle="tab" data-bs-target="#hotel" type="button" role="tab">
+                <i class="fas fa-hotel me-2"></i>Hotel Details
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab">
+                <i class="fas fa-wallet me-2"></i>Wallet
+            </button>
+        </li>
+    </ul>
 
-            <button type="submit" name="update_hotel" class="btn btn-primary mt-3">Submit</button>
-        </form>
+    <!-- Tab Content -->
+    <div class="tab-content" id="profileTabsContent">
+        <!-- Profile Tab -->
+        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" name="email" id="email" class="form-control" value="{{ user_form.email.value|default:'' }}">
+                            {% if user_form.email.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in user_form.email.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Full Name</label>
+                            <input type="text" name="full_name" id="full_name" class="form-control" value="{{ user_form.full_name.value|default:'' }}">
+                            {% if user_form.full_name.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in user_form.full_name.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="tel" name="phone_number" id="phone_number" class="form-control" value="{{ user_form.phone_number.value|default:'' }}">
+                            {% if user_form.phone_number.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in user_form.phone_number.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" name="update_profile" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotel Tab -->
+        <div class="tab-pane fade" id="hotel" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="hotel_name" class="form-label">Hotel Name</label>
+                            <input type="text" name="hotel_name" id="hotel_name" class="form-control" value="{{ hotel_form.hotel_name.value|default:'' }}">
+                            {% if hotel_form.hotel_name.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in hotel_form.hotel_name.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea name="address" id="address" class="form-control" rows="3">{{ hotel_form.address.value|default:'' }}</textarea>
+                            {% if hotel_form.address.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in hotel_form.address.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="latitude" class="form-label">Latitude</label>
+                                <input type="number" step="any" name="latitude" id="latitude" class="form-control" value="{{ hotel_form.latitude.value|default:'' }}">
+                                {% if hotel_form.latitude.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in hotel_form.latitude.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="longitude" class="form-label">Longitude</label>
+                                <input type="number" step="any" name="longitude" id="longitude" class="form-control" value="{{ hotel_form.longitude.value|default:'' }}">
+                                {% if hotel_form.longitude.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in hotel_form.longitude.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="hotel_license" class="form-label">Hotel License</label>
+                            <input type="file" name="hotel_license" id="hotel_license" class="form-control">
+                            {% if hotel_form.hotel_license.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in hotel_form.hotel_license.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" id="get-location" class="btn btn-outline-primary">
+                                <i class="fas fa-map-marker-alt me-2"></i>Get Location
+                            </button>
+                            <button type="submit" name="update_hotel" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Hotel Info
+                            </button>
+                        </div>
+
+                        <div id="location-feedback" class="mt-3 small"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Tab -->
+        <div class="tab-pane fade" id="wallet" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-wallet fa-3x text-primary mb-3"></i>
+                    <h3 class="mb-4">Manage Your Wallet</h3>
+                    <p class="text-muted mb-4">View your balance, transactions, and manage your payments</p>
+                    <a href="{% url 'wallet' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-arrow-right me-2"></i>Go to Wallet
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- JavaScript to Fetch Latitude and Longitude -->
+<style>
+.nav-tabs {
+    border-bottom: 2px solid #e9ecef;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    color: #0d6efd;
+}
+
+.nav-tabs .nav-link.active {
+    border: none;
+    color: #0d6efd;
+}
+
+.nav-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #0d6efd;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.15);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+#location-feedback.success {
+    color: #198754;
+}
+
+#location-feedback.error {
+    color: #dc3545;
+}
+</style>
+
 <script>
-    document
-        .getElementById("get-location")
-        .addEventListener("click", function () {
-            const latitudeField = document.querySelector('[name="latitude"]');
-            const longitudeField = document.querySelector('[name="longitude"]');
-            const feedbackElement = document.getElementById("location-feedback");
+document.addEventListener('DOMContentLoaded', function() {
+    const getLocationBtn = document.getElementById('get-location');
+    const feedbackEl = document.getElementById('location-feedback');
+    const latField = document.querySelector('[name="latitude"]');
+    const longField = document.querySelector('[name="longitude"]');
 
-            // Check if Geolocation is supported/enabled
-            if (navigator.geolocation) {
-                feedbackElement.textContent = "Fetching your location...";
-                feedbackElement.className = "text-info mt-2";
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            getLocationBtn.disabled = true;
+            getLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Getting Location...';
+            feedbackEl.innerHTML = '<i class="fas fa-info-circle me-2"></i>Fetching your location...';
+            feedbackEl.className = 'mt-3 small text-info';
 
-                // Get user's current position
-                navigator.geolocation.getCurrentPosition(
-                    function (position) {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-
-                        // Set the latitude and longitude fields
-                        latitudeField.value = latitude;
-                        longitudeField.value = longitude;
-
-                        feedbackElement.textContent = `Location fetched successfully: Latitude: ${latitude}, Longitude: ${longitude}`;
-                        feedbackElement.className = "text-success mt-2";
-                    },
-                    function (error) {
-                        // Handle location errors
-                        switch (error.code) {
-                            case error.PERMISSION_DENIED:
-                                feedbackElement.textContent = "User denied location access.";
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                feedbackElement.textContent = "Location information is unavailable.";
-                                break;
-                            case error.TIMEOUT:
-                                feedbackElement.textContent = "The request to get user location timed out.";
-                                break;
-                            case error.UNKNOWN_ERROR:
-                                feedbackElement.textContent = "An unknown error occurred.";
-                                break;
-                        }
-                        feedbackElement.className = "text-danger mt-2";
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const long = position.coords.longitude;
+                    
+                    latField.value = lat;
+                    longField.value = long;
+                    
+                    feedbackEl.innerHTML = `<i class="fas fa-check-circle me-2"></i>Location found: ${lat.toFixed(6)}, ${long.toFixed(6)}`;
+                    feedbackEl.className = 'mt-3 small success';
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>Get Location';
+                },
+                function(error) {
+                    let errorMsg = 'Error getting location: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Permission denied';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Position unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'Request timed out';
+                            break;
+                        default:
+                            errorMsg += 'Unknown error';
                     }
-                );
-            } else {
-                feedbackElement.textContent = "Geolocation is not supported by this browser.";
-                feedbackElement.className = "text-danger mt-2";
-            }
-        });
+                    feedbackEl.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${errorMsg}`;
+                    feedbackEl.className = 'mt-3 small error';
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>Get Location';
+                }
+            );
+        } else {
+            feedbackEl.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Geolocation is not supported by this browser';
+            feedbackEl.className = 'mt-3 small error';
+        }
+    });
+});
 </script>
 {% endblock %}

@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
-from .models import FeedMonitoring, DiseaseAnalysis
+from .models import FeedMonitoring, DiseaseAnalysis, DailyFeedConsumption
 from user.models import FeedStock  # Import FeedStock from user.models instead
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now  # Use timezone-aware date
 from .models import DailyData, ChickBatch, Farm
+from django.db.models import Sum
 
 
 User = get_user_model()
@@ -95,18 +96,31 @@ class CompletedBatchUpdateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        one_kg_count = cleaned_data.get("one_kg_count", 0)
-        two_kg_count = cleaned_data.get("two_kg_count", 0)
-        three_kg_count = cleaned_data.get("three_kg_count", 0)
+        one_kg_count = cleaned_data.get("one_kg_count", 0) or 0
+        two_kg_count = cleaned_data.get("two_kg_count", 0) or 0
+        three_kg_count = cleaned_data.get("three_kg_count", 0) or 0
 
         # Total count from form input
         total_count = one_kg_count + two_kg_count + three_kg_count
 
-        # Get the batch instance being updated to check live chick count
+        # Get the batch instance being updated
         batch = self.instance
-        if total_count > batch.available_chickens:
+        
+        # Calculate total mortality from daily data
+        total_mortality = DailyData.objects.filter(batch=batch).aggregate(
+            total=Sum('mortality_count'))['total'] or 0
+            
+        # Calculate available chickens
+        available_chickens = batch.initial_chick_count - total_mortality
+
+        if total_count > available_chickens:
             raise forms.ValidationError(
-                f"The total count ({total_count}) exceeds the number of live chickens available ({batch.live_chick_count})."
+                f"The total count ({total_count}) cannot exceed the number of available chickens ({available_chickens})."
+            )
+        
+        if total_count < available_chickens:
+            raise forms.ValidationError(
+                f"The total count ({total_count}) must equal the number of available chickens ({available_chickens})."
             )
 
         return cleaned_data
@@ -239,4 +253,12 @@ class FeedStockForm(forms.ModelForm):
                     'min': '0'
                 }
             )
+        }
+
+class DailyFeedConsumptionForm(forms.ModelForm):
+    class Meta:
+        model = DailyFeedConsumption
+        fields = ['morning_consumption', 'evening_consumption', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3}),
         }

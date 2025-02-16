@@ -13,73 +13,116 @@ from datetime import datetime, timedelta
 from django.contrib import messages
 from django.http import JsonResponse
 from .utility import send_order_confirmation_email
+from django.contrib.auth.decorators import login_required
 
 def hoteldashboard(request):
     batch_type = request.GET.get("batch_type", "")
     query = request.GET.get("q", "")
     max_distance = request.GET.get("max_distance", None)
 
-    # Get user coordinates from request (fallback to hotel user's stored data)
-    user_lat = request.GET.get("latitude") or None
-    user_lon = request.GET.get("longitude") or None
-
+    # Get user coordinates
     hoteluser = HotelUser.objects.filter(hotel_owner=request.user).first()
+    user_lat = request.GET.get("latitude") or (hoteluser.latitude if hoteluser else None)
+    user_lon = request.GET.get("longitude") or (hoteluser.longitude if hoteluser else None)
+
     if not user_lat or not user_lon:
-        user_lat = hoteluser.latitude
-        user_lon = hoteluser.longitude
+        messages.warning(request, "Please update your location in profile settings.")
+        return redirect('view_profile', id=request.user.id)
 
-    # Debugging: Print user coordinates
-    print(f"User Latitude: {user_lat}, User Longitude: {user_lon}")
-
-    # Validate user coordinates
     try:
         user_lat = float(user_lat)
         user_lon = float(user_lon)
-        if not (-90 <= user_lat <= 90) or not (-180 <= user_lon <= 180):
-            raise ValueError("Invalid latitude or longitude values.")
-    except (ValueError, TypeError) as e:
-        messages.error(request, f"Invalid location data: {e}. Please check your coordinates.")
-        return redirect("some_error_handling_view")  # Redirect to an appropriate error handling view
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid location coordinates.")
+        return redirect('view_profile', id=request.user.id)
 
-    farms = Farm.objects.all()
+    # Debug print
+    print(f"User coordinates: {user_lat}, {user_lon}")
 
+    # Add more detailed debug for completed batches
+    completed_batches = ChickBatch.objects.filter(batch_status='completed')
+    print(f"\nDetailed batch information:")
+    for batch in completed_batches:
+        print(f"""
+        Batch ID: {batch.id}
+        Farm: {batch.farm.name}
+        Status: {batch.batch_status}
+        Type: {batch.batch_type}
+        Weight Distribution:
+        - 1 KG: {batch.one_kg_count}
+        - 2 KG: {batch.two_kg_count}
+        - 3 KG: {batch.three_kg_count}
+        Price per KG: {batch.price_per_kg}
+        """)
+
+    # Get farms with completed batches
+    farms = Farm.objects.filter(
+        chick_batches__batch_status='completed'
+    ).distinct()
+    
+    print(f"Total farms with completed batches: {farms.count()}")
+
+    # Apply filters
     if batch_type:
-        farms = farms.filter(chick_batches__batch_type=batch_type).distinct()
+        farms = farms.filter(chick_batches__batch_type=batch_type)
     if query:
         farms = farms.filter(name__icontains=query)
 
     recommended_farms = []
-
-    # Calculate and filter farms based on distance
     for farm in farms:
-        if farm.latitude and farm.longitude:
-            origin = (user_lat, user_lon)
-            destination = (farm.latitude, farm.longitude)
+        print(f"\nProcessing farm: {farm.name}")
+        print(f"Farm coordinates: {farm.latitude}, {farm.longitude}")
+        
+        # Validate farm coordinates
+        if (farm.latitude and farm.longitude and 
+            -90 <= farm.latitude <= 90 and 
+            -180 <= farm.longitude <= 180):
+            
+            distance = calculate_distance(
+                (user_lat, user_lon),
+                (farm.latitude, farm.longitude)
+            )
+            farm.distance = round(distance, 2)
+            print(f"Distance to farm: {farm.distance} km")
 
-            # Debugging: Print origin and destination
-            print(f"Origin: {origin}, Destination: {destination}")
-
-            distance = calculate_distance(origin, destination)
-
-            farm.distance = round(distance, 2)  # Distance in km
-
-            if max_distance and distance <= float(max_distance):
+            # Add farm if within distance limit
+            if max_distance:
+                if distance <= float(max_distance):
+                    recommended_farms.append(farm)
+                    print(f"Added farm (within max distance)")
+            elif distance <= 50:  # Default 50km radius
                 recommended_farms.append(farm)
-            elif not max_distance and distance <= 50:  # Default 50 km limit
-                recommended_farms.append(farm)
+                print(f"Added farm (within default radius)")
+        else:
+            print(f"Invalid coordinates for farm: {farm.name}")
+            # Still add the farm but with a default distance
+            farm.distance = 0
+            recommended_farms.append(farm)
 
-    # Sort farms by distance (nearest first)
+    print(f"\nTotal recommended farms: {len(recommended_farms)}")
+
+    # Sort by distance
     recommended_farms.sort(key=lambda x: x.distance)
 
+    # Add completed batches to each farm for template access
+    for farm in recommended_farms:
+        completed_batches = farm.chick_batches.filter(batch_status='completed')
+        farm.completed_batches = completed_batches
+        print(f"Farm {farm.name} has {completed_batches.count()} completed batches")
+
+    # Pagination
     paginator = Paginator(recommended_farms, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request, "hoteldetials/farmlist.html", {
+    context = {
         "page_obj": page_obj,
-        "hotel_name": hoteluser.hotel_name,
+        "hotel_name": hoteluser.hotel_name if hoteluser else "",
         "batch_type": batch_type,
-    })
+        "total_farms": len(recommended_farms)
+    }
+
+    return render(request, "hoteldetials/farmlist.html", context)
 
 
 def view_profile(request, id):
@@ -378,4 +421,35 @@ def place_order(request):
         return redirect('order_success')
 
     return redirect('cart_view')
+
+@login_required
+def wallet_view(request):
+    context = {
+        'wallet': {
+            'balance': '0.00',
+            'loyalty_points': '150',  # Example loyalty points
+            'membership_tier': 'Gold',  # Example tier
+        },
+        'total_added': '0.00',
+        'total_spent': '0.00',
+        'pending_amount': '0.00',
+        'transactions': [],
+        'bank_accounts': [],
+        'available_discounts': [
+            {
+                'code': 'WELCOME20',
+                'description': '20% off on your first order',
+                'expiry': '2025-03-01',
+                'discount_percent': 20,
+            },
+            {
+                'code': 'LOYALTY10',
+                'description': '10% off for Gold members',
+                'expiry': '2025-12-31',
+                'discount_percent': 10,
+            }
+        ],
+        'refund_requests': []
+    }
+    return render(request, 'hoteldetials/wallet.html', context)
 

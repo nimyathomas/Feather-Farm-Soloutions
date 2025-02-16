@@ -2,6 +2,28 @@
 
 {% block body %}
 <div class="container-fluid">
+    <!-- Feed Transition Alerts -->
+    {% if feed_transitions %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for transition in feed_transitions %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    <div>
+                        <strong>Feed Transition Alert - Batch #{{ transition.batch_id }}</strong><br>
+                        Week {{ transition.week }}: Time to change from {{ transition.old_feed }} to {{ transition.new_feed }}
+                        <br>
+                        <small class="text-muted">Please update feed assignments accordingly</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Feed Management System</h1>
@@ -137,5 +159,251 @@
             </div>
         </div>
     </div>
+
+    <!-- Add this after your existing cards -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Feed Reports & Analytics</h6>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#dailyReportModal">
+                            <i class="fas fa-calendar-day me-1"></i> Daily Report
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#weeklyReportModal">
+                            <i class="fas fa-calendar-week me-1"></i> Weekly Summary
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#monthlyReportModal">
+                            <i class="fas fa-calendar-alt me-1"></i> Monthly Analysis
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Feed Usage Summary Charts -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <canvas id="feedTypeChart"></canvas>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <canvas id="feedCostTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Report Modal -->
+    <div class="modal fade" id="dailyReportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Daily Feed Assignment Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Date Filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Select Date</label>
+                            <input type="date" class="form-control" id="reportDate" value="{{ today|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="loadDailyReport()">
+                                <i class="fas fa-sync-alt me-1"></i> Load
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h6>Total Assignments</h6>
+                                    <h3 id="totalAssignments">{{ daily_stats.total_assignments }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h6>Total Sacks</h6>
+                                    <h3 id="totalSacks">{{ daily_stats.total_sacks }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h6>Active Batches</h6>
+                                    <h3 id="activeBatches">{{ daily_stats.active_batches }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                <div class="card-body">
+                                    <h6>Total Cost</h6>
+                                    <h3 id="totalCost">₹{{ daily_stats.total_cost }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Report Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dailyReportTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Batch #</th>
+                                    <th>Farm</th>
+                                    <th>Feed Type</th>
+                                    <th>Week</th>
+                                    <th>Sacks</th>
+                                    <th>Cost/Sack</th>
+                                    <th>Total Cost</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <!-- Data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf me-1"></i> Download PDF
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="exportDailyReport()">
+                        <i class="fas fa-download me-1"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Feed Type Distribution Chart
+        new Chart(document.getElementById('feedTypeChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Starter Feed', 'Grower Feed', 'Finisher Feed'],
+                datasets: [{
+                    data: [
+                        {{ feed_type_stats.starter|default:0 }},
+                        {{ feed_type_stats.grower|default:0 }},
+                        {{ feed_type_stats.finisher|default:0 }}
+                    ],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Feed Type Distribution'
+                    }
+                }
+            }
+        });
+
+        // Initialize Feed Cost Trend Chart
+        new Chart(document.getElementById('feedCostTrendChart'), {
+            type: 'line',
+            data: {
+                labels: {{ daily_dates|safe }},
+                datasets: [{
+                    label: 'Daily Feed Cost',
+                    data: {{ daily_costs|safe }},
+                    borderColor: '#4e73df',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Daily Feed Cost Trend'
+                    }
+                }
+            }
+        });
+    });
+
+    // Function to update report display
+    function updateDailyReport(data) {
+        console.log('Received data:', data);  // Add debug log
+
+        // Update summary statistics
+        document.getElementById('totalAssignments').textContent = data.total_assignments;
+        document.getElementById('totalSacks').textContent = data.total_sacks;
+        document.getElementById('activeBatches').textContent = data.active_batches;
+        document.getElementById('totalCost').textContent = `₹${data.total_cost}`;
+        
+        // Update table
+        const tbody = document.getElementById('reportTableBody');
+        if (data.assignments && data.assignments.length > 0) {
+            tbody.innerHTML = data.assignments.map(a => `
+                <tr>
+                    <td>${a.time}</td>
+                    <td>${a.batch_id}</td>
+                    <td>${a.farm_name}</td>
+                    <td>${a.feed_type}</td>
+                    <td>Week ${a.week}</td>
+                    <td>${a.sacks}</td>
+                    <td>₹${a.cost_per_sack}</td>
+                    <td>₹${a.total_cost}</td>
+                    <td><span class="badge bg-success">Completed</span></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">No assignments found for this date</td></tr>';
+        }
+    }
+
+    // Function to load daily report
+    function loadDailyReport() {
+        const date = document.getElementById('reportDate').value;
+        console.log('Loading report for date:', date);  // Add debug log
+        
+        fetch(`/feed/daily-report/${date}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received data:', data);  // Add debug log
+                updateDailyReport(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);  // Add debug log
+                alert('Error loading report: ' + error.message);
+            });
+    }
+
+    // Function to export report
+    function exportDailyReport() {
+        const date = document.getElementById('reportDate').value;
+        window.location.href = `/feed/export-daily-report/${date}/`;
+    }
+
+    function generatePDF() {
+        const date = document.getElementById('reportDate').value;
+        window.location.href = `/feed/report-pdf/${date}/`;
+    }
+    </script>
 </div>
 {% endblock %}

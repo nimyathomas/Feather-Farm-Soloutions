@@ -1,0 +1,116 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Record Feed Consumption</h4>
+            <p class="text-muted mb-0">Batch #{{ batch.id }} - {{ assignment.feed_type }}</p>
+        </div>
+        
+        <!-- Add Feed Assignment Info -->
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Feed Assignment Details</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Feed Type:</th>
+                            <td>{{ assignment.get_feed_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Week Number:</th>
+                            <td>Week {{ assignment.week_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Sacks Assigned:</th>
+                            <td>{{ assignment.sacks_assigned }} sacks</td>
+                        </tr>
+                        <tr>
+                            <th>Sacks Consumed:</th>
+                            <td>{{ assignment.total_consumed }} sacks</td>
+                        </tr>
+                        <tr>
+                            <th>Remaining Sacks:</th>
+                            <td>
+                                <span class="badge {% if assignment.remaining_sacks > 10 %}bg-success{% elif assignment.remaining_sacks > 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ assignment.remaining_sacks }} sacks
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="mb-3">Consumption Progress</h5>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ assignment.total_consumed|divisibleby:assignment.sacks_assigned|multiply:100 }}%"
+                             aria-valuenow="{{ assignment.total_consumed }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ assignment.sacks_assigned }}">
+                            {{ assignment.total_consumed }}/{{ assignment.sacks_assigned }} sacks
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consumption Form -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Morning Consumption (Sacks)</label>
+                        {{ form.morning_consumption|add_class:"form-control" }}
+                        {% if form.morning_consumption.errors %}
+                        <div class="text-danger">
+                            {{ form.morning_consumption.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Evening Consumption (Sacks)</label>
+                        {{ form.evening_consumption|add_class:"form-control" }}
+                        {% if form.evening_consumption.errors %}
+                        <div class="text-danger">
+                            {{ form.evening_consumption.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    {{ form.notes|add_class:"form-control" }}
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'list_daily_feed' batch.id %}" class="btn btn-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary">Record Consumption</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    margin-top: 1rem;
+}
+.progress-bar {
+    background-color: #0d6efd;
+    color: white;
+    text-align: center;
+    line-height: 25px;
+    font-size: 0.875rem;
+}
+.table-sm th {
+    width: 40%;
+    color: #6c757d;
+}
+</style>
+{% endblock %} 

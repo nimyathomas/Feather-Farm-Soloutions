@@ -1,0 +1,76 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2>Feed Tracking Dashboard</h2>
+    
+    {% if batch_data %}
+        {% for batch_id, data in batch_data.items %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Batch #{{ data.batch.id }}</h5>
+                    <span class="badge bg-primary">Day {{ data.batch.current_day }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <h6>Total Feed Assigned</h6>
+                        <p>{{ data.total_sacks }} sacks</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Total Cost</h6>
+                        <p>₹{{ data.total_cost|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Farm</h6>
+                        <p>{{ data.batch.farm.name }}</p>
+                    </div>
+                </div>
+
+                <h6>Feed Assignments</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Feed Type</th>
+                                <th>Sacks</th>
+                                <th>Cost/Sack</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in data.assignments %}
+                            <tr>
+                                <td>Week {{ assignment.week_number }}</td>
+                                <td>{{ assignment.feed_type }}</td>
+                                <td>{{ assignment.sacks_assigned }}</td>
+                                <td>₹{{ assignment.cost_per_sack }}</td>
+                                <td>₹{{ assignment.total_cost }}</td>
+                                <td>
+                                    <span class="badge {% if assignment.status == 'acknowledged' %}bg-success
+                                        {% elif assignment.status == 'pending' %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ assignment.status|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No feed assignments yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No active batches found.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -7,7 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Feather Farm - Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/stakeholder.css' %}" />
+    <link href="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css'%}" rel="stylesheet" />
+    <script src="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'%}"></script>
+    {% comment %}
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    {% endcomment %}
 
+    
+  </head>
+  <body>
+    <!-- Header Section -->
     <header class="header">
       <div class="logo">
         <h2>🪶 Feather Farm</h2>
@@ -21,21 +33,6 @@
       </div>
     </header>
 
-    <link
-      href="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css'%}"
-      rel="stylesheet"
-    />
-    <script src="{% static 'https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'%}"></script>
-    {% comment %}
-    <link
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    {% endcomment %}
-
-    
-  </head>
-  <body>
     <div class="container">
       <!-- Sidebar Section -->
       <aside class="sidebar">
@@ -54,23 +51,34 @@
                 <a href="{% url 'stateholder_batch' %}" class="{% if request.path ==  'stateholder_batch' %}active{% endif %}">🚑 Chicken Batches</a>
             </li>
             <li>
-                <a href="{% url 'feed_dashboard_view' user_id=request.user.id %}" class="{% if request.path ==  'feed_dashboard_view' %}active{% endif %}">🚑 Feeds</a>
+                <a href="{% url 'feed_dashboard_view' user_id=request.user.id %}" class="{% if request.path ==  'feed_dashboard_view' %}active{% endif %}">🥩 Feeds</a>
             </li>
             <li>
-              
+                <a href="{% url 'feed_tracking_dashboard' %}" class="{% if request.path == 'feed_tracking_dashboard' %}active{% endif %}">📊 Feed Tracking</a>
+            </li>
             <li>
-                <a href="#" class="{% if request.path == '#' %}active{% endif %}">vaccinations</a>
+                <a href="#" class="{% if request.path == '#' %}active{% endif %}">💉 Vaccinations</a>
             </li>
             <li>
               <a href="{% url 'chick_health_recognition' %}" class="{% if request.path == 'chick_health_recognition' %}active{% endif %}">🔍 Chick Health Scanner</a>
             </li>
             <li>
-                <a href="{% url 'disease_analysis_list' %}" class="{% if request.path == 'disease_analysis_list' %}active{% endif %}">
-                    <i class="fas fa-microscope"></i> Disease History
-                </a>
+                <a href="{% url 'disease_analysis_list' %}" class="{% if request.path == 'disease_analysis_list' %}active{% endif %}">🔬 Disease History</a>
             </li>
-        </ul>
-        
+
+            <li>
+              <a href="{% url 'feed_tracking_dashboard' %}" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Feed Tracking</span>
+            </a>           
+            <li>
+
+
+
+
+
+            
+          </ul>
         </nav>
       </aside>
 

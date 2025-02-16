@@ -1,18 +1,12 @@
 {% extends 'stakeholder.html' %} {% load static %} {% block body %}
-<section class="content-section">
-  <h3>Daily Updates</h3>
-  {% if messages %}
-  <div class="alert alert-info" role="alert">
-    {% for message in messages %} {{ message }}<br />
-    {% endfor %}
-  </div>
-  {% endif %}
 
+<div class="dashboard-container">
+    <!-- Top Bar with Quick Stats -->
+    <div class="top-bar">
   <form method="POST" id="daily-data-form">
     {% csrf_token %}
-    <div class="form-group">
-      <label for="batch-select">Select Batch:</label>
-      <select name="batch" id="batch-select" class="form-control" required>
+            <div class="batch-selector">
+                <select name="batch" id="batch-select" class="form-select" required>
         <option value="" disabled {% if not selected_batch %}selected{% endif %}>
           Select a batch
         </option>
@@ -22,59 +16,455 @@
                 data-live-chick-count="{{ b.live_chick_count }}"
                 data-mortality-count="{{ b.total_mortality_count }}" 
                 {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}> 
-          {{b.batch_date|date:"F j, Y" }}
+                        Batch #{{ b.id }} - {{b.batch_date|date:"F j, Y" }}
         </option>
         {% endfor %}
       </select>
     </div>
 
-    <div id="counts-display">
-      <p>
-        Initial Chick Count:
-        <span id="initial-chick-count">{{ b.initial_chick_count }}</span>
-      </p>
-      <p>
-        Updated Alive Count:
-        <span id="updated-alive-count">{{ b.available_chickens }}</span>
-      </p>
-      <p>
-        Chicken Type:
-        <span id="updated-mortality-count">{{ b.batch_type }}</span>
-      </p>
+            <!-- Move the table inside the form -->
+            <div class="data-entry-panel">
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h6><i class="fas fa-edit"></i> Daily Data Entry</h6>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Entry
+                        </button>
     </div>
-    <!-- Wrapper div with a fixed height for scrollable table -->
-    <div class="scrollable-table-wrapper">
-        <table id="daily-entries" class="table">
+                    <div class="data-entry-form">
+                        <table id="daily-entries" class="table table-bordered">
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Alive Count</th>
-                    <th>Sick Chicks</th>
-                    <th>Mortality Count</th>
-                    <th>Feed Uplifted (kg)</th>
-                    <th>Water Consumption (L)</th>
-                    <th>Weight Gain (g)</th>
-                    <th>Temperature (°C)</th>
+                                    <th>Alive</th>
+                                    <th>Sick</th>
+                                    <th>Mortality</th>
+                                    <th>Feed (kg)</th>
+                                    <th>Water (L)</th>
+                                    <th>Weight (g)</th>
+                                    <th>Temp (°C)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="daily-entry">
-                    <td><input type="date" name="date[]" class="form-control date-input" required></td>
-                    <td><input type="number" name="alive_count[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="sick_chicks[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="mortality_count[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="feed_uplifted[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="water_consumption[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="weight_gain[]" class="form-control positive-input" required></td>
-                    <td><input type="number" name="temperature[]" class="form-control" required></td>
+                                    <td><input type="date" name="date[]" class="form-control" required></td>
+                                    <td><input type="number" name="alive_count[]" class="form-control" min="0" required></td>
+                                    <td><input type="number" name="sick_chicks[]" class="form-control" min="0" required></td>
+                                    <td><input type="number" name="mortality_count[]" class="form-control" min="0" required></td>
+                                    <td><input type="number" name="feed_uplifted[]" class="form-control" min="0" step="0.01" required></td>
+                                    <td><input type="number" name="water_consumption[]" class="form-control" min="0" step="0.01" required></td>
+                                    <td><input type="number" name="weight_gain[]" class="form-control" min="0" step="0.01" required></td>
+                                    <td><input type="number" name="temperature[]" class="form-control" step="0.1" required></td>
                 </tr>
             </tbody>
         </table>
     </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-grid">
+        <!-- Left Panel: Statistics -->
+        <div class="stats-panel">
+            <!-- Batch Overview Card -->
+            <div class="data-card mb-3">
+                <div class="data-card-header">
+                    <h6><i class="fas fa-info-circle"></i> Batch Overview</h6>
+                    <div class="quick-stats">
+                        <span class="badge bg-primary" id="current-week">Week 1</span>
+                        <span class="badge bg-info" id="current-day">Day 1</span>
+                    </div>
+                </div>
+                <div class="data-metrics">
+                    <div class="metric-item">
+                        <label>Initial Count</label>
+                        <span id="initial-chick-count" class="value">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <label>Current Count</label>
+                        <span id="updated-alive-count" class="value">-</span>
+                    </div>
+                    <div class="metric-item">
+                        <label>Total Mortality</label>
+                        <span id="mortality-count" class="value">{{ selected_batch.total_mortality_count|default:'-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed Management Card -->
+            <div class="data-card">
+                <div class="data-card-header">
+                    <h6><i class="fas fa-wheat-alt"></i> Feed Management</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="recordFeedConsumption()">
+                        <i class="fas fa-plus"></i> Record
+                    </button>
+                </div>
+                <div class="feed-overview">
+                    <div class="current-feed">
+                        <span class="feed-label">Current Feed:</span>
+                        <span id="current-feed-type" class="feed-value">-</span>
+                    </div>
+                    <div class="feed-progress">
+                        <div class="progress">
+                            <div id="current-feed-progress" class="progress-bar" role="progressbar"></div>
+                        </div>
+                        <span id="feed-consumption" class="small">0/0 sacks</span>
+                    </div>
+                </div>
+                <div class="feed-assignments">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Type</th>
+                                <th>Usage</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feed-assignments"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 1rem;
+    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #f8f9fa;
+}
+
+.top-bar {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.batch-selector {
+    width: 300px;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    height: calc(100vh - 180px);
+    overflow: hidden;
+}
+
+.stats-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.data-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.data-card-header {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.data-card-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.quick-stats {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.data-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 1rem;
+    gap: 0.5rem;
+}
+
+.metric-item {
+    text-align: center;
+}
+
+.metric-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.metric-item .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.feed-overview {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.current-feed {
+    margin-bottom: 0.5rem;
+}
+
+.feed-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.feed-value {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.feed-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.progress {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+}
+
+.feed-assignments {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.feed-assignments .table {
+    margin: 0;
+}
+
+.feed-assignments th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 1;
+}
+
+.data-entry-panel {
+    height: 100%;
+    overflow: hidden;
+}
+
+.data-entry-form {
+    height: calc(100% - 50px);
+    overflow-y: auto;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+}
+
+.table td {
+    padding: 0.5rem;
+    vertical-align: middle;
+}
+
+.form-control {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.mb-3 {
+    margin-bottom: 1rem;
+}
+
+.h-100 {
+    height: 100%;
+}
+</style>
+
+<script>
+// Helper functions should be defined before they're used
+function getFeedTypeColor(feedType) {
+    switch(feedType.toLowerCase()) {
+        case 'starter': return 'info';
+        case 'grower': return 'success';
+        case 'finisher': return 'warning';
+        default: return 'secondary';
+    }
+}
+
+function getRemainingSacksClass(remaining) {
+    if (remaining > 10) return 'bg-success';
+    if (remaining > 5) return 'bg-warning';
+    return 'bg-danger';
+}
+
+function getStatusBadgeClass(status) {
+    switch(status.toLowerCase()) {
+        case 'completed': return 'bg-success';
+        case 'pending': return 'bg-warning';
+        case 'cancelled': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+function getProgressBarClass(remaining) {
+    if (remaining > 10) return 'bg-success';
+    if (remaining > 5) return 'bg-warning';
+    return 'bg-danger';
+}
+
+function getCurrentWeek() {
+    const weekText = document.getElementById('current-week').textContent;
+    return parseInt(weekText.replace('Week ', ''));
+}
+
+function recordFeedConsumption() {
+    const batchId = document.getElementById('batch-select').value;
+    if (!batchId) {
+        alert('Please select a batch first');
+        return;
+    }
     
-    <button type="submit" class="btn btn-primary mt-3">
-      Submit Daily Data
-    </button>
-  </form>
-</section>
+    // Get the current feed assignment
+    const currentWeek = getCurrentWeek();
+    
+    // Redirect to the feed records list for this batch
+    window.location.href = `/stakeholder/batch/${batchId}/feed/records/`;
+}
+
+function updateFeedAssignments(assignments) {
+    const container = document.getElementById('feed-assignments');
+    if (assignments.length === 0) {
+        container.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No feed assignments found</td>
+            </tr>`;
+        return;
+    }
+
+    container.innerHTML = assignments.map(assignment => `
+        <tr>
+            <td>Week ${assignment.week_number}</td>
+            <td>
+                <span class="badge bg-${getFeedTypeColor(assignment.feed_type)} feed-status-badge">
+                    ${assignment.feed_type}
+                </span>
+            </td>
+            <td class="feed-amount">${assignment.total_consumed}/${assignment.sacks_assigned}</td>
+            <td>
+                <span class="badge ${getRemainingSacksClass(assignment.remaining_sacks)} feed-status-badge">
+                    ${assignment.remaining_sacks}
+                </span>
+            </td>
+            <td>
+                <span class="badge ${getStatusBadgeClass(assignment.status)} feed-status-badge">
+                    ${assignment.status}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+
+    // Update current week feed info
+    const currentWeek = getCurrentWeek();
+    const currentAssignment = assignments.find(a => a.week_number === currentWeek);
+    if (currentAssignment) {
+        document.getElementById('current-feed-type').textContent = currentAssignment.feed_type;
+        document.getElementById('feed-consumption').textContent = 
+            `${currentAssignment.total_consumed}/${currentAssignment.sacks_assigned} sacks used`;
+        
+        const progress = (currentAssignment.total_consumed / currentAssignment.sacks_assigned) * 100;
+        const progressBar = document.getElementById('current-feed-progress');
+        progressBar.style.width = `${progress}%`;
+        progressBar.className = `progress-bar ${getProgressBarClass(currentAssignment.remaining_sacks)}`;
+    }
+}
+
+// Event Listeners
+document.getElementById('batch-select').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    
+    // Update statistics with data from the selected batch
+    document.getElementById('initial-chick-count').textContent = 
+        selectedOption.dataset.initialChickCount || '-';
+    document.getElementById('updated-alive-count').textContent = 
+        selectedOption.dataset.liveChickCount || '-';
+    document.getElementById('mortality-count').textContent = 
+        selectedOption.dataset.mortalityCount || '-';
+    
+    // Calculate and update current day/week
+    if (selectedOption.text) {
+        const startDate = new Date(selectedOption.text);
+        const today = new Date();
+        const diffTime = Math.abs(today - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const currentWeek = Math.ceil(diffDays / 7);
+        
+        document.getElementById('current-day').textContent = `Day ${diffDays}`;
+        document.getElementById('current-week').textContent = `Week ${currentWeek}`;
+    }
+    
+    // Fetch feed assignments
+    if (selectedOption.value) {
+        fetch(`/api/batch/${selectedOption.value}/feed-assignments/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    updateFeedAssignments(data.assignments);
+                } else {
+                    throw new Error(data.error || 'Failed to load feed assignments');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching feed assignments:', error);
+                document.getElementById('feed-assignments').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            ${error.message || 'Error loading feed assignments. Please try again.'}
+                        </td>
+                    </tr>`;
+                
+                // Reset current feed info
+                document.getElementById('current-feed-type').textContent = '-';
+                document.getElementById('feed-consumption').textContent = '0/0 sacks used';
+                document.getElementById('current-feed-progress').style.width = '0%';
+            });
+    }
+});
+
+// Initialize values if a batch is already selected
+window.addEventListener('load', function() {
+    const batchSelect = document.getElementById('batch-select');
+    if (batchSelect.value) {
+        const selectedOption = batchSelect.options[batchSelect.selectedIndex];
+        document.getElementById('mortality-count').textContent = 
+            selectedOption.dataset.mortalityCount || '-';
+    }
+});
+</script>
 {% endblock %}

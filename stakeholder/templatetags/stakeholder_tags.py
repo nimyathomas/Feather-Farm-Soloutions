@@ -9,4 +9,8 @@ def file_exists(filepath):
 
 @register.filter
 def multiply(value, arg):
-    return float(value) * float(arg) 
+    return float(value) * float(arg)
+
+@register.filter
+def add_class(field, css_class):
+    return field.as_widget(attrs={"class": css_class}) 

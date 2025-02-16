@@ -198,6 +198,6 @@ urlpatterns = [
     
     path('feed/active-batches/', views.active_batches_feed, name='active_batches_feed'),
     path('feed/assign/<int:batch_id>/', views.batch_feed_assignment, name='batch_feed_assignment'),
-    # path('feed-stock/update/', views.update_feed_stock, name='update_feed'),
-    # path('feed-stock/delete/<int:feed_id>/', views.delete_feed, name='delete_feed'),
+    path('feed-tracking/', views.feed_tracking_dashboard, name='feed_tracking_dashboard'),
+    path('record-feed/<int:batch_id>/', views.record_feed_consumption, name='record_feed_consumption'),
 ]

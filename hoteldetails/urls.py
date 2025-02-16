@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import hoteldashboard, view_farm, view_profile, view_orders, cart_view, update_cart, checkout_view
+from .views import (
+    hoteldashboard, view_farm, view_profile, view_orders, 
+    cart_view, update_cart, checkout_view, wallet_view
+)
 # app_name='hoteldetails'
 
 urlpatterns = [
@@ -10,4 +13,5 @@ urlpatterns = [
     path('cart_view', cart_view, name="cart_view"),
     path('checkout_view', checkout_view, name="checkout_view"),
     path("update-cart/", update_cart, name="update_cart"),
+    path('wallet/', wallet_view, name='wallet'),
 ]

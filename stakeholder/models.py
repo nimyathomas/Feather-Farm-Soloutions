@@ -10,6 +10,7 @@ from PIL import Image
 import uuid
 import os
 import math
+from django.core.exceptions import ValidationError
 
 
 
@@ -149,6 +150,19 @@ class ChickBatch(models.Model):
     )
     grower_feed_sacks = models.IntegerField(default=0)
     finisher_feed_sacks = models.IntegerField(default=0)
+
+    # Add these new fields
+    current_feed_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('Starter Feed', 'Starter Feed'),
+            ('Grower Feed', 'Grower Feed'),
+            ('Finisher Feed', 'Finisher Feed')
+        ],
+        default='Starter Feed'
+    )
+    last_feed_transition = models.DateTimeField(null=True, blank=True)
+    feed_transition_notified = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         """Handle all save operations for ChickBatch"""
@@ -323,8 +337,52 @@ class ChickBatch(models.Model):
             self.generate_qr_code()
         super().save(*args, **kwargs)
     
-    
+    def get_recommended_feed_type(self):
+        """Get recommended feed type based on current week"""
+        days_since_start = (timezone.now().date() - self.batch_date).days
+        current_week = min((days_since_start // 7) + 1, 6)
+        
+        if current_week == 1:
+            return 'Starter Feed'
+        elif 2 <= current_week <= 4:
+            return 'Grower Feed'
+        else:
+            return 'Finisher Feed'
 
+    def check_feed_transition(self):
+        """Check and update feed type based on age"""
+        new_feed_type = self.get_recommended_feed_type()
+        
+        if new_feed_type != self.current_feed_type:
+            self.current_feed_type = new_feed_type
+            self.last_feed_transition = timezone.now()
+            self.feed_transition_notified = False
+            self.save()
+            return True
+        return False
+
+    def get_current_feed_type(self):
+        current_day = (timezone.now().date() - self.batch_date).days + 1
+        if current_day <= 7:
+            return 'starter'
+        elif current_day <= 28:
+            return 'grower'
+        else:
+            return 'finisher'
+
+    def get_current_feed_assignment(self):
+        current_week = ((timezone.now().date() - self.batch_date).days // 7) + 1
+        return self.feed_assignments.filter(week_number=current_week).first()
+
+    def get_today_consumption(self):
+        today_record = self.daily_feed_records.filter(date=timezone.now().date()).first()
+        if today_record:
+            return today_record.morning_consumption + today_record.evening_consumption
+        return 0
+
+    @property
+    def current_day(self):
+        return (timezone.now().date() - self.batch_date).days + 1
 
 
 class DailyData(models.Model):
@@ -751,6 +809,11 @@ class FeedAssignment(models.Model):
         ('Grower Feed', 'Grower Feed'),
         ('Finisher Feed', 'Finisher Feed')
     ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('acknowledged', 'Acknowledged'),
+        ('rejected', 'Rejected')
+    ]
 
     batch = models.ForeignKey('stakeholder.ChickBatch',  # Specify the full path
                              on_delete=models.CASCADE)
@@ -760,17 +823,80 @@ class FeedAssignment(models.Model):
     feed_type = models.CharField(max_length=50, choices=FEED_TYPES)
     sacks_assigned = models.IntegerField()
     cost_per_sack = models.DecimalField(max_digits=10, decimal_places=2)
-    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     assigned_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    acknowledgment_date = models.DateTimeField(null=True, blank=True)
+    acknowledgment_notes = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'feed_assignment'
         unique_together = ['batch', 'week_number']
 
     def save(self, *args, **kwargs):
-        if not self.pk:  # Only for new records
-            self.total_cost = self.sacks_assigned * self.cost_per_sack
+        # Always calculate total_cost before saving
+        self.total_cost = self.sacks_assigned * self.cost_per_sack
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}"
+    
+    @property
+    def total_consumed(self):
+        """Calculate total feed consumed from daily records"""
+        return self.daily_consumptions.aggregate(
+            total=models.Sum(
+                models.F('morning_consumption') + models.F('evening_consumption')
+            )
+        )['total'] or 0
+
+    @property
+    def remaining_sacks(self):
+        """Calculate remaining sacks"""
+        return self.sacks_assigned - self.total_consumed
+
+class DailyFeedConsumption(models.Model):
+        batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE, related_name='daily_feed_records')
+        feed_assignment = models.ForeignKey(FeedAssignment, on_delete=models.CASCADE, related_name='daily_consumptions')
+        date = models.DateField()
+        day_number = models.IntegerField()  # Day 1-40 of the batch
+        
+        # Morning consumption
+        morning_consumption = models.DecimalField(
+            max_digits=4, 
+            decimal_places=2, 
+            default=0,
+            help_text="Number of sacks consumed in morning"
+        )
+        
+        # Evening consumption
+        evening_consumption = models.DecimalField(
+            max_digits=4, 
+            decimal_places=2, 
+            default=0,
+            help_text="Number of sacks consumed in evening"
+        )
+        
+        notes = models.TextField(blank=True, null=True)
+        recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        @property
+        def total_consumption(self):
+            """Calculate total daily consumption"""
+            return self.morning_consumption + self.evening_consumption
+        
+        def clean(self):
+            """Validate consumption doesn't exceed remaining sacks"""
+            total_consumed = self.total_consumption
+            current_total = self.feed_assignment.total_consumed
+            if total_consumed + current_total > self.feed_assignment.sacks_assigned:
+                raise ValidationError(
+                    f"Cannot consume {total_consumed} sacks. Only {self.feed_assignment.remaining_sacks} sacks remaining."
+                )
+
+        class Meta:
+            unique_together = ['batch', 'date']
+            ordering = ['-date']
+        

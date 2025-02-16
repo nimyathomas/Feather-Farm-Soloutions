@@ -45,6 +45,16 @@ import tensorflow as tf
 
 from .forms import FeedStockForm  # Add this import
 
+from datetime import datetime
+from django.db.models import Sum, F
+from xhtml2pdf import pisa
+import csv
+from .forms import DailyFeedConsumptionForm
+from .models import ChickBatch, FeedAssignment, DailyFeedConsumption
+from django.core.exceptions import ValidationError
+from django.http import JsonResponse
+from django.urls import reverse
+
 # At the top of views.py, add this debug code
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
 print(f"\nAttempting to load model from: {MODEL_PATH}")
@@ -427,152 +437,60 @@ def vaccination(request, user_id):
     return render(request, "vaccinations.html", {"user": user})
 
 
-@login_required  # Ensure only logged-in users can add daily data
+@login_required
 def add_daily_data(request):
-    selected_batch = None
-    initial_alive_count = 0
-    updated_alive_count = 0
-    updated_mortality_count = 0
-
-    # Filter batches based on the logged-in user
-    all_batches = ChickBatch.objects.filter(user=request.user)
-
-    # Initialize selected_batch_id from the session
-    selected_batch_id = request.session.get("selected_batch", None)
-
-    # Check if a batch was submitted and store it in the session
-    if request.method == "POST":
-        selected_batch_id = request.POST.get("batch")
-        # Store the selected batch ID in the session
-        request.session["selected_batch"] = selected_batch_id
-
-        # Handle saving daily data
-        date_list = request.POST.getlist("date[]")
-        sick_chicks_list = request.POST.getlist("sick_chicks[]")
-        mortality_count_list = request.POST.getlist("mortality_count[]")
-        feed_uplifted_list = request.POST.getlist("feed_uplifted[]")
-        water_consumption_list = request.POST.getlist("water_consumption[]")
-        weight_gain_list = request.POST.getlist("weight_gain[]")
-        temperature_list = request.POST.getlist("temperature[]")
-
-        # Get the selected batch object
-        selected_batch = get_object_or_404(ChickBatch, id=selected_batch_id)
-
-        # Initialize the previous day's alive count
-        previous_day_data = (
-            DailyData.objects.filter(batch=selected_batch).order_by("-date").first()
-        )
-        initial_alive_count = selected_batch.initial_chick_count
-
-        # Loop through submitted daily entries
-        for i in range(len(date_list)):
-            date = date_list[i]
-            sick_chicks = int(sick_chicks_list[i]) if sick_chicks_list[i] else 0
-            mortality_count = (
-                int(mortality_count_list[i]) if mortality_count_list[i] else 0
+    try:
+        if request.method == 'POST':
+            # Get the batch
+            batch_id = request.POST.get('batch')
+            if not batch_id:
+                messages.error(request, "Please select a batch")
+                return redirect('add_daily_data')
+            
+            batch = get_object_or_404(ChickBatch, id=batch_id)
+            
+            # Get arrays of data from the form
+            dates = request.POST.getlist('date[]')
+            alive_counts = request.POST.getlist('alive_count[]')
+            sick_chicks = request.POST.getlist('sick_chicks[]')
+            mortality_counts = request.POST.getlist('mortality_count[]')
+            feed_uplifted = request.POST.getlist('feed_uplifted[]')
+            water_consumption = request.POST.getlist('water_consumption[]')
+            weight_gain = request.POST.getlist('weight_gain[]')
+            temperature = request.POST.getlist('temperature[]')
+            
+            # Create daily data entry
+            daily_data = DailyData.objects.create(
+                batch=batch,
+                date=dates[0],
+                alive_count=alive_counts[0],
+                sick_chicks=sick_chicks[0],
+                mortality_count=mortality_counts[0],
+                feed_uplifted=feed_uplifted[0],
+                water_consumption=water_consumption[0],
+                weight_gain=weight_gain[0],
+                temperature=temperature[0],
+                owner=request.user
             )
-            feed_uplifted = (
-                float(feed_uplifted_list[i]) if feed_uplifted_list[i] else 0.0
-            )
-            water_consumption = (
-                float(water_consumption_list[i]) if water_consumption_list[i] else 0.0
-            )
-            weight_gain = float(weight_gain_list[i]) if weight_gain_list[i] else 0.0
-            temperature = float(temperature_list[i]) if temperature_list[i] else 0.0
-
-            # Validation checks
-            if (
-                sick_chicks < 0
-                or feed_uplifted < 0
-                or water_consumption < 0
-                or weight_gain < 0
-                or mortality_count < 0
-            ):
-                messages.error(request, "Input values cannot be negative.")
-                return redirect("add_daily_data")
-
-            # Calculate updated alive count before checking mortality
-            updated_alive_count = initial_alive_count - updated_mortality_count
-
-            # Check if mortality count exceeds updated alive count or initial chick count
-            if mortality_count > updated_alive_count:
-                messages.error(
-                    request, "Mortality count cannot exceed the updated alive count."
-                )
-                return redirect("add_daily_data")
-            if mortality_count > initial_alive_count:
-                messages.error(
-                    request, "Mortality count cannot exceed the initial chick count."
-                )
-                return redirect("add_daily_data")
-
-            # Check if a record already exists for the same batch and date
-            existing_record = DailyData.objects.filter(
-                batch=selected_batch, date=date
-            ).exists()
-            if existing_record:
-                messages.error(
-                    request, f"Data for { date} already exists for this batch."
-                )
-                return redirect("add_daily_data")  # Redirect back to the form
-
-            # Calculate alive_count based on previous day's data
-            if previous_day_data:
-                alive_count = previous_day_data.alive_count - mortality_count
-            else:
-                alive_count = initial_alive_count - mortality_count
-
-            # Ensure alive_count is not negative
-            if alive_count < 0:
-                messages.error(request, "Calculated alive count cannot be negative.")
-                return redirect("add_daily_data")
-
-            # Create a new daily data record
-            DailyData.objects.create(
-                batch=selected_batch,
-                date=date,
-                alive_count=alive_count,
-                sick_chicks=sick_chicks,
-                mortality_count=mortality_count,
-                feed_uplifted=feed_uplifted,
-                water_consumption=water_consumption,
-                weight_gain=weight_gain,
-                temperature=temperature,
-                owner=request.user,
-            )
-
-            # Update previous_day_data to the newly created one
-            previous_day_data = DailyData.objects.filter(
-                batch=selected_batch, date=date
-            ).first()
-
-        messages.success(request, "Daily data has been saved successfully.")
-        return redirect("add_daily_data")  # Replace with your actual view name
-
-    # Get the selected batch from the session if exists
-    if selected_batch_id:
-        selected_batch = get_object_or_404(ChickBatch, id=selected_batch_id)
-        updated_mortality_count = (
-            DailyData.objects.filter(batch=selected_batch).aggregate(
-                Sum("mortality_count")
-            )["mortality_count__sum"]
-            or 0
-        )
-        # Get initial chick count again
-        initial_alive_count = selected_batch.initial_chick_count
-        updated_alive_count = initial_alive_count - updated_mortality_count
-
-    return render(
-        request,
-        "daily_batch.html",
-        {
-            "all_batches": all_batches,
-            "selected_batch": selected_batch,
-            "initial_chick_count": initial_alive_count,
-            "updated_alive_count": updated_alive_count,
-            "updated_mortality_count": updated_mortality_count,
-        },
-    )
+            
+            # Update batch statistics
+            batch.live_chick_count = alive_counts[0]
+            batch.total_mortality_count = batch.total_mortality_count + int(mortality_counts[0])
+            batch.save()
+            
+            messages.success(request, 'Daily data added successfully!')
+            return redirect('list_daily_data', batch_id=batch.id)
+        
+        # GET request handling
+        all_batches = ChickBatch.objects.filter(batch_status='Active').order_by('-batch_date')
+        context = {
+            'all_batches': all_batches,
+        }
+        return render(request, 'daily_batch.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('add_daily_data')
 
 
 def calculate_weeks(batch_date):
@@ -1350,51 +1268,23 @@ def feed_stock_create(request):
 
 @login_required
 def feed_dashboard(request):
-    # Get feed stocks by exact type names matching the database
-    starter_stocks = FeedStock.objects.filter(feed_type='starter')
-    grower_stocks = FeedStock.objects.filter(feed_type='grower')
-    finisher_stocks = FeedStock.objects.filter(feed_type='finisher')
+   
+    # Get all feed stocks
+    feed_stocks = FeedStock.objects.all()
     
-    # Calculate totals for each type
-    starter_feed = {
-        'total_sacks': sum(s.number_of_sacks for s in starter_stocks),
-        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in starter_stocks),
-        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in starter_stocks),
-        'stocks': starter_stocks,
-        'display_name': 'Starter Feed'
-    }
+    # Calculate totals
+    total_sacks = sum(stock.number_of_sacks for stock in feed_stocks)
+    total_value = sum(stock.number_of_sacks * stock.price_per_sack for stock in feed_stocks)
     
-    grower_feed = {
-        'total_sacks': sum(s.number_of_sacks for s in grower_stocks),
-        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in grower_stocks),
-        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in grower_stocks),
-        'stocks': grower_stocks,
-        'display_name': 'Grower Feed'
-    }
-    
-    finisher_feed = {
-        'total_sacks': sum(s.number_of_sacks for s in finisher_stocks),
-        'total_value': sum(s.number_of_sacks * s.price_per_sack for s in finisher_stocks),
-        'is_low': any(s.number_of_sacks <= s.minimum_sacks for s in finisher_stocks),
-        'stocks': finisher_stocks,
-        'display_name': 'Finisher Feed'
-    }
-    
-    # Get all stocks for the table
-    all_stocks = FeedStock.objects.all()
-    
-    # Calculate total value for each stock
-    for stock in all_stocks:
-        stock.total_value = stock.number_of_sacks * stock.price_per_sack
+    # Get low stock items
+    low_stock_items = [stock for stock in feed_stocks if stock.number_of_sacks <= stock.minimum_sacks]
     
     context = {
-        'starter_feed': starter_feed,
-        'grower_feed': grower_feed,
-        'finisher_feed': finisher_feed,
-        'feed_stocks': all_stocks,
+        'feed_stocks': feed_stocks,
+        'total_sacks': total_sacks,
+        'total_value': total_value,
+        'low_stock_items': low_stock_items,
         'is_admin': request.user.is_staff,
-        'form': FeedStockForm() if request.user.is_staff else None,
-        'debug': True  # Add this to see debug information
     }
     
     return render(request, 'stakeholder/feed_dashboard.html', context)
@@ -1440,7 +1330,7 @@ def delete_feed(request, feed_id):
         except Exception as e:
             messages.error(request, f'Error deleting feed stock: {str(e)}')
             
-    return redirect('feed_manage')
+        return redirect('feed_manage')
 
 
 
@@ -1493,36 +1383,49 @@ def active_batches_feed(request):
     
     batch_feed_data = []
     for batch in batches:
+        # Calculate current week
         days_since_start = (timezone.now().date() - batch.batch_date).days
         current_week = min((days_since_start // 7) + 1, 6)
         
-        # Determine feed type based on week
+        # Get feed assignments for this batch
+        assignments = FeedAssignment.objects.filter(batch=batch).order_by('week_number')
+        assigned_weeks = [a.week_number for a in assignments]
+        
+        # Calculate feed requirements
+        chick_count = batch.initial_chick_count
+        total_feed_kg = chick_count * 4.2  # 4.2 kg per chick
+        total_sacks = round(total_feed_kg / 50)  # 50 kg per sack
+        
+        # Determine feed type and requirements for current week
         if current_week == 1:
-            feed_type = 'Starter Feed'
+            feed_type_current = 'Starter Feed'
             week_percentage = 0.15
         elif 2 <= current_week <= 4:
-            feed_type = 'Grower Feed'
+            feed_type_current = 'Grower Feed'
             week_percentage = 0.20
         else:
-            feed_type = 'Finisher Feed'
+            feed_type_current = 'Finisher Feed'
             week_percentage = 0.125
+            
+        recommended_sacks = round(total_sacks * week_percentage)
         
-        # Get available feed stocks for this type
+        # Get available feed stocks
         available_feed_stocks = FeedStock.objects.filter(
-            feed_type=feed_type,
+            feed_type=feed_type_current,
             number_of_sacks__gt=0
         )
         
         batch_feed_data.append({
             'batch': batch,
             'current_week': current_week,
-            'feed_type': feed_type,
-            'recommended_sacks': round(week_percentage * batch.initial_chick_count),
-            'total_sacks_needed': round(batch.initial_chick_count * 4.2 / 50),
-            'sacks_assigned': 0,
-            'can_assign': False,
+            'feed_type': feed_type_current,
+            'recommended_sacks': recommended_sacks,
+            'total_sacks_needed': total_sacks,
+            'sacks_assigned': sum(a.sacks_assigned for a in assignments),
+            'can_assign': current_week not in assigned_weeks and 
+                         (current_week == 1 or (current_week - 1) in assigned_weeks),
             'available_feed_stocks': available_feed_stocks,
-            'assigned_weeks': []
+            'assigned_weeks': assigned_weeks
         })
     
     context = {
@@ -1645,3 +1548,322 @@ def batch_feed_assignment(request, batch_id):
     
     # For non-AJAX requests, redirect back to the list
     return redirect('active_batches_feed')
+
+@login_required
+def daily_feed_report(request, date):
+    try:
+        # Convert string date to datetime
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Get all feed assignments for the date
+        assignments = FeedAssignment.objects.filter(
+            assigned_date__date=report_date
+        ).select_related('batch', 'batch__farm')
+        
+        # Calculate summary statistics
+        total_assignments = assignments.count()
+        active_batches = assignments.values('batch').distinct().count()
+        total_sacks = assignments.aggregate(total=Sum('sacks_assigned'))['total'] or 0
+        total_cost = assignments.aggregate(
+            total=Sum(F('sacks_assigned') * F('cost_per_sack'))
+        )['total'] or 0
+        
+        context = {
+            'report_date': report_date,
+            'assignments': assignments,
+            'total_assignments': total_assignments,
+            'active_batches': active_batches,
+            'total_sacks': total_sacks,
+            'total_cost': total_cost,
+            'company_name': 'Feather Farm Solutions',
+            'generated_at': timezone.now()
+        }
+        
+        # Generate PDF
+        template = get_template('stakeholder/feed_report_pdf.html')
+        html = template.render(context)
+        
+        # Create PDF response
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'filename=feed_report_{date}.pdf'
+        
+        # Convert HTML to PDF
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        if pisa_status.err:
+            return HttpResponse('Error generating PDF', status=500)
+            
+        return response
+        
+    except ValueError:
+        messages.error(request, "Invalid date format. Use YYYY-MM-DD")
+        return redirect('feed_dashboard')
+    except Exception as e:
+        messages.error(request, f"Error generating report: {str(e)}")
+        return redirect('feed_dashboard')
+
+@login_required
+def export_daily_report(request, date):
+    try:
+        # Convert string date to datetime
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Get all feed assignments for the date
+        assignments = FeedAssignment.objects.filter(
+            assigned_date__date=report_date
+        ).select_related('batch', 'batch__farm')
+        
+        # Create the response with CSV headers
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="feed_report_{date}.csv"'
+        
+        # Create CSV writer
+        writer = csv.writer(response)
+        
+        # Write headers
+        writer.writerow([
+            'Time',
+            'Batch ID',
+            'Farm Name',
+            'Feed Type',
+            'Week Number',
+            'Sacks Assigned',
+            'Cost per Sack',
+            'Total Cost'
+        ])
+        
+        # Write data rows
+        for assignment in assignments:
+            writer.writerow([
+                assignment.assigned_date.strftime('%H:%M'),
+                assignment.batch.id,
+                assignment.batch.farm.name,
+                assignment.get_feed_type_display(),
+                f'Week {assignment.week_number}',
+                assignment.sacks_assigned,
+                f'₹{assignment.cost_per_sack}',
+                f'₹{assignment.total_cost}'
+            ])
+            
+        return response
+        
+    except ValueError:
+        messages.error(request, "Invalid date format. Use YYYY-MM-DD")
+        return redirect('feed_dashboard')
+    except Exception as e:
+        messages.error(request, f"Error exporting report: {str(e)}")
+        return redirect('feed_dashboard')
+
+@login_required
+def generate_feed_report_pdf(request, date):
+    try:
+        # Convert string date to datetime
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Get all feed assignments for the date
+        assignments = FeedAssignment.objects.filter(
+            assigned_date__date=report_date
+        ).select_related('batch', 'batch__farm')
+        
+        # Calculate summary statistics
+        total_assignments = assignments.count()
+        active_batches = assignments.values('batch').distinct().count()
+        total_sacks = assignments.aggregate(total=Sum('sacks_assigned'))['total'] or 0
+        total_cost = assignments.aggregate(
+            total=Sum(F('sacks_assigned') * F('cost_per_sack'))
+        )['total'] or 0
+        
+        # Prepare context for PDF template
+        context = {
+            'report_date': report_date,
+            'assignments': assignments,
+            'total_assignments': total_assignments,
+            'active_batches': active_batches,
+            'total_sacks': total_sacks,
+            'total_cost': total_cost,
+            'company_name': 'Feather Farm Solutions',
+            'generated_at': timezone.now()
+        }
+        
+        # Get the template
+        template = get_template('stakeholder/feed_report_pdf.html')
+        html = template.render(context)
+        
+        # Create PDF response
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="feed_report_{date}.pdf"'
+        
+        # Create PDF
+        pisa_status = pisa.CreatePDF(
+            html,
+            dest=response,
+            encoding='utf-8'
+        )
+        
+        if pisa_status.err:
+            return HttpResponse('Error generating PDF', status=500)
+            
+        return response
+        
+    except ValueError:
+        messages.error(request, "Invalid date format. Use YYYY-MM-DD")
+        return redirect('feed_dashboard')
+    except Exception as e:
+        messages.error(request, f"Error generating PDF report: {str(e)}")
+        return redirect('feed_dashboard')
+
+@login_required
+def record_feed_consumption(request, batch_id, assignment_id):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        assignment = get_object_or_404(FeedAssignment, id=assignment_id, batch=batch)
+        
+        if request.method == 'POST':
+            form = DailyFeedConsumptionForm(request.POST)
+            if form.is_valid():
+                consumption = form.save(commit=False)
+                consumption.batch = batch
+                consumption.feed_assignment = assignment
+                consumption.recorded_by = request.user
+                consumption.date = timezone.now().date()
+                
+                # Calculate day number
+                consumption.day_number = (consumption.date - batch.batch_date).days + 1
+                
+                try:
+                    # Validate consumption doesn't exceed remaining sacks
+                    consumption.full_clean()
+                    consumption.save()
+                    messages.success(request, "Feed consumption recorded successfully!")
+                    return redirect('list_daily_feed', batch_id=batch.id)
+                except ValidationError as e:
+                    for field, errors in e.message_dict.items():
+                        for error in errors:
+                            messages.error(request, error)
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+        else:
+            form = DailyFeedConsumptionForm()
+        
+        context = {
+            'form': form,
+            'batch': batch,
+            'assignment': assignment,
+        }
+        
+        return render(request, 'stakeholder/record_feed_consumption.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error recording feed consumption: {str(e)}")
+        return redirect('list_daily_feed', batch_id=batch_id)
+
+@login_required
+def list_daily_feed(request, batch_id):
+    try:
+        # Get the batch and verify ownership
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        if batch.user != request.user:
+            messages.error(request, "You don't have permission to view this batch's feed records.")
+            return redirect('stateholder_batch')
+            
+        # Get all feed consumption records for this batch
+        feed_records = DailyFeedConsumption.objects.filter(
+            batch=batch
+        ).select_related(
+            'feed_assignment',
+            'recorded_by'
+        ).order_by('-date')
+        
+        context = {
+            'batch': batch,
+            'feed_records': feed_records,
+        }
+        
+        return render(request, 'stakeholder/list_daily_feed.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error loading feed records: {str(e)}")
+        return redirect('stateholder_batch')
+
+@login_required
+def get_batch_feed_assignments(request, batch_id):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        
+        # Get all feed assignments for this batch
+        assignments = FeedAssignment.objects.filter(batch=batch).order_by('-assigned_date')
+        
+        # Prepare data for JSON response
+        assignments_data = []
+        for assignment in assignments:
+            assignments_data.append({
+                'id': assignment.id,
+                'feed_type': assignment.get_feed_type_display(),
+                'week_number': assignment.week_number,
+                'sacks_assigned': assignment.sacks_assigned,
+                'sacks_remaining': assignment.remaining_sacks,
+                'cost_per_sack': float(assignment.cost_per_sack),
+                'total_cost': float(assignment.total_cost),
+                'assigned_date': assignment.assigned_date.strftime('%Y-%m-%d %H:%M'),
+                'status': assignment.status,
+                'record_url': reverse('record_feed_consumption', kwargs={
+                    'batch_id': batch.id,
+                    'assignment_id': assignment.id
+                })
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'assignments': assignments_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+        
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
+from .models import ChickBatch, FeedAssignment
+from user.models import FeedStock
+
+@login_required
+def feed_tracking_dashboard(request):
+    # Get active batches for the stakeholder
+    active_batches = ChickBatch.objects.filter(
+        user=request.user,
+        batch_status='Active'
+    ).select_related('farm')
+
+    # Get feed assignments for these batches
+    feed_assignments = FeedAssignment.objects.filter(
+        batch__in=active_batches
+    ).select_related('batch', 'feed_stock')
+
+    # Organize data for template
+    batch_data = {}
+    for batch in active_batches:
+        batch_data[batch.id] = {
+            'batch': batch,
+            'assignments': [],
+            'total_sacks': 0,
+            'total_cost': 0
+        }
+
+    for assignment in feed_assignments:
+        if assignment.batch_id in batch_data:
+            batch_data[assignment.batch_id]['assignments'].append(assignment)
+            batch_data[assignment.batch_id]['total_sacks'] += assignment.sacks_assigned
+            batch_data[assignment.batch_id]['total_cost'] += assignment.total_cost
+
+    context = {
+        'batch_data': batch_data,
+        'page_title': 'Feed Tracking'
+    }
+    return render(request, 'stakeholder/feed_tracking.html', context)
