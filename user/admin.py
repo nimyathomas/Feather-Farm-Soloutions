@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import User, UserType
+from .models import User, UserType, Vaccine
 
 # this fields is for add these data to adminpanel
 
@@ -66,3 +66,9 @@ class UserAdmin(DefaultUserAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(UserType)
+
+@admin.register(Vaccine)
+class VaccineAdmin(admin.ModelAdmin):
+    list_display = ('name', 'manufacturer', 'batch_number', 'vaccination_day', 'current_stock', 'minimum_stock_level', 'stock_status')
+    list_filter = ('vaccination_day', 'stock_status')
+    search_fields = ('name', 'manufacturer')

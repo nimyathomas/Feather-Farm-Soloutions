@@ -234,26 +234,32 @@ class FeedStockForm(forms.ModelForm):
         model = FeedStock
         fields = ['feed_type', 'number_of_sacks', 'price_per_sack', 'minimum_sacks']
         widgets = {
-            'number_of_sacks': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'min': '0'
-                }
-            ),
-            'price_per_sack': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'min': '0',
-                    'step': '0.01'
-                }
-            ),
-            'minimum_sacks': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'min': '0'
-                }
-            )
+            'feed_type': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'number_of_sacks': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'required': True
+            }),
+            'price_per_sack': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01',
+                'required': True
+            }),
+            'minimum_sacks': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'required': True
+            })
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Add any custom validation if needed
+        return cleaned_data
 
 class DailyFeedConsumptionForm(forms.ModelForm):
     class Meta:
@@ -261,4 +267,43 @@ class DailyFeedConsumptionForm(forms.ModelForm):
         fields = ['morning_consumption', 'evening_consumption', 'notes']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+from django import forms
+from .models import VaccinationSchedule
+
+class VaccinationAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = VaccinationSchedule
+        fields = ['batch', 'vaccine', 'vaccination_date', 'assigned_to', 'notes']
+        widgets = {
+            'vaccination_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'notes': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control'
+            }),
+            'batch': forms.Select(attrs={'class': 'form-control'}),
+            'vaccine': forms.Select(attrs={'class': 'form-control'}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter vaccines based on vaccination day if batch is selected
+        if self.initial.get('batch') and self.initial.get('vaccination_day'):
+            self.fields['vaccine'].queryset = Vaccine.objects.filter(
+                vaccination_day=self.initial['vaccination_day']
+            )
+
+class VaccinationEvidenceForm(forms.ModelForm):
+    class Meta:
+        model = VaccinationSchedule
+        fields = ['vaccine_vial_photo', 'flock_photo', 'administration_photo', 
+                 'temperature', 'humidity', 'notes']
+        widgets = {
+            'temperature': forms.NumberInput(attrs={'class': 'form-control'}),
+            'humidity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }

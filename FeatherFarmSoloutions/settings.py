@@ -178,8 +178,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "nimyathomas3@gmail.com"
@@ -231,3 +231,9 @@ AUTH_USER_MODEL = "user.User"
 
 # Path to the model in stakeholder app
 MODEL_PATH = os.path.join(BASE_DIR, 'stakeholder', 'models', 'disease_model.h5')
+
+RAZORPAY_KEY_ID = 'rzp_test_YOUR_KEY_ID'
+RAZORPAY_KEY_SECRET = 'YOUR_SECRET_KEY'  # Keep this secret and secure
+
+# Tesseract path configuration
+TESSERACT_CMD = r'D:\selenium workshop\Tesseract-OCR\tesseract.exe'

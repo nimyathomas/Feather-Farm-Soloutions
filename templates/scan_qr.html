@@ -1,0 +1,286 @@
+{% extends 'stakeholder.html' %}
+
+{% block extra_css %}
+<style>
+    #qr-reader {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .status-box {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+    }
+    .loading {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Scan Vaccination QR Code</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Vaccination Details -->
+                    <div class="mb-4">
+                        <h5>Vaccination Details:</h5>
+                        <p><strong>Farm:</strong> {{ vaccination.batch.farm.name }}</p>
+                        <p><strong>Batch:</strong> {{ vaccination.batch.batch_id }}</p>
+                        <p><strong>Vaccine:</strong> {{ vaccination.vaccine.name }}</p>
+                        <p><strong>Scheduled Date:</strong> {{ vaccination.vaccination_date }}</p>
+                    </div>
+
+                    <!-- Location Status -->
+                    <div id="location-status" class="status-box alert alert-info">
+                        Getting location...
+                    </div>
+
+                    <!-- QR Scanner -->
+                    <div id="qr-reader"></div>
+
+                    <!-- Scan Status -->
+                    <div id="scan-status" class="status-box alert" style="display: none;"></div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading" class="loading text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="text-center mt-3">
+                        <button id="stopButton" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop me-2"></i>Stop Scanning
+                        </button>
+                    </div>
+
+                    <!-- Hidden Form -->
+                    <form id="scan-form" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" id="latitude" name="latitude">
+                        <input type="hidden" id="longitude" name="longitude">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+let currentLat, currentLng;
+let html5QrCode;
+const locationStatus = document.getElementById('location-status');
+const scanStatus = document.getElementById('scan-status');
+const loading = document.getElementById('loading');
+const stopButton = document.getElementById('stopButton');
+
+// Step 1: Get user's location
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                currentLat = position.coords.latitude;
+                currentLng = position.coords.longitude;
+                document.getElementById('latitude').value = currentLat;
+                document.getElementById('longitude').value = currentLng;
+                locationStatus.className = 'status-box alert alert-success';
+                locationStatus.innerHTML = 'Location acquired successfully';
+                initQRScanner();
+            },
+            (error) => {
+                locationStatus.className = 'status-box alert alert-danger';
+                locationStatus.innerHTML = `Error getting location: ${error.message}`;
+            }
+        );
+    } else {
+        locationStatus.className = 'status-box alert alert-danger';
+        locationStatus.innerHTML = 'Geolocation is not supported by this browser.';
+    }
+}
+
+// Step 2: Initialize QR Scanner
+function initQRScanner() {
+    html5QrCode = new Html5Qrcode("qr-reader");
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+    };
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanError
+    ).then(() => {
+        stopButton.style.display = 'inline-block';
+    });
+
+    // Add stop button handler
+    stopButton.addEventListener('click', stopScanning);
+}
+
+// Function to stop scanning
+function stopScanning() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            console.log('QR Code scanning stopped');
+            stopButton.style.display = 'none';
+        }).catch((err) => {
+            console.error('Error stopping QR Code scanning:', err);
+        });
+    }
+}
+
+// Step 3: Handle successful QR scan
+function onScanSuccess(decodedText) {
+    try {
+        // Log the raw scanned data
+        console.log('Raw scanned data:', decodedText);
+        
+        // Try to parse the JSON if it's a string
+        const qrData = typeof decodedText === 'string' ? JSON.parse(decodedText) : decodedText;
+        console.log('Parsed QR data:', qrData);
+        
+        // Log the verification codes for debugging
+        console.log('Expected verification code:', '{{ vaccination.verification_code }}');
+        console.log('Scanned verification code:', qrData.verification_code);
+        
+        // Compare verification codes (case-insensitive)
+        if (qrData && qrData.verification_code.toLowerCase() === '{{ vaccination.verification_code }}'.toLowerCase()) {
+            console.log('Verification code matches!');
+            stopScanning();
+            verifyLocationAndSubmit();
+        } else {
+            const error = `Invalid QR code. Expected: {{ vaccination.verification_code }}, Got: ${qrData?.verification_code}`;
+            console.error(error);
+            showError(error);
+        }
+    } catch (e) {
+        // Log the full error
+        console.error('Error parsing QR code:', e);
+        console.error('Error details:', {
+            message: e.message,
+            stack: e.stack,
+            scannedData: decodedText
+        });
+        
+        // Try to handle the case where the data is already an object
+        if (typeof decodedText === 'object' && decodedText.verification_code) {
+            if (decodedText.verification_code.toLowerCase() === '{{ vaccination.verification_code }}'.toLowerCase()) {
+                console.log('Verification code matches (object)!');
+                stopScanning();
+                verifyLocationAndSubmit();
+                return;
+            }
+        }
+        
+        showError(`QR code format error: ${e.message}`);
+    }
+}
+
+// Step 4: Handle scan errors
+function onScanError(error) {
+    // Only log the error, don't show to user unless it's critical
+    console.warn(`QR scan error: ${error}`);
+}
+
+// Step 5: Verify location and submit
+function verifyLocationAndSubmit() {
+    loading.style.display = 'block';
+    
+    const formData = new FormData(document.getElementById('scan-form'));
+    formData.append('latitude', currentLat);
+    formData.append('longitude', currentLng);
+    
+    // Log the data being sent
+    console.log('Submitting data:', {
+        latitude: currentLat,
+        longitude: currentLng
+    });
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Server response:', data);
+        if (data.success) {
+            showSuccess('QR code verified successfully! Redirecting...');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
+        } else {
+            showError(data.message || 'Verification failed');
+            initQRScanner();
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showError('Error submitting scan: ' + error.message);
+        initQRScanner();
+    })
+    .finally(() => {
+        loading.style.display = 'none';
+    });
+}
+
+function showError(message) {
+    scanStatus.className = 'status-box alert alert-danger';
+    scanStatus.innerHTML = message;
+    scanStatus.style.display = 'block';
+}
+
+function showSuccess(message) {
+    scanStatus.className = 'status-box alert alert-success';
+    scanStatus.innerHTML = message;
+    scanStatus.style.display = 'block';
+}
+
+// Start the process
+getLocation();
+
+// Clean up when leaving the page
+window.addEventListener('beforeunload', () => {
+    stopScanning();
+});
+
+// Add this function to test QR code format
+function testQRFormat() {
+    const testData = {
+        verification_code: '{{ vaccination.verification_code }}',
+        batch: '{{ vaccination.batch.batch_uuid }}',
+        farm: '{{ vaccination.batch.farm.name }}',
+        vaccine: '{{ vaccination.vaccine.name }}',
+        date: '{{ vaccination.vaccination_date|date:"Y-m-d" }}'
+    };
+    console.log('Expected QR data format:', JSON.stringify(testData));
+}
+
+// Call this when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    testQRFormat();
+});
+</script>
+{% endblock %} 

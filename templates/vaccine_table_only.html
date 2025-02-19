@@ -1,0 +1,43 @@
+<!-- Just the table HTML, no script or modal -->
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Manufacturer</th>
+                <th>Vaccination Day</th>
+                <th>Current Stock</th>
+                <th>Min. Stock</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vaccine in vaccines %}
+            <tr>
+                <td>{{ vaccine.name }}</td>
+                <td>{{ vaccine.manufacturer }}</td>
+                <td>
+                    <span class="badge {% if vaccine.vaccination_day == 7 %}bg-primary
+                          {% elif vaccine.vaccination_day == 14 %}bg-success
+                          {% else %}bg-info{% endif %}">
+                        {{ vaccine.get_vaccination_day_display }}
+                    </span>
+                </td>
+                <td>{{ vaccine.current_stock }}</td>
+                <td>{{ vaccine.minimum_stock_level }}</td>
+                <td>
+                    <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                          {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                          {% else %}bg-success{% endif %}">
+                        {{ vaccine.stock_status }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No vaccines found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> 

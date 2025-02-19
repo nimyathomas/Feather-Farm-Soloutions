@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     hoteldashboard, view_farm, view_profile, view_orders, 
-    cart_view, update_cart, checkout_view, wallet_view
+    cart_view, update_cart, checkout_view, wallet_view, add_funds_to_wallet
 )
 # app_name='hoteldetails'
 
@@ -14,4 +14,7 @@ urlpatterns = [
     path('checkout_view', checkout_view, name="checkout_view"),
     path("update-cart/", update_cart, name="update_cart"),
     path('wallet/', wallet_view, name='wallet'),
+    path('wallet/add-funds/', add_funds_to_wallet, name='add_funds_to_wallet'),
+    path('wallet/add-funds/', add_funds_to_wallet, name='add_funds'),
+    path('wallet/get-balance/', add_funds_to_wallet, name='get_balance'),
 ]

@@ -104,8 +104,8 @@
                 <thead>
                     <tr>
                         <th>Vaccine Name</th>
-                        <th>Stock Level</th>
                         <th>Batch Number</th>
+                        <th>Stock Level</th>
                         <th>Expiry Date</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -121,6 +121,12 @@
                             </div>
                         </td>
                         <td>
+                            <div class="batch-number">
+                                <i class="fas fa-barcode"></i>
+                                {{ stock.batch_number }}
+                            </div>
+                        </td>
+                        <td>
                             <div class="stock-level">
                                 <div class="progress-bar">
                                     <div class="progress" style="width: {{ stock.stock_percentage }}%"></div>
@@ -128,7 +134,6 @@
                                 <span>{{ stock.current_stock }}/{{ stock.maximum_stock }}</span>
                             </div>
                         </td>
-                        <td>{{ stock.batch_number }}</td>
                         <td>
                             <div class="expiry-date {% if stock.is_expiring_soon %}expiring{% endif %}">
                                 <i class="fas fa-calendar"></i>
@@ -520,6 +525,18 @@
         .select-filter {
             width: 100%;
         }
+    }
+
+    .batch-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .batch-number i {
+        color: #3498db;
     }
 </style>
 

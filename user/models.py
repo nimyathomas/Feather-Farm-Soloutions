@@ -5,6 +5,7 @@ from math import radians, cos, sin, asin, sqrt
 from .utils import get_full_address_and_region  # Import the utility function
 
 
+
 class CustomUserManager(BaseUserManager):
 
     def create_user(self, email, full_name, password=None, **extra_fields):
@@ -58,6 +59,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    def create_wallet(self):
+        from hoteldetails.models import Wallet  # Import here to avoid circular import
+        if not hasattr(self, 'wallet'):
+            Wallet.objects.create(user=self)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.create_wallet()
+    
+    
 
 
 class Supplier(models.Model):
@@ -122,6 +133,14 @@ def save(self, *args, **kwargs):
 class Vaccine(models.Model):
     name = models.CharField(max_length=100)
     manufacturer = models.CharField(max_length=100)
+    batch_number = models.CharField(max_length=50, blank=True, null=True)
+    vaccination_day = models.IntegerField(choices=[(7, 'Day 7'), (14, 'Day 14'), (21, 'Day 21')])
+    current_stock = models.IntegerField(default=0)
+    minimum_stock_level = models.IntegerField(default=10)
+    doses_required = models.IntegerField(default=1)
+    interval_days = models.PositiveIntegerField(default=7)
+    expiry_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
     VACCINATION_DAY_CHOICES = [
         (7, '7th Day'),
         (14, '14th Day'),
@@ -131,7 +150,7 @@ class Vaccine(models.Model):
         choices=VACCINATION_DAY_CHOICES,
         help_text="Day of vaccination administration"
     )
-    doses_required = models.PositiveIntegerField()
+    doses_required = models.PositiveIntegerField(default=1)
     interval_days = models.PositiveIntegerField()  # Days between doses
     expiry_date = models.DateField(null=True, blank=True)  # Add this field if not present
 # New Stock Management Fields
@@ -154,9 +173,9 @@ class Vaccine(models.Model):
     batch_number = models.CharField(
         max_length=50, 
         blank=True, 
+        null=True,  # Allow NULL values
         help_text="Vaccine batch number"
     )
-    notes = models.TextField(blank=True)
 
     def update_stock_status(self):
         """Update stock status based on current stock level"""

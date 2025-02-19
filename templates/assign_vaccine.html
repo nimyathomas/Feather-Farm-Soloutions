@@ -33,7 +33,7 @@
 </head>
 <body>
     <h2 style="text-align: center;">Assign Vaccine to Active Batch</h2>
-    <form method="POST" action="/assign-vaccine/" id="assign-vaccine-form">
+    <form method="POST" action="{% url 'assign_vaccination' %}" id="assign-vaccine-form">
         {% csrf_token %}
         
         <!-- User Selection -->

@@ -1,0 +1,142 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container py-4">
+    <h2>My Farm Vaccinations</h2>
+
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Vaccinations -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="card-title mb-0">Upcoming Vaccinations</h4>
+        </div>
+        <div class="card-body">
+            {% if upcoming_vaccinations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Farm</th>
+                            <th>Batch ID</th>
+                            <th>Vaccine</th>
+                            <th>Scheduled Date</th>
+                            <th>Assigned To</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vaccination in upcoming_vaccinations %}
+                        <tr>
+                            <td>{{ vaccination.batch.farm.name }}</td>
+                            <td>{{ vaccination.batch.batch_id }}</td>
+                            <td>{{ vaccination.vaccine.name }}</td>
+                            <td>{{ vaccination.vaccination_date }}</td>
+                            <td>{{ vaccination.assigned_to.get_full_name }}</td>
+                            <td>
+                                {% if vaccination.assigned_to == request.user %}
+                                    {% if vaccination.status == 'assigned' %}
+                                    <a href="{% url 'stakeholder_scan_qr' vaccination.pk %}" 
+                                       class="btn btn-primary btn-sm">
+                                        Scan QR
+                                    </a>
+                                    {% elif vaccination.status == 'qr_scanned' %}
+                                    <a href="{% url 'stakeholder_evidence_upload' vaccination.pk %}" 
+                                       class="btn btn-success btn-sm">
+                                        Upload Evidence
+                                    </a>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Assigned to other</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No upcoming vaccinations scheduled.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Completed Vaccinations -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4 class="card-title mb-0">Completed Vaccinations</h4>
+        </div>
+        <div class="card-body">
+            {% if completed_vaccinations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Farm</th>
+                            <th>Batch ID</th>
+                            <th>Vaccine</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Administered By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vaccination in completed_vaccinations %}
+                        <tr>
+                            <td>{{ vaccination.batch.farm.name }}</td>
+                            <td>{{ vaccination.batch.batch_id }}</td>
+                            <td>{{ vaccination.vaccine.name }}</td>
+                            <td>{{ vaccination.vaccination_date }}</td>
+                            <td>
+                                <span class="badge bg-{{ vaccination.status|lower }}">
+                                    {{ vaccination.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ vaccination.assigned_to.get_full_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No completed vaccinations yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Farm Summary -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="card-title mb-0">My Farms</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for farm in farms %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ farm.name }}</h5>
+                            <p class="card-text">
+                                Active Batches: {{ farm.chick_batches.filter(status='active').count }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

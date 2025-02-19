@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { padding: 20px; }
+        .qr-code { margin: 20px 0; }
+        .details { margin: 20px 0; }
+        .verification { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Vaccination Schedule Confirmation</h2>
+        
+        <div class="details">
+            <p><strong>Batch:</strong> {{ batch.batch_number }}</p>
+            <p><strong>Vaccine:</strong> {{ vaccine.name }}</p>
+            <p><strong>Scheduled Date:</strong> {{ vaccination_date|date:"F j, Y" }}</p>
+        </div>
+
+        <div class="verification">
+            <p><strong>Verification Code:</strong> {{ verification_code }}</p>
+        </div>
+
+        <div class="qr-code">
+            <p><strong>QR Code for Verification:</strong></p>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+        </div>
+
+        <p>Please keep this information for your records.</p>
+    </div>
+</body>
+</html> 

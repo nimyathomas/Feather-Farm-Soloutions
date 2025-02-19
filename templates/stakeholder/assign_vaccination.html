@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Assign Vaccination</h2>
+    
+    {% if is_prefilled %}
+    <div class="alert alert-info">
+        <p>Scheduling vaccination for:</p>
+        <ul>
+            <li>Batch: {{ form.initial.batch }}</li>
+            <li>Vaccination Day: Day {{ vaccination_day }}</li>
+            <li>Scheduled Date: {{ form.initial.vaccination_date|date:"Y-m-d" }}</li>
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Schedule Vaccination</button>
+        <a href="{% url 'vaccination_main' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %} 

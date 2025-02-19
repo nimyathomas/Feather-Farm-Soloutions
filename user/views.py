@@ -451,12 +451,9 @@ def disable_supplier(request, supplier_id):
     # Redirect to supplier list after disabling
     return redirect('supplier_list')
 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vaccine
-from .forms import VaccineForm
-
-def vaccination_main(request):
-    return render(request, 'vaccination_main.html')
+# Remove or comment out this function
+# def vaccination_main(request):
+#     return render(request, 'vaccination_main.html')
 
 @login_required
 def manage_vaccines(request):
@@ -490,6 +487,7 @@ def add_vaccine(request):
                     'id': vaccine.id,
                     'name': vaccine.name,
                     'manufacturer': vaccine.manufacturer,
+                    'batch_number': vaccine.batch_number,
                     'vaccination_day': vaccine.get_vaccination_day_display(),
                     'current_stock': vaccine.current_stock,
                     'stock_status': vaccine.stock_status
@@ -524,6 +522,7 @@ def edit_vaccine(request, vaccine_id):
                     'id': vaccine.id,
                     'name': vaccine.name,
                     'manufacturer': vaccine.manufacturer,
+                    'batch_number': vaccine.batch_number,
                     'vaccination_day': vaccine.get_vaccination_day_display(),
                     'current_stock': vaccine.current_stock,
                     'stock_status': vaccine.stock_status
@@ -723,10 +722,11 @@ def get_vaccine(request, vaccine_id):
             'vaccine': {
                 'name': vaccine.name,
                 'manufacturer': vaccine.manufacturer,
+                'batch_number': vaccine.batch_number,
                 'vaccination_day': vaccine.vaccination_day,
                 'current_stock': vaccine.current_stock,
                 'minimum_stock_level': vaccine.minimum_stock_level,
-                'batch_number': vaccine.batch_number,
+                'doses_required': vaccine.doses_required,
                 'expiry_date': vaccine.expiry_date.strftime('%Y-%m-%d') if vaccine.expiry_date else '',
                 'notes': vaccine.notes
             }
@@ -738,11 +738,11 @@ def get_vaccine(request, vaccine_id):
 def vaccine_stock_level(request):
     vaccines = Vaccine.objects.all()
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # If AJAX request, return JSON
         vaccine_data = [{
             'id': vaccine.id,
             'name': vaccine.name,
             'manufacturer': vaccine.manufacturer,
+            'batch_number': vaccine.batch_number,
             'vaccination_day': vaccine.get_vaccination_day_display(),
             'current_stock': vaccine.current_stock,
             'minimum_stock_level': vaccine.minimum_stock_level,
@@ -800,4 +800,73 @@ def restock_vaccine(request, vaccine_id):
             'message': str(e)
         })
 
+def vaccine_table(request):
+    vaccines = Vaccine.objects.all().values(
+        'id',
+        'name',
+        'manufacturer',
+        'batch_number',
+        'vaccination_day',
+        'doses_required',
+        'current_stock',
+        'minimum_stock_level',
+        'stock_status'
+    )
+    context = {
+        'vaccines': list(vaccines)
+    }
+    return render(request, 'vaccine_table.html', context)
 
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from user.models import FeedStock
+from .forms import FeedStockForm
+from decimal import Decimal
+
+@login_required
+def feed_manage(request):
+    """Feed management view"""
+    feed_stocks = FeedStock.objects.all()
+
+    if request.method == 'POST':
+        try:
+            # Get form data
+            feed_type = request.POST.get('feed_type')
+            number_of_sacks = request.POST.get('number_of_sacks')
+            price_per_sack = request.POST.get('price_per_sack')
+            minimum_sacks = request.POST.get('minimum_sacks')
+            
+            # Print debug information
+            print("Received data:", {
+                'feed_type': feed_type,
+                'number_of_sacks': number_of_sacks,
+                'price_per_sack': price_per_sack,
+                'minimum_sacks': minimum_sacks
+            })
+            
+            # Create form instance with data
+            form = FeedStockForm(request.POST)
+            
+            if form.is_valid():
+                feed_stock = form.save()
+                messages.success(request, 'Feed stock added successfully!')
+                return redirect('feed_manage')
+            else:
+                print("Form errors:", form.errors)
+                error_messages = []
+                for field, errors in form.errors.items():
+                    error_messages.append(f"{field}: {', '.join(errors)}")
+                messages.error(request, f"Error in form: {'; '.join(error_messages)}")
+        except Exception as e:
+            messages.error(request, f'Error saving feed stock: {str(e)}')
+    else:
+        form = FeedStockForm()
+
+    context = {
+        'feed_stocks': feed_stocks,
+        'form': form,
+        'title': 'Feed Management'
+    }
+    return render(request, 'stakeholder/feed_manage.html', context)

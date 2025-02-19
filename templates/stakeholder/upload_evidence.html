@@ -1,0 +1,238 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container py-4">
+    <h2>Upload Vaccination Evidence</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>Vaccination Details</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Farm:</strong> {{ vaccination.batch.farm.name }}</p>
+                    <p><strong>Batch:</strong> {{ vaccination.batch.batch_number }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Vaccine:</strong> {{ vaccination.vaccine.name }}</p>
+                    <p><strong>Date:</strong> {{ vaccination.vaccination_date }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <form id="evidenceForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Vaccine Vial Section -->
+                <div class="mb-4">
+                    <h5>1. Vaccine Vial Photo</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vial_photo" class="form-label">Upload Vial Photo</label>
+                                <input type="file" class="form-control" id="vial_photo" name="vial_photo" 
+                                       accept="image/*" required 
+                                       onchange="previewImage('vial_photo', 'vialPreview')">
+                                <small class="text-muted">Take a clear photo of the vaccine vial showing the batch number: {{ vaccination.batch.batch_number }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-container">
+                                <img id="vialPreview" class="img-preview d-none" alt="Vial preview">
+                                <div id="vialValidationResult" class="validation-result mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Flock Photo Section -->
+                <div class="mb-4">
+                    <h5>2. Flock Photo</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="flock_photo" class="form-label">Upload Flock Photo</label>
+                                <input type="file" class="form-control" id="flock_photo" name="flock_photo" 
+                                       accept="image/*" required 
+                                       onchange="previewImage('flock_photo', 'flockPreview')">
+                                <small class="text-muted">Take a clear photo showing the entire flock being vaccinated</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-container">
+                                <img id="flockPreview" class="img-preview d-none" alt="Flock preview">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Administration Photo Section -->
+                <div class="mb-4">
+                    <h5>3. Administration Photo</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="administration_photo" class="form-label">Upload Administration Photo</label>
+                                <input type="file" class="form-control" id="administration_photo" name="administration_photo" 
+                                       accept="image/*" required 
+                                       onchange="previewImage('administration_photo', 'adminPreview')">
+                                <small class="text-muted">Take a clear photo showing the vaccination being administered</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-container">
+                                <img id="adminPreview" class="img-preview d-none" alt="Administration preview">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        Upload Evidence
+                    </button>
+                    <div id="uploadStatus" class="mt-2"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add this CSS to your stylesheet or in a style tag -->
+<style>
+    .img-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+    }
+    .preview-container {
+        min-height: 100px;
+    }
+    .validation-result {
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .validation-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .validation-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<!-- Add this JavaScript to your script file or in a script tag -->
+<script>
+function previewImage(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+            
+            // If this is the vial photo, validate it
+            if (inputId === 'vial_photo') {
+                validateVialPhoto(input.files[0]);
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+async function validateVialPhoto(file) {
+    const resultDiv = document.getElementById('vialValidationResult');
+    resultDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Validating...</span></div>';
+    
+    const formData = new FormData();
+    formData.append('vial_photo', file);
+    formData.append('batch_no', '{{ vaccination.batch.batch_number }}');
+    
+    try {
+        const response = await fetch(`/vaccination/{{ vaccination.id }}/validate-vial/`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            resultDiv.innerHTML = `
+                <div class="validation-success">
+                    <i class="fas fa-check-circle"></i> Vial validated successfully
+                    <br>
+                    <small>${result.details?.fill_level ? `Fill level: ${result.details.fill_level}` : ''}</small>
+                </div>`;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="validation-error">
+                    <i class="fas fa-exclamation-circle"></i> ${result.error}
+                </div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `
+            <div class="validation-error">
+                <i class="fas fa-exclamation-circle"></i> Error validating photo
+            </div>`;
+    }
+}
+
+document.getElementById('evidenceForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+    
+    try {
+        const formData = new FormData(this);
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            uploadStatus.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Evidence uploaded successfully
+                </div>`;
+            setTimeout(() => window.location.href = result.redirect_url, 1500);
+        } else {
+            uploadStatus.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> ${result.error}
+                </div>`;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Upload Evidence';
+        }
+    } catch (error) {
+        uploadStatus.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> Error uploading evidence
+            </div>`;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Upload Evidence';
+    }
+});
+</script>
+{% endblock %} 

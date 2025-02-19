@@ -359,5 +359,123 @@ function viewRefundDetails(orderId) {
     // Add functionality to view refund details
     alert(`Viewing details for refund request: ${orderId}`);
 }
+
+function addFunds(amount) {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/wallet/add-funds/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: `amount=${amount}`
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update the balance display
+            document.getElementById('wallet-balance').textContent = data.new_balance;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding funds');
+    });
+}
+
+// Function to get current balance
+function getBalance() {
+    fetch('/wallet/get-balance/')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('wallet-balance').textContent = data.balance;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById('addMoneyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const amount = parseFloat(formData.get('amount'));
+    
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    // Initialize Razorpay payment
+    const options = {
+        key: '{{ razorpay_key }}',
+        amount: Math.round(amount * 100), // Convert to paise and ensure it's an integer
+        currency: 'INR',
+        name: 'FEATHER FARM SOLUTIONS',
+        description: 'Wallet Recharge',
+        handler: function(response) {
+            if (response.razorpay_payment_id) {
+                fetch('/wallet/add-funds/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: new URLSearchParams({
+                        'amount': amount,
+                        'payment_id': response.razorpay_payment_id,
+                        'order_id': response.razorpay_order_id,
+                        'signature': response.razorpay_signature
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Payment successful! Your wallet has been updated.');
+                        window.location.reload();
+                    } else {
+                        alert('Payment verification failed: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your payment');
+                });
+            }
+        },
+        prefill: {
+            name: '{{ user.get_full_name }}',
+            email: '{{ user.email }}',
+            contact: '{{ user.phone_number }}'
+        },
+        theme: {
+            color: '#3399cc'
+        },
+        modal: {
+            ondismiss: function() {
+                console.log('Payment modal closed');
+            }
+        }
+    };
+
+    try {
+        const rzp = new Razorpay(options);
+        rzp.open();
+    } catch (error) {
+        console.error('Razorpay initialization error:', error);
+        alert('Could not initialize payment gateway');
+    }
+});
 </script>
 {% endblock %} 

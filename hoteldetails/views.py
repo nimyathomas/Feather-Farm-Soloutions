@@ -14,6 +14,16 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .utility import send_order_confirmation_email
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST, require_http_methods
+from decimal import Decimal
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+import decimal
+from .models import WalletTransaction  # Replace Transaction with WalletTransaction
+import razorpay
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 def hoteldashboard(request):
     batch_type = request.GET.get("batch_type", "")
@@ -424,32 +434,118 @@ def place_order(request):
 
 @login_required
 def wallet_view(request):
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
     context = {
-        'wallet': {
-            'balance': '0.00',
-            'loyalty_points': '150',  # Example loyalty points
-            'membership_tier': 'Gold',  # Example tier
-        },
-        'total_added': '0.00',
-        'total_spent': '0.00',
-        'pending_amount': '0.00',
-        'transactions': [],
-        'bank_accounts': [],
-        'available_discounts': [
-            {
-                'code': 'WELCOME20',
-                'description': '20% off on your first order',
-                'expiry': '2025-03-01',
-                'discount_percent': 20,
-            },
-            {
-                'code': 'LOYALTY10',
-                'description': '10% off for Gold members',
-                'expiry': '2025-12-31',
-                'discount_percent': 10,
-            }
-        ],
-        'refund_requests': []
+        'wallet': request.user.wallet,
+        'razorpay_key': settings.RAZORPAY_KEY_ID,
+        'user': request.user
     }
     return render(request, 'hoteldetials/wallet.html', context)
 
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import razorpay
+from decimal import Decimal
+
+@csrf_exempt
+def add_funds_to_wallet(request):
+    if request.method == "POST":
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            
+            # Create Razorpay Order first
+            amount = int(float(request.POST.get('amount', 0)) * 100)  # Convert to paise
+            currency = 'INR'
+            
+            # Create order
+            order_data = {
+                'amount': amount,
+                'currency': currency,
+                'payment_capture': 1  # Auto capture payment
+            }
+            order = client.order.create(data=order_data)
+            
+            if order['id']:
+                payment_id = request.POST.get('payment_id')
+                
+                # Verify payment if signature is provided
+                if 'signature' in request.POST:
+                    params_dict = {
+                        'razorpay_payment_id': payment_id,
+                        'razorpay_order_id': order['id'],
+                        'razorpay_signature': request.POST.get('signature')
+                    }
+                    client.utility.verify_payment_signature(params_dict)
+                
+                # Update wallet
+                amount_in_rupees = float(amount) / 100
+                wallet = request.user.wallet
+                wallet.balance += amount_in_rupees
+                wallet.save()
+                
+                # Create transaction record
+                WalletTransaction.objects.create(
+                    user=request.user,
+                    amount=amount_in_rupees,
+                    transaction_type='credit',
+                    status='completed',
+                    payment_id=payment_id,
+                    description='Wallet recharge'
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Funds added successfully',
+                    'new_balance': str(wallet.balance)
+                })
+            
+            return JsonResponse({
+                'success': False,
+                'error': 'Could not create order'
+            }, status=400)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+
+@login_required
+@require_http_methods(["POST"])
+def add_funds(request):
+    try:
+        amount = float(request.POST.get('amount', 0))
+        # Add your logic to update wallet balance
+        # For example:
+        request.user.wallet.balance += amount
+        request.user.wallet.save()
+        
+        return JsonResponse({
+            'success': True,
+            'new_balance': request.user.wallet.balance
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@login_required
+@require_http_methods(["GET"])
+def get_balance(request):
+    try:
+        return JsonResponse({
+            'success': True,
+            'balance': request.user.wallet.balance
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)

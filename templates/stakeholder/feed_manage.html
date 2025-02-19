@@ -4,7 +4,15 @@
 {% block body %}
 <div class="main-content">
     <div class="container-fluid">
-        <!-- Page Header -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
         <div class="page-header">
             <div class="row align-items-center">
                 <div class="col">
@@ -18,7 +26,6 @@
             </div>
         </div>
 
-        <!-- Feed Stock Table -->
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -40,16 +47,16 @@
                                 </thead>
                                 <tbody>
                                     {% for stock in feed_stocks %}
-                                    <tr>
+                                    <tr data-feed-id="{{ stock.id }}">
                                         <td>{{ stock.get_feed_type_display }}</td>
                                         <td>{{ stock.number_of_sacks }}</td>
                                         <td>{{ stock.quantity_in_kg }}</td>
                                         <td>₹{{ stock.price_per_sack|floatformat:2 }}</td>
                                         <td>
                                             {% if stock.number_of_sacks <= stock.minimum_sacks %}
-                                                <span class="badge bg-danger">Low Stock</span>
+                                            <span class="badge bg-danger">Low Stock</span>
                                             {% else %}
-                                                <span class="badge bg-success">In Stock</span>
+                                            <span class="badge bg-success">In Stock</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -63,7 +70,8 @@
                                                     data-min-sacks="{{ stock.minimum_sacks }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-danger delete-feed"
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-danger delete-feed"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#deleteFeedModal"
                                                     data-id="{{ stock.id }}"
@@ -88,36 +96,40 @@
 </div>
 
 <!-- Add Feed Modal -->
-<div class="modal fade" id="addFeedModal" tabindex="-1" aria-labelledby="addFeedModalLabel" aria-hidden="true">
+<div class="modal fade" id="addFeedModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addFeedModalLabel">Add New Feed Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Add New Feed Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'feed_stock_create' %}">
+            <form method="POST" action="{% url 'feed_manage' %}" id="addFeedForm">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="feed_type" class="form-label">Feed Type</label>
-                        <select class="form-select" id="feed_type" name="feed_type" required>
+                        <label class="form-label">Feed Type</label>
+                        <select class="form-select" name="feed_type" required>
                             <option value="">Select Feed Type</option>
                             <option value="starter">Starter Feed (0-21 days)</option>
                             <option value="grower">Grower Feed (22-35 days)</option>
                             <option value="finisher">Finisher Feed (36+ days)</option>
                         </select>
+                        <div class="invalid-feedback">Please select a feed type</div>
                     </div>
                     <div class="mb-3">
-                        <label for="number_of_sacks" class="form-label">Number of Sacks (50kg each)</label>
-                        <input type="number" class="form-control" id="number_of_sacks" name="number_of_sacks" min="1" required>
+                        <label class="form-label">Number of Sacks</label>
+                        <input type="number" class="form-control" name="number_of_sacks" required min="1">
+                        <div class="invalid-feedback">Please enter a valid number of sacks</div>
                     </div>
                     <div class="mb-3">
-                        <label for="price_per_sack" class="form-label">Price per Sack (₹)</label>
-                        <input type="number" class="form-control" id="price_per_sack" name="price_per_sack" min="0" step="0.01" value="1750.00" required>
+                        <label class="form-label">Price per Sack (₹)</label>
+                        <input type="number" class="form-control" name="price_per_sack" required min="0" step="0.01">
+                        <div class="invalid-feedback">Please enter a valid price</div>
                     </div>
                     <div class="mb-3">
-                        <label for="minimum_sacks" class="form-label">Minimum Sacks</label>
-                        <input type="number" class="form-control" id="minimum_sacks" name="minimum_sacks" min="1" value="20" required>
+                        <label class="form-label">Minimum Sacks Alert</label>
+                        <input type="number" class="form-control" name="minimum_sacks" required min="1">
+                        <div class="invalid-feedback">Please enter minimum sacks threshold</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -130,36 +142,39 @@
 </div>
 
 <!-- Edit Feed Modal -->
-<div class="modal fade" id="editFeedModal" tabindex="-1" aria-labelledby="editFeedModalLabel" aria-hidden="true">
+<div class="modal fade" id="editFeedModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editFeedModalLabel">Edit Feed Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Edit Feed Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" id="editFeedForm">
+            <form method="POST" id="editFeedForm">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <!-- Similar fields as Add Feed Modal but with id prefix 'edit_' -->
                     <div class="mb-3">
-                        <label for="edit_feed_type" class="form-label">Feed Type</label>
-                        <select class="form-select" id="edit_feed_type" name="feed_type" required>
+                        <label class="form-label">Feed Type</label>
+                        <select class="form-select" name="feed_type" id="edit_feed_type" required>
                             <option value="starter">Starter Feed (0-21 days)</option>
                             <option value="grower">Grower Feed (22-35 days)</option>
                             <option value="finisher">Finisher Feed (36+ days)</option>
                         </select>
+                        <div class="invalid-feedback">Please select a feed type</div>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_number_of_sacks" class="form-label">Number of Sacks (50kg each)</label>
-                        <input type="number" class="form-control" id="edit_number_of_sacks" name="number_of_sacks" min="1" required>
+                        <label class="form-label">Number of Sacks</label>
+                        <input type="number" class="form-control" name="number_of_sacks" id="edit_number_of_sacks" required min="1">
+                        <div class="invalid-feedback">Please enter a valid number of sacks</div>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_price_per_sack" class="form-label">Price per Sack (₹)</label>
-                        <input type="number" class="form-control" id="edit_price_per_sack" name="price_per_sack" min="0" step="0.01" required>
+                        <label class="form-label">Price per Sack (₹)</label>
+                        <input type="number" class="form-control" name="price_per_sack" id="edit_price_per_sack" required min="0" step="0.01">
+                        <div class="invalid-feedback">Please enter a valid price</div>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_minimum_sacks" class="form-label">Minimum Sacks</label>
-                        <input type="number" class="form-control" id="edit_minimum_sacks" name="minimum_sacks" min="1" required>
+                        <label class="form-label">Minimum Sacks Alert</label>
+                        <input type="number" class="form-control" name="minimum_sacks" id="edit_minimum_sacks" required min="1">
+                        <div class="invalid-feedback">Please enter minimum sacks threshold</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -172,150 +187,164 @@
 </div>
 
 <!-- Delete Feed Modal -->
-<div class="modal fade" id="deleteFeedModal" tabindex="-1" aria-labelledby="deleteFeedModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteFeedModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteFeedModalLabel">Delete Feed Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Delete Feed Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" id="deleteFeedForm">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this feed stock?</p>
-                    <p id="deleteFeedType" class="text-danger"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </div>
-            </form>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this feed stock?</p>
+                <p id="deleteFeedType" class="text-danger fw-bold"></p>
+                <input type="hidden" id="feedToDelete" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Update Feed Modal -->
-<div class="modal fade" id="updateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Update Feed Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{% url 'update_feed_stock' %}" id="updateFeedForm">
-                {% csrf_token %}
-                <input type="hidden" id="updateFeedId" name="feed_id">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Feed Type</label>
-                        <input type="text" class="form-control bg-light" id="updateFeedType" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Current Available Sacks</label>
-                        <input type="number" class="form-control bg-light" id="currentSacks" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Add Sacks</label>
-                        <input type="number" 
-                               class="form-control" 
-                               name="add_sacks" 
-                               id="addSacks" 
-                               required 
-                               min="1" 
-                               placeholder="Enter number of sacks to add"
-                               onchange="updateTotalSacks()">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Total Sacks After Update</label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="totalSacks" 
-                               readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Current Price per Sack (₹)</label>
-                        <input type="number" class="form-control bg-light" id="currentPrice" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">New Price per Sack (Optional)</label>
-                        <input type="number" 
-                               class="form-control" 
-                               name="price_per_sack" 
-                               id="updatePrice" 
-                               step="0.01" 
-                               min="0" 
-                               placeholder="Leave empty to keep current price">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Update Stock</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Add this hidden form for CSRF token -->
+<form id="csrfForm">
+    {% csrf_token %}
+</form>
 
 {% endblock %}
 
 {% block scripts %}
+{{ block.super }}
 <script>
-    // Edit Feed Modal
-    document.querySelectorAll('.edit-feed').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const feedType = this.dataset.feedType;
-            const sacks = this.dataset.sacks;
-            const price = this.dataset.price;
-            const minSacks = this.dataset.minSacks;
-
-            document.getElementById('edit_feed_type').value = feedType;
-            document.getElementById('edit_number_of_sacks').value = sacks;
-            document.getElementById('edit_price_per_sack').value = price;
-            document.getElementById('edit_minimum_sacks').value = minSacks;
-            document.getElementById('editFeedForm').action = `/stakeholder/feed-stock/${id}/update/`;
-        });
-    });
-
-    // Delete Feed Modal
-    document.querySelectorAll('.delete-feed').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const feedType = this.dataset.feedType;
-            
-            document.getElementById('deleteFeedType').textContent = `Feed Type: ${feedType}`;
-            document.getElementById('deleteFeedForm').action = `/stakeholder/feed-stock/${id}/delete/`;
-        });
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
+    // Set up delete button handlers
+    document.querySelectorAll('.delete-feed').forEach(button => {
+        button.addEventListener('click', function() {
+            const feedId = this.dataset.id;
+            const feedType = this.dataset.feedType;
+            
+            // Store the feed ID in the hidden input
+            document.getElementById('feedToDelete').value = feedId;
+            document.getElementById('deleteFeedType').textContent = `Feed Type: ${feedType}`;
+            
+            console.log('Delete clicked for:', feedId, feedType); // Debug log
+        });
+    });
+
+    // Handle delete confirmation
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        const feedIdToDelete = document.getElementById('feedToDelete').value;
+        
+        if (feedIdToDelete) {
+            console.log('Confirming delete for ID:', feedIdToDelete); // Debug log
+            
+            fetch(`/stakeholder/feed/delete/${feedIdToDelete}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status); // Debug log
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data); // Debug log
+                if (data.success) {
+                    // Close the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteFeedModal'));
+                    modal.hide();
+                    
+                    // Show success message
+                    alert(data.message || 'Feed stock deleted successfully');
+                    
+                    // Remove the row from the table
+                    const row = document.querySelector(`tr[data-feed-id="${feedIdToDelete}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+                    
+                    // Reload the page to update the table
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Error deleting feed stock');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting feed stock');
+            });
+        }
+    });
+
+    // Edit Feed Modal Handler
     document.querySelectorAll('.edit-feed').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.dataset.id;
             const feedType = this.dataset.feedType;
             const sacks = this.dataset.sacks;
             const price = this.dataset.price;
-            const minSacks = this.dataset.minSacks;
-
+            
+            // Update form fields
+            const form = document.getElementById('editFeedForm');
+            form.action = `/stakeholder/feed/edit/${id}/`;
             document.getElementById('edit_feed_type').value = feedType;
             document.getElementById('edit_number_of_sacks').value = sacks;
             document.getElementById('edit_price_per_sack').value = price;
-            document.getElementById('edit_minimum_sacks').value = minSacks;
-            document.getElementById('editFeedForm').action = "{% url 'edit_feed_stock' 999 %}".replace('999', id);
         });
     });
 
-    // Delete Feed Modal
-    document.querySelectorAll('.delete-feed').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const feedType = this.dataset.feedType;
-            
-            document.getElementById('deleteFeedType').textContent = `Feed Type: ${feedType}`;
-            document.getElementById('deleteFeedForm').action = "{% url 'delete_feed_stock' 999 %}".replace('999', id);
-        });
+    // Form validation for Add Feed Modal
+    const addFeedForm = document.getElementById('addFeedForm');
+    
+    addFeedForm.addEventListener('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        const feedType = this.querySelector('[name="feed_type"]').value;
+        const sacks = this.querySelector('[name="number_of_sacks"]').value;
+        const price = this.querySelector('[name="price_per_sack"]').value;
+        const minSacks = this.querySelector('[name="minimum_sacks"]').value;
+        
+        if (!feedType || !sacks || !price || !minSacks) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        if (parseInt(sacks) <= 0) {
+            e.preventDefault();
+            alert('Number of sacks must be greater than 0');
+            return;
+        }
+        
+        if (parseFloat(price) <= 0) {
+            e.preventDefault();
+            alert('Price must be greater than 0');
+            return;
+        }
+        
+        if (parseInt(minSacks) <= 0) {
+            e.preventDefault();
+            alert('Minimum sacks must be greater than 0');
+            return;
+        }
+        
+        this.classList.add('was-validated');
     });
 
-
-
+    // Reset form validation when modal is closed
+    document.getElementById('addFeedModal').addEventListener('hidden.bs.modal', function () {
+        addFeedForm.classList.remove('was-validated');
+        addFeedForm.reset();
+    });
+});
 </script>
 {% endblock %}

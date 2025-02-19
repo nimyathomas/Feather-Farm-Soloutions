@@ -56,9 +56,14 @@
             <li>
                 <a href="{% url 'feed_tracking_dashboard' %}" class="{% if request.path == 'feed_tracking_dashboard' %}active{% endif %}">📊 Feed Tracking</a>
             </li>
-            <li>
-                <a href="#" class="{% if request.path == '#' %}active{% endif %}">💉 Vaccinations</a>
+
+            <li class="nav-item">
+              <a class="nav-link {% if request.resolver_match.url_name == 'stakeholder_vaccination_list' %}active{% endif %}" 
+                 href="{% url 'stakeholder_vaccination_list' %}">
+                  <i class="fas fa-syringe"></i> My Vaccinations
+              </a>
             </li>
+          
             <li>
               <a href="{% url 'chick_health_recognition' %}" class="{% if request.path == 'chick_health_recognition' %}active{% endif %}">🔍 Chick Health Scanner</a>
             </li>

@@ -6,11 +6,14 @@ from django.conf import settings
 import qrcode
 from io import BytesIO
 from django.core.files import File
-from PIL import Image
+from PIL import Image, ImageDraw
 import uuid
 import os
 import math
 from django.core.exceptions import ValidationError
+import numpy as np
+import cv2
+import json
 
 
 
@@ -164,9 +167,54 @@ class ChickBatch(models.Model):
     last_feed_transition = models.DateTimeField(null=True, blank=True)
     feed_transition_notified = models.BooleanField(default=False)
 
+
+    def generate_qr_code(self):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        
+        # Add data to QR code
+        data = {
+            'batch_uuid': str(self.batch_uuid),
+            'batch_number': str(self.batch_uuid)[:8],  # First 8 characters of UUID
+            'farm_name': self.farm.name if self.farm else 'No Farm',
+            'batch_date': self.batch_date.strftime('%Y-%m-%d'),
+            'chick_count': self.initial_chick_count,
+            'batch_type': self.batch_type
+        }
+        
+        qr.add_data(str(data))
+        qr.make(fit=True)
+
+        # Create QR code image
+        qr_image = qr.make_image(fill_color="black", back_color="white")
+        
+        # Create a BytesIO object to temporarily store the image
+        stream = BytesIO()
+        qr_image.save(stream, 'PNG')
+        
+        # Create filename using batch UUID
+        filename = f'batch_qr_{self.batch_uuid}.png'
+        
+        # Save the image
+        from django.core.files.base import ContentFile
+        self.qr_code.save(
+            filename,
+            ContentFile(stream.getvalue()),
+            save=False
+        )
+
     def save(self, *args, **kwargs):
         """Handle all save operations for ChickBatch"""
-        if not self.pk:  # Only on creation
+        # If this is a new batch (no primary key yet)
+        if not self.pk:  
+            # Generate UUID if not already set
+            if not self.batch_uuid:
+                self.batch_uuid = uuid.uuid4()
+            
             self.available_chickens = self.initial_chick_count
             self.remaining_feed_sacks = self.total_feed_sacks
             
@@ -185,10 +233,24 @@ class ChickBatch(models.Model):
             self.grower_feed_sacks = 0
             self.finisher_feed_sacks = 0
 
-        # Generate QR code if needed
+        # Generate QR code if it doesn't exist
         if not self.qr_code:
-            self.generate_qr_code()
+            try:
+                self.generate_qr_code()
+            except Exception as e:
+                print(f"Error generating QR code: {str(e)}")
             
+        if not self.batch_number:
+            # Generate a batch number if not set
+            # Format: FARM-YYYY-MM-XXX
+            today = timezone.now()
+            farm_prefix = self.farm.name[:3].upper() if self.farm else 'BAT'
+            count = ChickBatch.objects.filter(
+                batch_date__year=today.year,
+                batch_date__month=today.month
+            ).count() + 1
+            self.batch_number = f"{farm_prefix}-{today.strftime('%Y%m')}-{count:03d}"
+        
         super().save(*args, **kwargs)
 
     def check_batch_completion(self):
@@ -291,51 +353,6 @@ class ChickBatch(models.Model):
             self.price_per_batch = weight * float(self.price_per_kg)
             self.save(update_fields=["price_per_batch"])
         return self.price_per_batch or 0
-    
-    def generate_qr_code(self):
-        try:
-            # Ensure SITE_URL is correctly set
-            base_url = settings.SITE_URL.rstrip("/")  # Remove trailing slash if present
-            qr_url = f"{base_url}{reverse('batch_detail_qr', args=[str(self.batch_uuid)])}"
-            
-            print(f"✅ Debug QR Code URL: {qr_url}")  # Debugging: Print the generated URL
-
-            # Create QR code
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-            qr.add_data(qr_url)
-            qr.make(fit=True)
-
-            # Generate QR code image
-            qr_image = qr.make_image(fill_color="black", back_color="white")
-
-            # Save to buffer
-            buffer = BytesIO()
-            qr_image.save(buffer, format='PNG')
-            buffer.seek(0)
-
-            # Generate a unique filename
-            filename = f'batch_qr_{self.batch_uuid}.png'
-
-            # Delete old QR code if exists
-            if self.qr_code and os.path.isfile(self.qr_code.path):
-                os.remove(self.qr_code.path)
-
-            # Save new QR code
-            self.qr_code.save(filename, File(buffer), save=False)
-
-        except Exception as e:
-            print(f"❌ Error generating QR code: {str(e)}")
-
-    def save(self, *args, **kwargs):
-        """Ensure QR code is generated when batch is created or updated"""
-        if not self.qr_code:
-            self.generate_qr_code()
-        super().save(*args, **kwargs)
     
     def get_recommended_feed_type(self):
         """Get recommended feed type based on current week"""
@@ -516,17 +533,164 @@ class ChickSupply(models.Model):
 
 
 class VaccinationSchedule(models.Model):
+    STATUS_CHOICES = [
+        ('assigned', 'Assigned'),
+        ('qr_scanned', 'QR Scanned'),
+        ('evidence_uploaded', 'Evidence Uploaded'),
+        ('administered', 'Administered'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected')
+    ]
+
     batch = models.ForeignKey(
         ChickBatch, on_delete=models.CASCADE, related_name="vaccination_schedules"
     )
     vaccine = models.ForeignKey(Vaccine, on_delete=models.CASCADE)
     vaccination_date = models.DateField()
+    assigned_to = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='assigned_vaccinations' ,null=True,  # Allow null temporarily
+        blank=True)
+    assigned_by = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='created_vaccinations',null=True,  # Allow null temporarily
+        blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='assigned')
+    
+    # QR Code and Verification
+    qr_code = models.ImageField(upload_to='vaccination_qr_codes/', blank=True)
+    verification_code = models.CharField(max_length=20, unique=True, blank=True)
+    
+    # Location Verification
+    farm_coordinates = models.CharField(max_length=100,null=True,  # Allow NULL in database
+        blank=True )  # Format: "latitude,longitude"
+    scan_coordinates = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Evidence Fields
+    vaccine_vial_photo = models.ImageField(upload_to='vaccination_evidence/vials/', null=True, blank=True)
+    flock_photo = models.ImageField(upload_to='vaccination_evidence/flocks/', null=True, blank=True)
+    administration_photo = models.ImageField(upload_to='vaccination_evidence/admin/', null=True, blank=True)
+    
+    # Environmental Data
+    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    humidity = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    # Timestamps and Notes
+    created_at = models.DateTimeField(auto_now_add=True )
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
+    rejection_reason = models.TextField(blank=True)
+    
+    
+    
+    def save(self, *args, **kwargs):
+        if not self.verification_code:
+            # Generate a unique verification code
+            import uuid
+            while True:
+                new_code = str(uuid.uuid4())[:8]
+                if not VaccinationSchedule.objects.filter(verification_code=new_code).exists():
+                    self.verification_code = new_code
+                    break
 
-    def user(self):
-        return self.batch.user  # Access user from the related ChickBatch
+        # Generate QR code if not set
+        if not self.qr_code:
+            try:
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                
+                # Create a simple data structure
+                qr_data = {
+                    'verification_code': self.verification_code,
+                    'vaccination_id': str(self.pk) if self.pk else '',
+                    'batch_id': str(self.batch.batch_uuid)
+                }
+                
+                # Convert to JSON string
+                json_data = json.dumps(qr_data)
+                print(f"Generated QR Data: {json_data}")  # Debug print
+                
+                qr.add_data(json_data)
+                qr.make(fit=True)
+
+                # Create QR code image
+                qr_image = qr.make_image(fill_color="black", back_color="white")
+                
+                # Save QR code
+                buffer = BytesIO()
+                qr_image.save(buffer, format='PNG')
+                buffer.seek(0)
+                
+                filename = f'qr_vaccination_{self.verification_code}.png'
+                self.qr_code.save(filename, File(buffer), save=False)
+                
+            except Exception as e:
+                print(f"Error generating QR code: {str(e)}")
+                raise
+
+        super().save(*args, **kwargs)
+    
+    def verify_location(self, scan_lat, scan_lng):
+        """Verify if the scan location matches the farm location"""
+        farm_lat, farm_lng = map(float, self.farm_coordinates.split(','))
+        
+        # Calculate distance between points (using Haversine formula)
+        R = 6371  # Earth's radius in kilometers
+        
+        lat1, lon1 = radians(farm_lat), radians(farm_lng)
+        lat2, lon2 = radians(scan_lat), radians(scan_lng)
+        
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        distance = R * c
+        
+        # Return True if within 100 meters
+        return distance <= 0.1
+    def upload_evidence(self, vial_photo, flock_photo, admin_photo, temp, humidity):
+        """Upload vaccination evidence"""
+        self.vaccine_vial_photo = vial_photo
+        self.flock_photo = flock_photo
+        self.administration_photo = admin_photo
+        self.temperature = temp
+        self.humidity = humidity
+        self.status = 'evidence_uploaded'
+        self.save()
+
+    # def verify_vaccination(self):
+    #     """Mark vaccination as verified"""
+    #     self.status = 'verified'
+    #     self.save()
+        
+    #     # Create vaccination record
+    #     VaccinationRecord.objects.create(
+    #         batch=self.batch,
+    #         vaccine=self.vaccine,
+    #         dose_number=1,  # Assuming single dose
+    #         scheduled_date=self.vaccination_date,
+    #         administered_date=timezone.now().date(),
+    #         status='completed'
+    #     )
+
+    def reject_vaccination(self, reason):
+        """Reject vaccination with reason"""
+        self.status = 'rejected'
+        self.rejection_reason = reason
+        self.save()
 
     def __str__(self):
         return f"{self.batch} - {self.vaccine.name} on {self.vaccination_date}"
+
+    
+
+    class Meta:
+        ordering = ['-vaccination_date']
+        # Update unique constraint to include status
+        unique_together = [
+            ('batch', 'vaccine', 'vaccination_date', 'status')
+        ]
 
 class Post(models.Model):
     CATEGORY_CHOICES = [
@@ -834,60 +998,34 @@ class FeedAssignment(models.Model):
         unique_together = ['batch', 'week_number']
 
     def save(self, *args, **kwargs):
-        # Always calculate total_cost before saving
-        self.total_cost = self.sacks_assigned * self.cost_per_sack
+        if not self.pk:  # Only for new records
+            self.total_cost = self.sacks_assigned * self.cost_per_sack
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}"
+        return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}" 
+    def total_cost(self):
+        return self.sacks_assigned * self.cost_per_sack
     
-    @property
-    def total_consumed(self):
-        """Calculate total feed consumed from daily records"""
-        return self.daily_consumptions.aggregate(
-            total=models.Sum(
-                models.F('morning_consumption') + models.F('evening_consumption')
-            )
-        )['total'] or 0
-
-    @property
-    def remaining_sacks(self):
-        """Calculate remaining sacks"""
-        return self.sacks_assigned - self.total_consumed
-
+    
+    
+    
+    
 class DailyFeedConsumption(models.Model):
-        batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE, related_name='daily_feed_records')
-        feed_assignment = models.ForeignKey(FeedAssignment, on_delete=models.CASCADE, related_name='daily_consumptions')
-        date = models.DateField()
-        day_number = models.IntegerField()  # Day 1-40 of the batch
-        
-        # Morning consumption
-        morning_consumption = models.DecimalField(
-            max_digits=4, 
-            decimal_places=2, 
-            default=0,
-            help_text="Number of sacks consumed in morning"
-        )
-        
-        # Evening consumption
-        evening_consumption = models.DecimalField(
-            max_digits=4, 
-            decimal_places=2, 
-            default=0,
-            help_text="Number of sacks consumed in evening"
-        )
-        
-        notes = models.TextField(blank=True, null=True)
-        recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-        created_at = models.DateTimeField(auto_now_add=True)
-        updated_at = models.DateTimeField(auto_now=True)
-
-        @property
-        def total_consumption(self):
+    batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE, related_name='daily_feed_records')
+    feed_assignment = models.ForeignKey(FeedAssignment, on_delete=models.CASCADE, related_name='daily_consumptions')
+    date = models.DateField()
+    day_number = models.IntegerField()
+    morning_consumption = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    evening_consumption = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    notes = models.TextField(blank=True, null=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def total_consumption(self):
             """Calculate total daily consumption"""
             return self.morning_consumption + self.evening_consumption
         
-        def clean(self):
+    def clean(self):
             """Validate consumption doesn't exceed remaining sacks"""
             total_consumed = self.total_consumption
             current_total = self.feed_assignment.total_consumed
@@ -896,7 +1034,56 @@ class DailyFeedConsumption(models.Model):
                     f"Cannot consume {total_consumed} sacks. Only {self.feed_assignment.remaining_sacks} sacks remaining."
                 )
 
-        class Meta:
+    class Meta:
             unique_together = ['batch', 'date']
             ordering = ['-date']
+    
+    
+class VaccinationAuditLog(models.Model):
+    vaccination = models.ForeignKey('VaccinationSchedule', on_delete=models.CASCADE)
+    action = models.CharField(max_length=100)
+    performed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.action} by {self.performed_by} on {self.created_at}"
+    
+    
+def validate_and_save_vial(self, vial_photo, expected_batch_no):
+    """
+    Validate and save vaccine vial photo
+    """
+    try:
+        # Read image
+        img_array = np.frombuffer(vial_photo.read(), np.uint8)
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        vial_photo.seek(0)
         
+        if img is None:
+            raise ValidationError("Unable to process vial image")
+
+        # Validation checks...
+        # ... (rest of validation logic) ...
+
+        # If validation passes, save the photo
+        self.vaccine_vial_photo = vial_photo  # Changed from empty_vial_photo
+        self.save()
+
+        return {
+            'success': True,
+            'message': 'Vaccine vial validated and saved successfully',
+            'details': {
+                'fill_level': f"{fill_ratio:.2%}",
+                'batch_detected': detected_text,
+                'image_quality': f"Blur score: {blur_value:.2f}"
+            }
+        }
+
+    except ValidationError as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+    
+    

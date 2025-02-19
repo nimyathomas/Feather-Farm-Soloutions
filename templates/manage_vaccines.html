@@ -15,59 +15,104 @@
         </div>
     </div>
 
-    <!-- Day 7 Vaccines -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">7th Day Vaccines</h5>
+    <!-- Single Vaccine Table -->
+    <div class="card">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">All Vaccines</h5>
         </div>
         <div class="card-body">
-            {% include 'vaccine_table.html' with vaccines=day_7_vaccines %}
-        </div>
-    </div>
+            <div class="table-responsive">
+                <!-- Add this just before the table for debugging -->
+                {% if debug %}
+                <div class="alert alert-info">
+                    Number of vaccines: {{ vaccines|length }}
+                </div>
+                {% endif %}
 
-    <!-- Day 14 Vaccines -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">14th Day Vaccines</h5>
-        </div>
-        <div class="card-body">
-            {% include 'vaccine_table.html' with vaccines=day_14_vaccines %}
-        </div>
-    </div>
-
-    <!-- Day 21 Vaccines -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0">21st Day Vaccines</h5>
-        </div>
-        <div class="card-body">
-            {% include 'vaccine_table.html' with vaccines=day_21_vaccines %}
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Manufacturer</th>
+                            <th>Batch Number</th>
+                            <th>Vaccination Day</th>
+                            <th>Current Stock</th>
+                            <th>Min. Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vaccine in vaccines %}
+                        <tr>
+                            <td>{{ vaccine.name }}</td>
+                            <td>{{ vaccine.manufacturer }}</td>
+                            <td>{{ vaccine.batch_number }}</td>
+                            <td>
+                                <span class="badge {% if vaccine.vaccination_day == 7 %}bg-primary
+                                      {% elif vaccine.vaccination_day == 14 %}bg-success
+                                      {% else %}bg-info{% endif %}">
+                                    {{ vaccine.get_vaccination_day_display }}
+                                </span>
+                            </td>
+                            <td>{{ vaccine.current_stock }}</td>
+                            <td>{{ vaccine.minimum_stock_level }}</td>
+                            <td>
+                                <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                                      {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                                      {% else %}bg-success{% endif %}">
+                                    {{ vaccine.stock_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="openUpdateModal({{ vaccine.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteVaccine({{ vaccine.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No vaccines found. {% if debug %}Query returned: {{ vaccines.query }}{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Add/Edit Vaccine Modal -->
+<!-- Add Vaccine Modal -->
 <div class="modal fade" id="vaccineModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Add New Vaccine</h5>
+                <h5 class="modal-title">Add New Vaccine</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="vaccineForm" method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="name">Name*</label>
-                        <input type="text" class="form-control" id="name" name="name" required maxlength="100">
+                        <label for="id_name">Name*</label>
+                        <input type="text" class="form-control" id="id_name" name="name" required maxlength="100">
                     </div>
                     <div class="mb-3">
-                        <label for="manufacturer">Manufacturer*</label>
-                        <input type="text" class="form-control" id="manufacturer" name="manufacturer" required maxlength="100">
+                        <label for="id_manufacturer">Manufacturer*</label>
+                        <input type="text" class="form-control" id="id_manufacturer" name="manufacturer" required maxlength="100">
                     </div>
                     <div class="mb-3">
-                        <label for="vaccination_day">Vaccination Day*</label>
-                        <select class="form-select" id="vaccination_day" name="vaccination_day" required>
+                        <label for="id_batch_number">Batch Number</label>
+                        <input type="text" class="form-control" id="id_batch_number" name="batch_number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_vaccination_day">Vaccination Day*</label>
+                        <select class="form-select" id="id_vaccination_day" name="vaccination_day" required>
                             <option value="">Select vaccination day...</option>
                             <option value="7">7th Day</option>
                             <option value="14">14th Day</option>
@@ -75,47 +120,20 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="doses_required">Doses Required*</label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="doses_required" 
-                               name="doses_required" 
-                               min="1" 
-                               value="1" 
-                               required>
-                        <small class="form-text text-muted">Number of doses required for this vaccine</small>
+                        <label for="id_current_stock">Current Stock*</label>
+                        <input type="number" class="form-control" id="id_current_stock" name="current_stock" min="0" value="0" required>
                     </div>
                     <div class="mb-3">
-                        <label for="interval_days">Interval Days*</label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="interval_days" 
-                               name="interval_days" 
-                               min="1" 
-                               value="7" 
-                               required>
-                        <small class="form-text text-muted">Number of days between doses</small>
+                        <label for="id_minimum_stock_level">Minimum Stock Level*</label>
+                        <input type="number" class="form-control" id="id_minimum_stock_level" name="minimum_stock_level" min="0" value="10" required>
                     </div>
                     <div class="mb-3">
-                        <label for="current_stock">Current Stock*</label>
-                        <input type="number" class="form-control" id="current_stock" name="current_stock" min="0" value="0" required>
+                        <label for="id_doses_required">Doses Required*</label>
+                        <input type="number" class="form-control" id="id_doses_required" 
+                               name="doses_required" min="1" value="1" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="minimum_stock_level">Minimum Stock Level*</label>
-                        <input type="number" class="form-control" id="minimum_stock_level" name="minimum_stock_level" min="0" value="10" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="batch_number">Batch Number</label>
-                        <input type="text" class="form-control" id="batch_number" name="batch_number" maxlength="50">
-                    </div>
-                    <div class="mb-3">
-                        <label for="expiry_date">Expiry Date</label>
-                        <input type="date" class="form-control" id="expiry_date" name="expiry_date">
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3" maxlength="500"></textarea>
-                    </div>
+                    <!-- Hidden fields with default values -->
+                    <input type="hidden" name="interval_days" value="0">
                 </form>
             </div>
             <div class="modal-footer">
@@ -126,63 +144,238 @@
     </div>
 </div>
 
+<!-- Add Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Vaccine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateForm" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" id="update_vaccine_id" name="vaccine_id">
+                    <div class="mb-3">
+                        <label for="update_name">Name*</label>
+                        <input type="text" class="form-control" id="update_name" name="name" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_manufacturer">Manufacturer*</label>
+                        <input type="text" class="form-control" id="update_manufacturer" name="manufacturer" required maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_batch_number">Batch Number</label>
+                        <input type="text" class="form-control" id="update_batch_number" name="batch_number">
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_vaccination_day">Vaccination Day*</label>
+                        <select class="form-select" id="update_vaccination_day" name="vaccination_day" required>
+                            <option value="7">7th Day</option>
+                            <option value="14">14th Day</option>
+                            <option value="21">21st Day</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_current_stock">Current Stock*</label>
+                        <input type="number" class="form-control" id="update_current_stock" name="current_stock" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_minimum_stock_level">Minimum Stock Level*</label>
+                        <input type="number" class="form-control" id="update_minimum_stock_level" name="minimum_stock_level" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_doses_required">Doses Required*</label>
+                        <input type="number" class="form-control" id="update_doses_required" 
+                               name="doses_required" min="1" required>
+                    </div>
+                    
+                    <!-- Hidden fields with default values -->
+                    <input type="hidden" name="interval_days" value="0">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" onclick="updateVaccine()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Add this function at the top of your script section
 function openAddVaccineModal() {
-    console.log('Opening modal...'); // Debug log
-    document.getElementById('modalTitle').textContent = 'Add New Vaccine';
-    document.getElementById('vaccineForm').reset();
     const modal = new bootstrap.Modal(document.getElementById('vaccineModal'));
     modal.show();
 }
 
-// Add this function for saving the vaccine
+function validateForm(form) {
+    const errors = [];
+    
+    // Name validation
+    const name = form.querySelector('[name="name"]').value.trim();
+    if (!name) {
+        errors.push('Name is required');
+    } else if (name.length > 100) {
+        errors.push('Name must be less than 100 characters');
+    } else if (!/^[a-zA-Z0-9\s]+$/.test(name)) {
+        errors.push('Name should only contain letters and numbers');
+    }
+    
+    // Manufacturer validation
+    const manufacturer = form.querySelector('[name="manufacturer"]').value.trim();
+    if (!manufacturer) {
+        errors.push('Manufacturer is required');
+    } else if (manufacturer.length > 100) {
+        errors.push('Manufacturer must be less than 100 characters');
+    }
+    
+    // Stock validation
+    const currentStock = parseInt(form.querySelector('[name="current_stock"]').value);
+    if (isNaN(currentStock) || currentStock < 0) {
+        errors.push('Current stock must be a non-negative number');
+    }
+    
+    const minStock = parseInt(form.querySelector('[name="minimum_stock_level"]').value);
+    if (isNaN(minStock) || minStock < 0) {
+        errors.push('Minimum stock level must be a non-negative number');
+    }
+    
+    // Vaccination day validation
+    const vaccinationDay = parseInt(form.querySelector('[name="vaccination_day"]').value);
+    if (![7, 14, 21].includes(vaccinationDay)) {
+        errors.push('Please select a valid vaccination day');
+    }
+    
+    return errors;
+}
+
 async function saveVaccine() {
     const form = document.getElementById('vaccineForm');
-    const formData = new FormData(form);
+    const errors = validateForm(form);
     
-    // Debug log
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
+    if (errors.length > 0) {
+        alert('Please correct the following errors:\n' + errors.join('\n'));
+        return;
     }
+    
+    const formData = new FormData(form);
+    // Add required fields with default values
+    formData.append('doses_required', '1');
+    formData.append('interval_days', '0');
     
     try {
         const response = await fetch('{% url "add_vaccine" %}', {
             method: 'POST',
+            body: formData,
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: formData
+            }
         });
         
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            const data = await response.json();
-            if (data.success) {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('vaccineModal'));
-                modal.hide();
-                window.location.reload();
-            } else {
-                const errorMessage = data.errors ? 
-                    Object.entries(data.errors).map(([key, value]) => `${key}: ${value}`).join('\n') :
-                    data.message || 'Unknown error';
-                alert('Error saving vaccine:\n' + errorMessage);
-            }
+        const data = await response.json();
+        if (response.ok && data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('vaccineModal'));
+            modal.hide();
+            window.location.reload();
         } else {
-            const text = await response.text();
-            console.error('Non-JSON response:', text);
-            throw new Error('Invalid server response');
+            alert('Error: ' + (data.message || 'Failed to save vaccine'));
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error saving vaccine. Please check the form and try again.');
+        alert('Error saving vaccine. Please try again.');
     }
 }
 
-// Remove the form submit event listener since we're using the Save button
-document.getElementById('vaccineForm').onsubmit = function(e) {
-    e.preventDefault();
-};
+let updateModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+});
+
+async function openUpdateModal(vaccineId) {
+    try {
+        const response = await fetch(`/vaccine/${vaccineId}/details/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Populate the form
+            document.getElementById('update_vaccine_id').value = vaccineId;
+            document.getElementById('update_name').value = data.vaccine.name;
+            document.getElementById('update_manufacturer').value = data.vaccine.manufacturer;
+            document.getElementById('update_batch_number').value = data.vaccine.batch_number;
+            document.getElementById('update_vaccination_day').value = data.vaccine.vaccination_day;
+            document.getElementById('update_current_stock').value = data.vaccine.current_stock;
+            document.getElementById('update_minimum_stock_level').value = data.vaccine.minimum_stock_level;
+            document.getElementById('update_doses_required').value = data.vaccine.doses_required;
+            
+            updateModal.show();
+        } else {
+            alert('Error loading vaccine details');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error loading vaccine details');
+    }
+}
+
+async function updateVaccine() {
+    const form = document.getElementById('updateForm');
+    const errors = validateForm(form);
+    
+    if (errors.length > 0) {
+        alert('Please correct the following errors:\n' + errors.join('\n'));
+        return;
+    }
+    
+    const vaccineId = document.getElementById('update_vaccine_id').value;
+    const formData = new FormData(form);
+    formData.append('doses_required', '1');
+    formData.append('interval_days', '0');
+    
+    try {
+        const response = await fetch(`/vaccine/${vaccineId}/update/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+            updateModal.hide();
+            window.location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to update vaccine'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating vaccine');
+    }
+}
+
+async function deleteVaccine(vaccineId) {
+    if (confirm('Are you sure you want to delete this vaccine?')) {
+        try {
+            const response = await fetch(`/vaccine/${vaccineId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to delete vaccine'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error deleting vaccine');
+        }
+    }
+}
 </script>
 {% endblock %}
 
@@ -190,3 +383,4 @@ document.getElementById('vaccineForm').onsubmit = function(e) {
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+

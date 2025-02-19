@@ -4,78 +4,182 @@
 {% block body %}
 <div class="vaccination-dashboard">
     <!-- Header Section -->
-    <div class="page-header">
-        <div class="header-content">
+    <div class="dashboard-header">
+        <div class="header-left">
             <h1><i class="fas fa-syringe"></i> Vaccination Management</h1>
-            <p>Manage your farm's vaccination program efficiently</p>
         </div>
-        <div class="header-actions">
-            <button class="btn-outline" onclick="window.location.href='{% url 'manage_vaccines' %}'">
-                <i class="fas fa-plus"></i> Add New Vaccine
+        <div class="header-stats">
+            <div class="stat-pill">
+                <i class="fas fa-vial"></i>
+                <span>{{ total_vaccines }}</span>
+                <small>Vaccines</small>
+            </div>
+            <div class="stat-pill">
+                <i class="fas fa-clipboard-check"></i>
+                <span>{{ total_records }}</span>
+                <small>Records</small>
+            </div>
+            <div class="stat-pill {% if low_stock_count > 0 %}warning{% endif %}">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ low_stock_count }}</span>
+                <small>Alerts</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Cards -->
+    <div class="management-cards">
+        <!-- Manage Vaccines Card -->
+        <div class="mgmt-card">
+            <div class="mgmt-icon">
+                <i class="fas fa-syringe"></i>
+            </div>
+            <div class="mgmt-content">
+                <h3>Manage Vaccines</h3>
+                <p>Add, edit or remove vaccines</p>
+                <div class="mgmt-stats">
+                    <span>{{ total_vaccines }} Total Vaccines</span>
+                    <span>{{ low_stock_count }} Low Stock</span>
+                </div>
+            </div>
+            <button class="mgmt-btn" onclick="window.location.href='{% url 'manage_vaccines' %}'">
+                Manage <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Stock Management Card -->
+        <div class="mgmt-card">
+            <div class="mgmt-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="mgmt-content">
+                <h3>Vaccine Stock</h3>
+                <p>Monitor and update stock levels</p>
+                <div class="mgmt-stats">
+                    <span>{{ low_stock_count }} Alerts</span>
+                    <span>{{ total_vaccines }} Items</span>
+                </div>
+            </div>
+            <button class="mgmt-btn" onclick="window.location.href='{% url 'vaccine_stock_level' %}'">
+                View Stock <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Vaccination Records Card -->
+        <div class="mgmt-card">
+            <div class="mgmt-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="mgmt-content">
+                <h3>Vaccination Records</h3>
+                <p>View and manage vaccination history</p>
+                <div class="mgmt-stats">
+                    <span>{{ total_records }} Records</span>
+                    <span>{{ active_batches_count }} Active Batches</span>
+                </div>
+            </div>
+            <button class="mgmt-btn" onclick="window.location.href='{% url 'vaccination_list' %}'">
+                View Records <i class="fas fa-arrow-right"></i>
             </button>
         </div>
     </div>
 
-    <!-- Main Grid -->
-    <div class="vaccine-grid">
-        <!-- Vaccine Management Card -->
-        <div class="vaccine-card manage-vaccines">
-            <div class="card-icon">
-                <i class="fas fa-syringe"></i>
-            </div>
-            <div class="card-content">
-                <h3>Manage Vaccines</h3>
-                <p>Add, update, and manage vaccine inventory</p>
-                <div class="card-stats">
-                    <div class="stat">
-                        <span class="stat-value">{{ total_vaccines }}</span>
-                        <span class="stat-label">Total Vaccines</span>
+    <!-- Vaccination Grid -->
+    <div class="vaccination-grid">
+        <!-- Today's Vaccinations -->
+        <div class="vaccination-section">
+            <h2><i class="fas fa-calendar-day"></i> Today's Vaccinations</h2>
+            <div class="vaccination-list">
+                {% if today_vaccinations %}
+                    {% for vacc in today_vaccinations %}
+                    <div class="list-item">
+                        <div class="item-main">
+                            <div class="item-header">
+                                <h3>{{ vacc.vaccination_name }}</h3>
+                                <span class="badge bg-primary">Day {{ vacc.scheduled_day }}</span>
+                            </div>
+                            <div class="item-info">
+                                <span><i class="fas fa-warehouse"></i> {{ vacc.farm_name }}</span>
+                                <span><i class="fas fa-calendar"></i> {{ vacc.due_date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <a href="{% url 'assign_vaccination' %}?batch_id={{ vacc.batch.id }}&vaccination_day={{ vacc.scheduled_day }}" 
+                           class="btn btn-primary schedule-btn">Schedule</a>
                     </div>
-                </div>
-                <a href="{% url 'manage_vaccines' %}" class="card-action">
-                    Manage Now <i class="fas fa-arrow-right"></i>
-                </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No vaccinations for today</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Vaccination Records Card -->
-        <div class="vaccine-card records">
-            <div class="card-icon">
-                <i class="fas fa-clipboard-list"></i>
-            </div>
-            <div class="card-content">
-                <h3>Vaccination Records</h3>
-                <p>Track and manage vaccination schedules</p>
-                <div class="card-stats">
-                    <div class="stat">
-                        <span class="stat-value">{{ total_records }}</span>
-                        <span class="stat-label">Total Records</span>
+        <!-- Upcoming Vaccinations -->
+        <div class="vaccination-section">
+            <h2><i class="fas fa-calendar-alt"></i> Upcoming Vaccinations</h2>
+            {% if upcoming_vaccinations %}
+                {% for vacc in upcoming_vaccinations %}
+                <div class="list-item">
+                    <div class="item-main">
+                        <div class="item-header">
+                            <h3>{{ vacc.vaccination_name }}</h3>
+                            <span class="badge bg-info">Day {{ vacc.scheduled_day }}</span>
+                        </div>
+                        <div class="item-info">
+                            <span><i class="fas fa-warehouse"></i> {{ vacc.farm_name }}</span>
+                            <span><i class="fas fa-calendar"></i> {{ vacc.due_date|date:"M d, Y" }}</span>
+                            <span><i class="fas fa-clock"></i> In {{ vacc.days_until }} days</span>
+                        </div>
                     </div>
+                    <a href="{% url 'assign_vaccination' %}?batch_id={{ vacc.batch.id }}&vaccination_day={{ vacc.scheduled_day }}" 
+                       class="btn btn-outline schedule-btn">
+                        Schedule Vaccination
+                    </a>
                 </div>
-                <a href="{% url 'manage_records' %}" class="card-action">
-                    View Records <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-check"></i>
+                    <p>No upcoming vaccinations in the next 7 days</p>
+                </div>
+            {% endif %}
         </div>
 
-        <!-- Stock Level Card -->
-        <div class="vaccine-card stock">
-            <div class="card-icon">
-                <i class="fas fa-boxes"></i>
-            </div>
-            <div class="card-content">
-                <h3>Stock Levels</h3>
-                <p>Monitor vaccine inventory and alerts</p>
-                <div class="card-stats">
-                    <div class="stat">
-                        <span class="stat-value">{{ low_stock_count }}</span>
-                        <span class="stat-label">Low Stock Alerts</span>
+        <!-- Pending Vaccinations -->
+        <div class="vaccination-section">
+            <h2><i class="fas fa-clock"></i> Pending Vaccinations</h2>
+            {% if pending_vaccinations %}
+                {% for vacc in pending_vaccinations %}
+                <div class="list-item">
+                    <div class="item-main">
+                        <div class="item-header">
+                            <h3>{{ vacc.vaccination_name }}</h3>
+                            <span class="badge bg-warning">{{ vacc.status }}</span>
+                        </div>
+                        <div class="item-info">
+                            <span><i class="fas fa-warehouse"></i> {{ vacc.farm_name }}</span>
+                            <span><i class="fas fa-calendar"></i> {{ vacc.due_date|date:"M d, Y" }}</span>
+                            {% if vacc.days_past_due > 0 %}
+                            <span class="days-info warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {{ vacc.days_past_due }} days overdue
+                            </span>
+                            {% endif %}
+                        </div>
                     </div>
+                    <button class="btn btn-warning" onclick="location.href='{% url 'edit_vaccination' vacc.schedule_id %}'">
+                        <i class="fas fa-edit"></i> Update Status
+                    </button>
                 </div>
-                <a href="{% url 'vaccine_stock_level' %}" class="card-action">
-                    Check Stock <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-double"></i>
+                    <p>No pending vaccinations</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -83,75 +187,96 @@
 <style>
     .vaccination-dashboard {
         padding: 2rem;
-        max-width: 1400px;
-        margin-left: var(--sidebar-width);
-        transition: var(--transition);
+        margin-left: calc(var(--sidebar-width) + 1rem);
+        margin-right: 1rem;
+        max-width: calc(100% - var(--sidebar-width) - 2rem);
+        background: #f0f2f5;
+        min-height: calc(100vh - 2rem);
     }
 
-    body.sidebar-collapsed .vaccination-dashboard {
-        margin-left: 70px;
-    }
-
-    .vaccine-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        max-width: 1200px;
-    }
-
-    .page-header {
+    /* Enhanced Header Section */
+    .dashboard-header {
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .header-left h1 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+    }
+
+    .header-left h1 i {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.2rem;
+    }
+
+    .header-stats {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .stat-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+    }
+
+    .stat-pill span {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .stat-pill small {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+
+    .stat-pill.warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    /* Enhanced Management Cards */
+    .management-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
-    .header-content h1 {
-        font-size: 1.8rem;
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .header-content p {
-        color: var(--text-secondary);
-        margin-top: 0.5rem;
-    }
-
-    .btn-outline {
-        padding: 0.75rem 1.5rem;
-        border: 2px solid var(--primary-color);
-        border-radius: 8px;
-        background: transparent;
-        color: var(--primary-color);
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline:hover {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .vaccine-card {
+    .mgmt-card {
         background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
     }
 
-    .vaccine-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    .mgmt-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    .card-icon {
+    .mgmt-icon {
         width: 60px;
         height: 60px;
         border-radius: 12px;
@@ -159,95 +284,204 @@
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
-        margin-bottom: 1.5rem;
     }
 
-    .manage-vaccines .card-icon {
-        background: rgba(52, 152, 219, 0.1);
-        color: #3498db;
+    .mgmt-content {
+        flex: 1;
     }
 
-    .records .card-icon {
-        background: rgba(46, 204, 113, 0.1);
-        color: #2ecc71;
+    .mgmt-content h3 {
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+        font-size: 1.1rem;
     }
 
-    .stock .card-icon {
-        background: rgba(241, 196, 15, 0.1);
-        color: #f1c40f;
+    .mgmt-content p {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
     }
 
-    .card-content h3 {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-        color: var(--primary-color);
-    }
-
-    .card-content p {
-        color: var(--text-secondary);
-        margin-bottom: 1.5rem;
-    }
-
-    .card-stats {
-        padding: 1rem 0;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        margin-bottom: 1.5rem;
-    }
-
-    .stat {
+    .mgmt-stats {
         display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
+        gap: 1rem;
+        font-size: 0.85rem;
     }
 
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--primary-color);
+    .mgmt-stats span {
+        color: #6c757d;
+        background: #f8f9fa;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
     }
 
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-    }
-
-    .card-action {
+    .mgmt-btn {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        border-radius: 8px;
+        background: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 500;
+        cursor: pointer;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 1rem;
-        background: var(--light-bg);
-        border-radius: 8px;
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
+        gap: 0.5rem;
         transition: all 0.3s ease;
     }
 
-    .card-action:hover {
-        background: var(--primary-color);
+    .mgmt-btn:hover {
+        background: #e9ecef;
+    }
+
+    /* Enhanced Vaccination Sections */
+    .vaccination-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid rgba(52, 152, 219, 0.1);
+    }
+
+    .vaccination-section h2 {
+        font-size: 1.3rem;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f2f5;
+        font-weight: 600;
+    }
+
+    .list-item {
+        background: linear-gradient(135deg, #fff, #f8f9fa);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(52, 152, 219, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .list-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    /* Enhanced Buttons */
+    .card-action {
+        background: linear-gradient(45deg, #3498db, #2980b9);
         color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .card-action:hover {
+        background: linear-gradient(45deg, #2980b9, #2573a7);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .card-action i {
+        transition: transform 0.3s ease;
+    }
+
+    .card-action:hover i {
+        transform: translateX(5px);
+    }
+
+    /* Responsive Improvements */
+    @media (max-width: 1400px) {
+        .vaccination-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .management-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     @media (max-width: 768px) {
         .vaccination-dashboard {
-            padding: 1rem;
-            margin-left: 70px;
+            margin-left: 1rem;
+            margin-right: 1rem;
+            max-width: calc(100% - 2rem);
         }
 
-        body.sidebar-collapsed .vaccination-dashboard {
-            margin-left: 0;
-        }
-
-        .page-header {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
-        }
-
-        .vaccine-grid {
+        .management-cards,
+        .vaccination-grid {
             grid-template-columns: 1fr;
         }
+    }
+
+    .vaccination-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .vaccination-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        height: fit-content;
+    }
+
+    .vaccination-section h2 {
+        font-size: 1rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .list-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #eee;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-header h3 {
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .item-info {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 1rem;
+        color: #6c757d;
+        font-size: 0.9rem;
     }
 </style>
 {% endblock %} 

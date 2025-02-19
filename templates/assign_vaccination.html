@@ -1,0 +1,158 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="assign-vaccination">
+    <div class="page-header">
+        <h1><i class="fas fa-syringe"></i> Schedule Vaccination</h1>
+    </div>
+
+    <div class="form-container">
+        <div class="info-cards">
+            <!-- Batch Details Card -->
+            <div class="info-card">
+                <h3>Batch Details</h3>
+                <div class="info-content">
+                    <p><strong>Batch Number:</strong> {{ batch.batch_number }}</p>
+                    <p><strong>Farm:</strong> {{ batch.farm.name }}</p>
+                    <p><strong>Chick Count:</strong> {{ batch.initial_chick_count }}</p>
+                </div>
+            </div>
+
+            <!-- Vaccination Details Card -->
+            <div class="info-card">
+                <h3>Vaccination Details</h3>
+                <div class="info-content">
+                    <p><strong>Vaccine:</strong> {{ vaccine.name }}</p>
+                    <p><strong>Day:</strong> {{ vaccination_day }}</p>
+                    <p><strong>Suggested Date:</strong> {{ suggested_date|date:"F j, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="vaccination-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="vaccination_date">Vaccination Date</label>
+                <input type="date" name="vaccination_date" id="vaccination_date" 
+                       value="{{ suggested_date|date:'Y-m-d' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea name="notes" id="notes" rows="3" 
+                          placeholder="Add any additional notes here..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'vaccination_main' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">Schedule Vaccination</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .assign-vaccination {
+        padding: 2rem;
+        margin-left: var(--sidebar-width);
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #2c3e50;
+        font-size: 1.8rem;
+    }
+
+    .form-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .info-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-card h3 {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .info-content p {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .vaccination-form {
+        margin-top: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-primary {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #e9ecef;
+        color: #2c3e50;
+    }
+</style>
+{% endblock %} 

@@ -2,6 +2,9 @@ from decimal import Decimal
 from django.db import models
 from stakeholder.models import ChickBatch
 from user.models import User
+from django.contrib.auth import get_user_model
+from decimal import Decimal
+
 
 
 class HotelUser(models.Model):
@@ -217,3 +220,97 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"CartItem of {self.cart.user.email} - {self.chick_batch} ({self.item_type})"
+
+User = get_user_model()
+
+class Wallet(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    loyalty_points = models.IntegerField(default=0)
+    membership_tier = models.CharField(max_length=20, default='Silver', choices=[
+        ('Silver', 'Silver'),
+        ('Gold', 'Gold'),
+        ('Platinum', 'Platinum'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Wallet of {self.user.get_full_name()} (Balance: ₹{self.balance})"
+    
+    def add_funds(self, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+        self.balance += Decimal(amount)
+        self.save()
+        WalletTransaction.objects.create(
+            wallet=self,
+            amount=amount,
+            transaction_type='credit',
+            description=f"Added funds: ₹{amount}"
+        )
+
+    def deduct_funds(self, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+        if self.balance < amount:
+            raise ValueError("Insufficient balance.")
+        self.balance -= Decimal(amount)
+        self.save()
+        WalletTransaction.objects.create(
+            wallet=self,
+            amount=amount,
+            transaction_type='debit',
+            description=f"Deducted funds: ₹{amount}"
+        )
+
+    def add_loyalty_points(self, points):
+        if points <= 0:
+            raise ValueError("Points must be greater than zero.")
+        self.loyalty_points += points
+        self.save()
+
+    def upgrade_membership(self):
+        if self.loyalty_points >= 1000 and self.membership_tier != 'Platinum':
+            self.membership_tier = 'Platinum'
+        elif self.loyalty_points >= 500 and self.membership_tier != 'Gold':
+            self.membership_tier = 'Gold'
+        self.save()
+        
+        
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    PAYMENT_METHODS = [
+        ('upi', 'UPI'),
+        ('card', 'Credit/Debit Card'),
+        ('netbanking', 'Net Banking'),
+    ]
+
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    payment_method = models.CharField(
+        max_length=20, 
+        choices=PAYMENT_METHODS,
+        blank=True, 
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.transaction_type.title()} of ₹{self.amount} on {self.created_at}"
+
+    class Meta:
+        ordering = ['-created_at']

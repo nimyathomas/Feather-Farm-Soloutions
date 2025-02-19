@@ -172,25 +172,28 @@ class VaccineForm(forms.ModelForm):
     class Meta:
         model = Vaccine
         fields = [
-            "name",
-            "manufacturer",
-            "vaccination_day",
-            "doses_required",
-            "interval_days",
-            "current_stock",
-            "minimum_stock_level",
-            "batch_number",
-            "expiry_date",
-            "notes"
+            'name',
+            'manufacturer',
+            'batch_number',
+            'vaccination_day',
+            'current_stock',
+            'minimum_stock_level',
+            'doses_required',
+            'interval_days',
+            'expiry_date',
+            'notes'
         ]
         widgets = {
-            'expiry_date': forms.DateInput(attrs={'type': 'date'}),
-            'vaccination_day': forms.Select(
-                attrs={'class': 'form-select'},
-                choices=Vaccine.VACCINATION_DAY_CHOICES
-            ),
-            'interval_days': forms.NumberInput(attrs={'min': '1', 'value': '7'}),
-            'doses_required': forms.NumberInput(attrs={'min': '1', 'value': '1'})
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'manufacturer': forms.TextInput(attrs={'class': 'form-control'}),
+            'batch_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'vaccination_day': forms.Select(attrs={'class': 'form-control'}),
+            'current_stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'minimum_stock_level': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'doses_required': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'interval_days': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 
@@ -212,3 +215,29 @@ class VaccinationRecordForm(forms.ModelForm):
             'scheduled_date': forms.DateInput(attrs={'type': 'date'}),
             'administered_date': forms.DateInput(attrs={'type': 'date'})
         }
+from django import forms
+from user.models import FeedStock
+from decimal import Decimal
+
+class FeedStockForm(forms.ModelForm):
+    class Meta:
+        model = FeedStock
+        fields = ['feed_type', 'number_of_sacks', 'price_per_sack', 'minimum_sacks']
+        
+    def clean_price_per_sack(self):
+        price = self.cleaned_data.get('price_per_sack')
+        if price and price <= 0:
+            raise forms.ValidationError("Price must be greater than 0")
+        return Decimal(str(price))
+
+    def clean_number_of_sacks(self):
+        sacks = self.cleaned_data.get('number_of_sacks')
+        if sacks and sacks <= 0:
+            raise forms.ValidationError("Number of sacks must be greater than 0")
+        return sacks
+
+    def clean_minimum_sacks(self):
+        min_sacks = self.cleaned_data.get('minimum_sacks')
+        if min_sacks and min_sacks <= 0:
+            raise forms.ValidationError("Minimum sacks must be greater than 0")
+        return min_sacks 

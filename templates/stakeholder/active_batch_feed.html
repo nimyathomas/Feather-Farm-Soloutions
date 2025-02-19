@@ -138,42 +138,55 @@
                                     {% csrf_token %}
                                     <input type="hidden" name="week_number" value="{{ data.current_week }}">
                                     
-                                    <!-- Feed Assignment Status Alert -->
-                                    <div class="alert {% if data.available_feed_stocks %}alert-info{% else %}alert-warning{% endif %} mb-3">
+                                    <!-- Week Assignment Status Alert -->
+                                    <div class="alert {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}alert-info{% else %}alert-warning{% endif %} mb-3">
                                         <div class="d-flex align-items-center">
-                                            <i class="fas {% if data.available_feed_stocks %}fa-info-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+                                            <i class="fas {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}fa-info-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
                                             <div>
-                                                <strong>Week {{ data.current_week }} - {{ data.feed_type }}</strong><br>
-                                                {% if data.available_feed_stocks %}
-                                                    <span class="text-success">Available stock: {{ data.available_feed_stocks.0.number_of_sacks }} sacks</span>
+                                                {% if data.current_week == 1 %}
+                                                    <strong>Start Week 1 Assignment</strong><br>
+                                                    <span class="text-success">Ready to assign feed for the first week</span>
+                                                {% elif data.current_week|add:'-1' in data.assigned_weeks %}
+                                                    <strong>Week {{ data.current_week }} - {{ data.feed_type }}</strong><br>
+                                                    <span class="text-success">Previous week assigned. Ready for Week {{ data.current_week }}</span>
                                                 {% else %}
-                                                    <span class="text-danger">No feed stock available for {{ data.feed_type }}</span>
-                                                    <a href="{% url 'feed_manage' %}" class="alert-link">Add Feed Stock</a>
+                                                    <strong>Week {{ data.current_week }} - Blocked</strong><br>
+                                                    <span class="text-danger">Must assign Week {{ data.current_week|add:'-1' }} first</span>
+                                                    <a href="#" class="alert-link" onclick="scrollToPreviousWeek({{ data.current_week|add:'-1' }})">Go to Week {{ data.current_week|add:'-1' }}</a>
                                                 {% endif %}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {% if data.available_feed_stocks %}
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Number of Sacks to Assign</label>
-                                            <input type="number" 
-                                                   name="sacks_assigned" 
-                                                   class="form-control" 
-                                                   value="{{ data.recommended_sacks }}"
-                                                   min="1" 
-                                                   max="{{ data.available_feed_stocks.0.number_of_sacks }}"
-                                                   required>
-                                            <small class="text-muted">Recommended: {{ data.recommended_sacks }} sacks</small>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">&nbsp;</label>
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-check me-2"></i>Assign Feed
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <!-- Feed Stock Selection -->
+                                    {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}
+                                        {% if data.available_feed_stocks %}
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Number of Sacks to Assign</label>
+                                                    <input type="number" 
+                                                           name="sacks_assigned" 
+                                                           class="form-control" 
+                                                           value="{{ data.recommended_sacks }}"
+                                                           min="1" 
+                                                           max="{{ data.available_feed_stocks.0.number_of_sacks }}"
+                                                           required>
+                                                    <small class="text-muted">Recommended: {{ data.recommended_sacks }} sacks</small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">&nbsp;</label>
+                                                    <button type="submit" class="btn btn-primary w-100">
+                                                        <i class="fas fa-check me-2"></i>Assign Feed for Week {{ data.current_week }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                No feed stock available for {{ data.feed_type }}
+                                                <a href="{% url 'feed_manage' %}" class="alert-link">Add Feed Stock</a>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                 </form>
                             </div>
@@ -292,6 +305,54 @@
     cursor: pointer;
     margin: 0;
 }
+
+/* Add these styles */
+.highlight-week {
+    animation: pulse 2s;
+}
+
+@keyframes pulse {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(255, 193, 7, 0.2); }
+    100% { background-color: transparent; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.feed-changed {
+    animation: slideIn 0.5s ease-out;
+}
+
+.alert {
+    transition: all 0.3s ease;
+}
+
+.alert:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.feed-assignment-section {
+    transition: all 0.3s ease;
+}
+
+.feed-assignment-form button {
+    transition: all 0.2s ease;
+}
+
+.feed-assignment-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 </style>
 
 <script>
@@ -329,6 +390,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.value = selectedRadio.dataset.available;
             }
         });
+    });
+
+    function scrollToPreviousWeek(weekNumber) {
+        const weekElements = document.querySelectorAll(`[data-week="${weekNumber}"]`);
+        if (weekElements.length > 0) {
+            weekElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            weekElements[0].classList.add('highlight-week');
+            setTimeout(() => {
+                weekElements[0].classList.remove('highlight-week');
+            }, 2000);
+        }
+    }
+
+    // Auto-transition animation
+    const transitionAlerts = document.querySelectorAll('.feed-changed');
+    transitionAlerts.forEach(alert => {
+        alert.style.animation = 'slideIn 0.5s ease-out';
     });
 });
 </script>

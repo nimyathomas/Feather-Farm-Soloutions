@@ -1,0 +1,166 @@
+{% extends 'stakeholder.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container py-4">
+    <h2>Scan Vaccination QR Code</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Vaccination Details</h5>
+                    <p><strong>Farm:</strong> {{ vaccination.batch.farm.name }}</p>
+                    <p><strong>Batch:</strong> {{ vaccination.batch.batch_number }}</p>
+                    <p><strong>Vaccine:</strong> {{ vaccination.vaccine.name }}</p>
+                    <p><strong>Date:</strong> {{ vaccination.vaccination_date }}</p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h5>Step 1: Scan QR Code</h5>
+                <p class="text-muted">Use your device's camera to scan the vaccination QR code</p>
+                
+                <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                <div id="qr-reader-results"></div>
+                
+                <div class="alert alert-info mt-3" id="location-status">
+                    Getting your location...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let currentLat, currentLng;
+let html5QrcodeScanner;
+
+// Helper functions
+function showError(message) {
+    const resultsDiv = document.getElementById('qr-reader-results');
+    resultsDiv.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+
+function showSuccess(message) {
+    const resultsDiv = document.getElementById('qr-reader-results');
+    resultsDiv.innerHTML = `<div class="alert alert-success">${message}</div>`;
+}
+
+function stopScanning() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+    }
+}
+
+function initQRScanner() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+    }
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", { fps: 10, qrbox: 250 }
+    );
+    html5QrcodeScanner.render(onScanSuccess);
+}
+
+function verifyLocationAndSubmit() {
+    showSuccess('QR code verified! Submitting location...');
+    
+    fetch('{% url "stakeholder_scan_qr" vaccination.pk %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            latitude: currentLat,
+            longitude: currentLng
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Location verified! Redirecting...');
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
+        } else {
+            showError(data.message || 'Error verifying location');
+            initQRScanner();
+        }
+    })
+    .catch(error => {
+        showError('Error submitting data: ' + error.message);
+        initQRScanner();
+    });
+}
+
+function onScanSuccess(decodedText) {
+    try {
+        console.log('Raw scanned data:', decodedText);
+        
+        // Direct comparison with verification code
+        if (decodedText === '{{ vaccination.verification_code }}') {
+            console.log('Verification successful!');
+            stopScanning();
+            verifyLocationAndSubmit();
+        } else {
+            console.error('Verification failed:', {
+                expected: '{{ vaccination.verification_code }}',
+                received: decodedText
+            });
+            showError('Invalid QR code for this vaccination.');
+        }
+    } catch (e) {
+        console.error('QR code parsing error:', e);
+        showError('Invalid QR code format. Please try again.');
+    }
+}
+
+// Get user's location
+navigator.geolocation.getCurrentPosition(
+    function(position) {
+        currentLat = position.coords.latitude;
+        currentLng = position.coords.longitude;
+        document.getElementById('location-status').innerHTML = 'Location acquired';
+        // Initialize scanner after getting location
+        initQRScanner();
+    },
+    function(error) {
+        document.getElementById('location-status').innerHTML = 
+            'Error getting location: ' + error.message;
+        showError('Location access is required for scanning');
+    }
+);
+</script>
+
+<style>
+.qr-code-display {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#qr-reader {
+    margin-top: 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#qr-reader-results {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.location-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+</style>
+{% endblock %} 

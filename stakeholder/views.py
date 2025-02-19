@@ -55,6 +55,21 @@ from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.urls import reverse
 
+from user.models import Vaccine  # Import from user app instead of stakeholder
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.contrib import messages
+from django.conf import settings
+from datetime import datetime
+from django.http import JsonResponse
+from django.db.models import F
+from .models import ChickBatch, VaccinationSchedule  # Add this import
+from user.models import Vaccine  # Add this import
+from .models import ChickBatch, VaccinationSchedule, VaccinationAuditLog  # Add VaccinationAuditLog
+
 # At the top of views.py, add this debug code
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
 print(f"\nAttempting to load model from: {MODEL_PATH}")
@@ -573,8 +588,7 @@ def list_daily_data(request, batch_id):
 
     # Implement pagination
     paginator = Paginator(daily_data_records, 10)  # Show 10 records per page
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get("page"))
     # Choose the form based on the batch status
     if batch.batch_status == "completed":
         form_class = CompletedBatchUpdateForm
@@ -1203,36 +1217,97 @@ def add_feed_stock(request):
         form = FeedStockForm()  # Initialize an empty form for GET requests
 
     return render(request, 'stakeholder/feed_form.html', {'form': form})
-
-
-
-
+@login_required
+def feed_stock_create(request):
+    """Create new feed stock"""
+    if not request.user.is_staff:
+        messages.error(request, 'Only admin can add feed stock')
+        return redirect('feed_manage')
+        
+    if request.method == 'POST':
+        try:
+            # Get form data
+            feed_type = request.POST.get('feed_type')
+            number_of_sacks = int(request.POST.get('number_of_sacks'))
+            price_per_sack = Decimal(request.POST.get('price_per_sack'))
+            minimum_sacks = int(request.POST.get('minimum_sacks'))
+            
+            # Create new feed stock
+            FeedStock.objects.create(
+                feed_type=feed_type,
+                number_of_sacks=number_of_sacks,
+                price_per_sack=price_per_sack,
+                minimum_sacks=minimum_sacks
+            )
+            
+            messages.success(request, 'Feed stock added successfully')
+            
+        except ValueError as e:
+            messages.error(request, f'Invalid value: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Error creating feed stock: {str(e)}')
+            
+    return redirect('feed_manage')
+def update_feed_stock(request, feed_id):
+    """Update feed stock"""
+    if request.method == 'POST':
+        try:
+            feed_stock = get_object_or_404(FeedStock, id=feed_id)
+            
+            # Update the feed stock with form data
+            feed_stock.feed_type = request.POST.get('feed_type')
+            feed_stock.number_of_sacks = int(request.POST.get('number_of_sacks'))
+            feed_stock.price_per_sack = Decimal(request.POST.get('price_per_sack'))
+            feed_stock.minimum_sacks = int(request.POST.get('minimum_sacks'))
+            feed_stock.save()
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Successfully updated {feed_stock.get_feed_type_display()}'
+                })
+            
+            messages.success(request, f'Successfully updated {feed_stock.get_feed_type_display()}')
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': str(e)
+                }, status=400)
+            
+            messages.error(request, f'Error updating feed stock: {str(e)}')
+    
+    return redirect('feed_manage')
+    
+    
+    
 @login_required
 def feed_manage(request):
     """Feed management view"""
     feed_stocks = FeedStock.objects.all()
 
     if request.method == 'POST':
-        # Check if it's an edit or add operation
-        if 'edit' in request.POST:
-            # Edit existing feed stock
-            feed_stock = get_object_or_404(FeedStock, pk=request.POST.get('id'))
-            form = FeedStockForm(request.POST, instance=feed_stock)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Feed stock updated successfully!')
-                return redirect('feed_manage')
-            else:
-                messages.error(request, 'Error updating feed stock. Please check the form.')
-        else:
-            # Add new feed stock
-            form = FeedStockForm(request.POST)
-            if form.is_valid():
-                form.save()
+        # Check if it's a delete request
+        if 'delete' in request.POST:
+            return redirect('feed_manage')
+            
+        # Handle add/edit form
+        form = FeedStockForm(request.POST)
+        if form.is_valid():
+            try:
+                feed_stock = form.save()
                 messages.success(request, 'Feed stock added successfully!')
                 return redirect('feed_manage')
-            else:
-                messages.error(request, 'Error adding feed stock. Please check the form.')
+            except Exception as e:
+                messages.error(request, f'Error saving feed stock: {str(e)}')
+        else:
+            # Print form errors to console for debugging
+            print("Form errors:", form.errors)
+            error_messages = []
+            for field, errors in form.errors.items():
+                error_messages.append(f"{field}: {', '.join(errors)}")
+            messages.error(request, f"Error in form: {'; '.join(error_messages)}")
     else:
         form = FeedStockForm()
 
@@ -1264,6 +1339,8 @@ def feed_stock_create(request):
            'title': 'Add New Feed Stock'
        }
        return render(request, 'stakeholder/feed_manage.html', context)
+
+
 
 
 @login_required
@@ -1318,21 +1395,45 @@ def update_feed(request):
             
     return redirect('feed_manage')
 
+
+
+
 @login_required
-def delete_feed(request, feed_id):
+def delete_feed_stock(request, feed_id):
     """Delete feed stock"""
     if request.method == 'POST':
         try:
+            # Get the feed stock from user.models.FeedStock
             feed_stock = get_object_or_404(FeedStock, id=feed_id)
-            feed_type = feed_stock.feed_type
-            feed_stock.delete()
-            messages.success(request, f'Successfully deleted {feed_type}')
-        except Exception as e:
-            messages.error(request, f'Error deleting feed stock: {str(e)}')
             
-        return redirect('feed_manage')
-
-
+            # Store the feed type before deletion
+            feed_type = feed_stock.get_feed_type_display()
+            
+            # Delete the feed stock
+            feed_stock.delete()
+            
+            # Return success response
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully deleted {feed_type}'
+            })
+            
+        except FeedStock.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Feed stock not found'
+            }, status=404)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)
 
 def view_stakeholder_view(request, id):
     user = get_object_or_404(User, id=id)
@@ -1823,7 +1924,31 @@ def get_batch_feed_assignments(request, batch_id):
             'success': False,
             'error': str(e)
         }, status=400)
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from user.models import FeedStock
+
+@login_required
+def delete_feed(request, feed_id):
+    """Delete feed stock"""
+    try:
+        feed_stock = get_object_or_404(FeedStock, id=feed_id)
         
+        # Check if feed stock is being used in any FeedAssignment
+        if feed_stock.feedassignment_set.exists():
+            messages.error(request, 'Cannot delete feed stock that is assigned to batches.')
+            return redirect('feed_manage')
+        
+        feed_type = feed_stock.get_feed_type_display()
+        feed_stock.delete()
+        messages.success(request, f'Successfully deleted {feed_type}')
+        
+    except Exception as e:
+        messages.error(request, f'Error deleting feed stock: {str(e)}')
+    
+    return redirect('feed_manage')
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -1867,3 +1992,743 @@ def feed_tracking_dashboard(request):
         'page_title': 'Feed Tracking'
     }
     return render(request, 'stakeholder/feed_tracking.html', context)
+
+@login_required
+@require_http_methods(["GET"])
+def get_vaccine_details(request, vaccine_id):
+    try:
+        vaccine = Vaccine.objects.get(id=vaccine_id)
+        return JsonResponse({
+            'success': True,
+            'vaccine': {
+                'name': vaccine.name,
+                'manufacturer': vaccine.manufacturer,
+                'vaccination_day': vaccine.vaccination_day,
+                'current_stock': vaccine.current_stock,
+                'minimum_stock_level': vaccine.minimum_stock_level
+            }
+        })
+    except Vaccine.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Vaccine not found'
+        }, status=404)
+
+def validate_vaccine_data(data):
+    errors = []
+    
+    # Name validation
+    name = data.get('name', '').strip()
+    if not name:
+        errors.append('Name is required')
+    elif len(name) > 100:
+        errors.append('Name must be less than 100 characters')
+    elif not name.isalnum():
+        errors.append('Name should only contain letters and numbers')
+    
+    # Manufacturer validation
+    manufacturer = data.get('manufacturer', '').strip()
+    if not manufacturer:
+        errors.append('Manufacturer is required')
+    elif len(manufacturer) > 100:
+        errors.append('Manufacturer must be less than 100 characters')
+    
+    # Vaccination day validation
+    try:
+        vaccination_day = int(data.get('vaccination_day', ''))
+        if vaccination_day not in [7, 14, 21]:
+            errors.append('Invalid vaccination day. Must be 7, 14, or 21')
+    except ValueError:
+        errors.append('Vaccination day must be a number')
+    
+    # Stock validation
+    try:
+        current_stock = int(data.get('current_stock', '0'))
+        if current_stock < 0:
+            errors.append('Current stock cannot be negative')
+    except ValueError:
+        errors.append('Current stock must be a number')
+    
+    try:
+        minimum_stock = int(data.get('minimum_stock_level', '0'))
+        if minimum_stock < 0:
+            errors.append('Minimum stock level cannot be negative')
+    except ValueError:
+        errors.append('Minimum stock level must be a number')
+    
+    # Doses validation
+    try:
+        doses_required = int(data.get('doses_required', '1'))
+        if doses_required < 1:
+            errors.append('Doses required must be at least 1')
+    except ValueError:
+        errors.append('Doses required must be a number')
+    
+    try:
+        interval_days = int(data.get('interval_days', '0'))
+        if interval_days < 0:
+            errors.append('Interval days cannot be negative')
+    except ValueError:
+        errors.append('Interval days must be a number')
+    
+    return errors
+
+@login_required
+def add_vaccine(request):
+    if request.method == 'POST':
+        # Validate the data
+        errors = validate_vaccine_data(request.POST)
+        if errors:
+            return JsonResponse({
+                'success': False,
+                'message': 'Validation errors: ' + ', '.join(errors)
+            }, status=400)
+        
+        try:
+            # Create vaccine with validated data
+            vaccine = Vaccine.objects.create(
+                name=request.POST.get('name').strip(),
+                manufacturer=request.POST.get('manufacturer').strip(),
+                vaccination_day=int(request.POST.get('vaccination_day')),
+                current_stock=int(request.POST.get('current_stock', 0)),
+                minimum_stock_level=int(request.POST.get('minimum_stock_level', 10)),
+                doses_required=int(request.POST.get('doses_required', 1)),
+                interval_days=int(request.POST.get('interval_days', 0))
+            )
+            
+            # Update stock status
+            if vaccine.current_stock <= 0:
+                vaccine.stock_status = 'OUT_OF_STOCK'
+            elif vaccine.current_stock <= vaccine.minimum_stock_level:
+                vaccine.stock_status = 'LOW_STOCK'
+            else:
+                vaccine.stock_status = 'IN_STOCK'
+            
+            vaccine.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Vaccine added successfully'
+            })
+        except Exception as e:
+            print(f"Error adding vaccine: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
+
+@login_required
+def update_vaccine(request, vaccine_id):
+    if request.method == 'POST':
+        # Validate the data
+        errors = validate_vaccine_data(request.POST)
+        if errors:
+            return JsonResponse({
+                'success': False,
+                'message': 'Validation errors: ' + ', '.join(errors)
+            }, status=400)
+        
+        try:
+            vaccine = Vaccine.objects.get(id=vaccine_id)
+            
+            # Update with validated data
+            vaccine.name = request.POST.get('name').strip()
+            vaccine.manufacturer = request.POST.get('manufacturer').strip()
+            vaccine.vaccination_day = int(request.POST.get('vaccination_day'))
+            vaccine.current_stock = int(request.POST.get('current_stock'))
+            vaccine.minimum_stock_level = int(request.POST.get('minimum_stock_level'))
+            vaccine.doses_required = int(request.POST.get('doses_required', 1))
+            vaccine.interval_days = int(request.POST.get('interval_days', 0))
+            
+            # Update stock status
+            if vaccine.current_stock <= 0:
+                vaccine.stock_status = 'OUT_OF_STOCK'
+            elif vaccine.current_stock <= vaccine.minimum_stock_level:
+                vaccine.stock_status = 'LOW_STOCK'
+            else:
+                vaccine.stock_status = 'IN_STOCK'
+            
+            vaccine.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Vaccine updated successfully'
+            })
+        except Vaccine.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Vaccine not found'
+            }, status=404)
+        except Exception as e:
+            print(f"Error updating vaccine: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    }, status=405)
+
+@login_required
+@require_http_methods(["POST"])
+def delete_vaccine(request, vaccine_id):
+    if request.method == 'POST':
+        try:
+            vaccine = Vaccine.objects.get(id=vaccine_id)
+            vaccine.delete()
+            return JsonResponse({
+                'success': True,
+                'message': 'Vaccine deleted successfully'
+            })
+        except Vaccine.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Vaccine not found'
+            }, status=404)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    }, status=405)
+
+@login_required
+def manage_vaccines(request):
+    vaccines = Vaccine.objects.all().order_by('vaccination_day')
+    print(f"Number of vaccines found: {vaccines.count()}")
+    for vaccine in vaccines:
+        print(f"Vaccine: {vaccine.name}, Day: {vaccine.vaccination_day}")
+    
+    context = {
+        'vaccines': vaccines,
+        'page_title': 'Manage Vaccines',
+        'debug': True  # Add this for template debugging
+    }
+    
+    return render(request, 'manage_vaccines.html', context)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.contrib import messages
+from django.conf import settings
+from datetime import datetime
+from django.http import JsonResponse
+from django.db.models import F
+from .models import ChickBatch, VaccinationSchedule  # Add this import
+from user.models import Vaccine  # Add this import
+
+@login_required
+def assign_vaccination(request):
+    batch_id = request.GET.get('batch_id')
+    vaccination_day = request.GET.get('vaccination_day')
+    
+    try:
+        batch = ChickBatch.objects.get(id=batch_id)
+        vaccine = Vaccine.objects.filter(vaccination_day=vaccination_day).first()
+        
+        context = {
+            'batch': batch,
+            'vaccine': vaccine,
+            'vaccination_day': vaccination_day,
+        }
+        
+        if request.method == 'POST':
+            # Convert vaccination_date string to datetime
+            vaccination_date_str = request.POST.get('vaccination_date')
+            try:
+                vaccination_date = datetime.strptime(vaccination_date_str, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                vaccination_date = batch.batch_date + timezone.timedelta(days=int(vaccination_day))
+
+            # Create vaccination schedule
+            vaccination = VaccinationSchedule.objects.create(
+                batch=batch,
+                vaccine=vaccine,
+                vaccination_date=vaccination_date,
+                notes=request.POST.get('notes', ''),
+                farm_coordinates=f"{batch.farm.latitude},{batch.farm.longitude}"  # Add this line
+            )
+            
+            # QR code will be automatically generated in the save method
+            
+            # Prepare email
+            subject = f'Vaccination Schedule - Day {vaccination_day}'
+            email_context = {
+                'batch': batch,
+                'vaccine': vaccine,
+                'vaccination_date': vaccination_date,
+            }
+            
+            html_message = render_to_string('stakeholder/email/vaccination_schedule.html', email_context)
+
+            # Get the farm owner's email
+            if batch.farm:
+                recipient_email = batch.farm.owner.email
+            else:
+                messages.warning(request, 'No farm owner found, sending email to assigning user')
+                recipient_email = request.user.email
+
+            # Send email
+            email = EmailMessage(
+                subject=subject,
+                body=html_message,
+                from_email=settings.EMAIL_HOST_USER,
+                to=[recipient_email],
+            )
+            email.content_subtype = 'html'
+            try:
+                email.send()
+                messages.success(request, f'Vaccination scheduled successfully and notification sent to {recipient_email}')
+            except Exception as e:
+                messages.warning(request, f'Vaccination scheduled but email could not be sent: {str(e)}')
+
+            return redirect('vaccination_list')
+            
+        return render(request, 'assign_vaccination.html', context)
+        
+    except (ChickBatch.DoesNotExist, Vaccine.DoesNotExist) as e:
+        messages.error(request, str(e))
+        return redirect('vaccination_main')
+
+@login_required
+def vaccination_main(request):
+    try:
+        today = timezone.now().date()
+        
+        # Get active batches
+        active_batches = ChickBatch.objects.filter(batch_status="active")
+        
+        today_vaccinations = []
+        upcoming_vaccinations = []
+        pending_vaccinations = []
+        
+        for batch in active_batches:
+            current_age = (today - batch.batch_date).days
+            
+            # Define vaccination schedule
+            vaccination_days = [
+                {'day': 7, 'name': 'First Vaccination'},
+                {'day': 14, 'name': 'Second Vaccination'},
+                {'day': 21, 'name': 'Third Vaccination'}
+            ]
+            
+            for schedule in vaccination_days:
+                vaccination_day = schedule['day']
+                vaccination_date = batch.batch_date + timezone.timedelta(days=vaccination_day)
+                days_until = (vaccination_date - today).days
+                
+                vaccination_info = {
+                    'batch': batch,
+                    'batch_uuid': batch.batch_uuid,
+                    'farm_name': batch.farm.name if batch.farm else 'No Farm',
+                    'vaccination_name': schedule['name'],
+                    'scheduled_day': vaccination_day,
+                    'due_date': vaccination_date,
+                    'days_until': days_until,
+                    'days_past_due': abs(days_until) if days_until < 0 else 0,
+                    'current_age': current_age,
+                    'chick_count': batch.initial_chick_count
+                }
+                
+                # Check if this vaccination is already recorded
+                existing_vaccination = VaccinationSchedule.objects.filter(
+                    batch=batch,
+                    vaccination_date=vaccination_date
+                ).first()
+                
+                if existing_vaccination:
+                    if existing_vaccination.status != 'completed':
+                        pending_vaccinations.append({
+                            **vaccination_info,
+                            'status': existing_vaccination.status,
+                            'schedule_id': existing_vaccination.id
+                        })
+                else:
+                    # Not yet scheduled
+                    if days_until == 0:
+                        today_vaccinations.append(vaccination_info)
+                    elif days_until > 0 and days_until <= 7:  # Next 7 days
+                        upcoming_vaccinations.append(vaccination_info)
+
+        context = {
+            'total_vaccines': Vaccine.objects.count(),
+            'total_records': VaccinationSchedule.objects.count(),
+            'low_stock_count': Vaccine.objects.filter(current_stock__lte=F('minimum_stock_level')).count(),
+            'active_batches': active_batches,
+            'active_batches_count': active_batches.count(),
+            'today_vaccinations': today_vaccinations,
+            'pending_vaccinations': pending_vaccinations,
+            'upcoming_vaccinations': upcoming_vaccinations,
+            'today_date': today,
+            'week_end': today + timezone.timedelta(days=7)
+        }
+        
+        return render(request, 'vaccination_main.html', context)
+    except Exception as e:
+        print(f"Error in vaccination_main: {str(e)}")
+        return render(request, 'vaccination_main.html', {
+            'error': f"An error occurred: {str(e)}"
+        })
+
+@login_required
+def delete_vaccination(request, schedule_id):
+    try:
+        # Get the vaccination schedule
+        schedule = get_object_or_404(VaccinationSchedule, id=schedule_id)
+        
+        # Delete the schedule
+        schedule.delete()
+        
+        # Return success response if AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Vaccination schedule deleted successfully'
+            })
+            
+        # Redirect to list view if regular request
+        messages.success(request, 'Vaccination schedule deleted successfully')
+        return redirect('vaccination_list')
+        
+    except Exception as e:
+        # Handle errors
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+            
+        messages.error(request, f'Error deleting vaccination schedule: {str(e)}')
+        return redirect('vaccination_list')
+
+@login_required
+def edit_vaccination(request, schedule_id):
+    # Get the vaccination schedule
+    schedule = get_object_or_404(VaccinationSchedule, id=schedule_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update the schedule with new data
+            schedule.vaccination_date = request.POST.get('vaccination_date')
+            schedule.notes = request.POST.get('notes')
+            
+            # Update status if provided
+            new_status = request.POST.get('status')
+            if new_status:
+                schedule.status = new_status
+                
+            # Save the changes
+            schedule.save()
+            
+            # Return JSON response for AJAX requests
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Vaccination schedule updated successfully'
+                })
+            
+            # Redirect with success message for regular requests
+            messages.success(request, 'Vaccination schedule updated successfully')
+            return redirect('vaccination_list')
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e)
+                }, status=400)
+            
+            messages.error(request, f'Error updating vaccination schedule: {str(e)}')
+            return redirect('vaccination_list')
+    
+    # For GET requests, return the schedule details
+    context = {
+        'schedule': schedule,
+        'vaccines': Vaccine.objects.all(),
+        'statuses': VaccinationSchedule.STATUS_CHOICES
+    }
+    return render(request, 'stakeholder/edit_vaccination.html', context)
+
+@login_required
+def vaccination_list(request):
+    vaccinations = VaccinationSchedule.objects.all().order_by('-vaccination_date')
+    return render(request, 'stakeholder/vaccination_list.html', {
+        'vaccinations': vaccinations
+    })
+
+@login_required
+def stakeholder_vaccination_list(request):
+    """View for stakeholders to see vaccinations for their farms"""
+    # Get farms owned by the stakeholder
+    stakeholder_farms = Farm.objects.filter(owner=request.user)
+    
+    # Get vaccinations for all batches in their farms
+    vaccinations = VaccinationSchedule.objects.filter(
+        batch__farm__in=stakeholder_farms
+    ).order_by('vaccination_date')
+    
+    upcoming_vaccinations = vaccinations.filter(status='assigned')
+    completed_vaccinations = vaccinations.exclude(status='assigned')
+    
+    context = {
+        'upcoming_vaccinations': upcoming_vaccinations,
+        'completed_vaccinations': completed_vaccinations,
+        'farms': stakeholder_farms,
+    }
+    
+    return render(request, 'stakeholder/stakeholder_vaccination_list.html', context)  # Changed template path
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.urls import reverse
+from django.contrib import messages
+from .models import VaccinationSchedule
+
+@login_required
+def scan_qr_code(request, pk):
+    # Get vaccination and verify it belongs to user's farm
+    vaccination = get_object_or_404(
+        VaccinationSchedule, 
+        pk=pk,
+        batch__farm__owner=request.user,  # Check farm ownership instead of assignment
+        status='assigned'  # Only allow scanning of assigned vaccinations
+    )
+    
+    if request.method == 'POST':
+        scan_lat = request.POST.get('latitude')
+        scan_lng = request.POST.get('longitude')
+        
+        if not all([scan_lat, scan_lng]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Location data is required'
+            })
+            
+        try:
+            # Update vaccination status
+            vaccination.status = 'qr_scanned'
+            vaccination.scan_coordinates = f"{scan_lat},{scan_lng}"
+            vaccination.save()
+            
+            # Create audit log
+            VaccinationAuditLog.objects.create(
+                vaccination=vaccination,
+                action="QR Code Scanned",
+                performed_by=request.user,
+                notes=f"Scanned at coordinates: {scan_lat}, {scan_lng}"
+            )
+            
+            messages.success(request, 'QR code scanned successfully!')
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('upload_vaccination_evidence', args=[pk])
+            })
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return render(request, 'stakeholder/scan_qr.html', {
+        'vaccination': vaccination
+    })
+@login_required
+def stakeholder_scan_qr(request, vaccination_id):
+    """Handle QR code scanning for vaccination verification"""
+    try:
+        # Get the vaccination schedule
+        vaccination = get_object_or_404(
+            VaccinationSchedule, 
+            id=vaccination_id,
+            batch__farm__owner=request.user
+        )
+        
+        if request.method == 'POST':
+            try:
+                # Get location data from request
+                data = json.loads(request.body) if request.body else request.POST
+                latitude = data.get('latitude')
+                longitude = data.get('longitude')
+                
+                if latitude and longitude:
+                    vaccination.scan_coordinates = f"{latitude},{longitude}"
+                
+                # Update status to indicate QR has been scanned
+                vaccination.status = 'qr_scanned'
+                vaccination.save()
+                
+                # Create audit log entry
+                VaccinationAuditLog.objects.create(
+                    vaccination=vaccination,
+                    action="QR Code Scanned",
+                    performed_by=request.user,
+                    notes=f"QR scanned at coordinates: {vaccination.scan_coordinates}"
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'QR code scanned successfully',
+                    'redirect_url': reverse('upload_vaccination_evidence', kwargs={'vaccination_id': vaccination.id})
+                })
+                
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error processing QR code: {str(e)}'
+                }, status=400)
+        
+        # For GET requests, render the scanning page
+        context = {
+            'vaccination': vaccination,
+            'page_title': 'Scan QR Code'
+        }
+        return render(request, 'stakeholder/scan_qr.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error accessing QR scan page: {str(e)}')
+        return redirect('vaccination_list')
+    
+@login_required
+def upload_vaccination_evidence(request, pk):
+    vaccination = get_object_or_404(
+        VaccinationSchedule, 
+        pk=pk,
+        batch__farm__owner=request.user,
+        status='qr_scanned'  # Only allow evidence upload after QR scan
+    )
+    
+    if request.method == 'POST':
+        try:
+            # Handle file uploads
+            vial_photo = request.FILES.get('vial_photo')
+            flock_photo = request.FILES.get('flock_photo')
+            administration_photo = request.FILES.get('administration_photo')
+            
+            if vial_photo:
+                vaccination.vaccine_vial_photo = vial_photo
+            if flock_photo:
+                vaccination.flock_photo = flock_photo
+            if administration_photo:
+                vaccination.administration_photo = administration_photo
+                
+            # Update status
+            vaccination.status = 'evidence_uploaded'
+            vaccination.save()
+            
+            # Create audit log
+            VaccinationAuditLog.objects.create(
+                vaccination=vaccination,
+                action="Evidence Uploaded",
+                performed_by=request.user,
+                notes="Uploaded vaccination evidence photos"
+            )
+            
+            messages.success(request, 'Evidence uploaded successfully!')
+            return redirect('stakeholder_vaccination_list')
+            
+        except Exception as e:
+            messages.error(request, f'Error uploading evidence: {str(e)}')
+            
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.core.exceptions import ValidationError
+from .models import VaccinationSchedule   
+    
+@login_required
+@require_http_methods(["POST"])
+def validate_vaccine_vial(request, schedule_id):
+    """Validate vaccine vial photo and batch number"""
+    try:
+        schedule = get_object_or_404(
+            VaccinationSchedule, 
+            id=schedule_id,
+            batch__farm__owner=request.user
+        )
+        
+        # Check if photo was uploaded
+        if 'vial_photo' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'error': 'No vial photo provided'
+            }, status=400)
+            
+        # Get batch number
+        batch_no = request.POST.get('batch_no')
+        if not batch_no:
+            return JsonResponse({
+                'success': False,
+                'error': 'Batch number is required'
+            }, status=400)
+            
+        try:
+            # Validate and save the vial photo
+            result = schedule.validate_and_save_vial(
+                request.FILES['vial_photo'],
+                batch_no
+            )
+            
+            return JsonResponse(result)
+            
+        except ValidationError as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+            
+    except VaccinationSchedule.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Vaccination schedule not found'
+        }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Unexpected error: {str(e)}'
+        }, status=500)
+
+@login_required
+def delete_feed_stock(request, feed_id):
+    """Delete feed stock"""
+    if request.method == 'POST':
+        try:
+            # Get the feed stock from user.models.FeedStock
+            feed_stock = get_object_or_404(FeedStock, id=feed_id)
+            
+            # Store the feed type before deletion
+            feed_type = feed_stock.get_feed_type_display()
+            
+            # Delete the feed stock
+            feed_stock.delete(confirmDelete=True)
+            
+            # Return success response
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully deleted {feed_type}'
+            })
+            
+        except FeedStock.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Feed stock not found'
+            }, status=404)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)

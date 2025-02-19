@@ -11,51 +11,113 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h5 class="mb-0">Current Stock Status</h5>
+    <div class="row">
+        <!-- Starter Feed Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Day 7 Vaccines</div>
+                            {% for vaccine in vaccines %}
+                                {% if vaccine.vaccination_day == 7 %}
+                                <div class="mt-2">
+                                    <h6>{{ vaccine.name }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Current Stock:</span>
+                                        <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                                            {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                                            {% else %}bg-success{% endif %}">
+                                            {{ vaccine.current_stock }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-syringe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Day 14 Vaccines Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Day 14 Vaccines</div>
+                            {% for vaccine in vaccines %}
+                                {% if vaccine.vaccination_day == 14 %}
+                                <div class="mt-2">
+                                    <h6>{{ vaccine.name }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Current Stock:</span>
+                                        <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                                            {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                                            {% else %}bg-success{% endif %}">
+                                            {{ vaccine.current_stock }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-syringe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day 21 Vaccines Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Day 21 Vaccines</div>
+                            {% for vaccine in vaccines %}
+                                {% if vaccine.vaccination_day == 21 %}
+                                <div class="mt-2">
+                                    <h6>{{ vaccine.name }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Current Stock:</span>
+                                        <span class="badge {% if vaccine.stock_status == 'OUT_OF_STOCK' %}bg-danger
+                                            {% elif vaccine.stock_status == 'LOW_STOCK' %}bg-warning
+                                            {% else %}bg-success{% endif %}">
+                                            {{ vaccine.current_stock }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-syringe fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="card mt-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Stock Summary</h5>
+        </div>
         <div class="card-body">
-            {% include 'vaccine_table.html' %}
+            {% include 'vaccine_table_only.html' %}
         </div>
     </div>
 </div>
 
 <script>
-// Store modal instances
-const modalInstances = {};
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all modals once
-    document.querySelectorAll('.modal').forEach(modalElement => {
-        const modalId = modalElement.id;
-        modalInstances[modalId] = new bootstrap.Modal(modalElement, {
-            backdrop: 'static',
-            keyboard: false
-        });
-
-        // Add cleanup event listener
-        modalElement.addEventListener('hidden.bs.modal', function() {
-            const form = modalElement.querySelector('form');
-            if (form) form.reset();
-        });
-    });
-});
-
-// Function to show modal
-function showModal(modalId) {
-    modalInstances[modalId]?.show();
-}
-
-// Function to hide modal
-function hideModal(modalId) {
-    modalInstances[modalId]?.hide();
-}
-
 // Function to refresh stock data
 async function refreshStockData() {
     try {
@@ -70,64 +132,9 @@ async function refreshStockData() {
         }
         
         const data = await response.json();
-        updateTable(data.vaccines);
+        location.reload(); // Simple refresh for now
     } catch (error) {
         console.error('Error refreshing stock data:', error);
-    }
-}
-
-// Function to update the table with new data
-function updateTable(vaccines) {
-    const tbody = document.querySelector('table tbody');
-    tbody.innerHTML = '';
-    
-    vaccines.forEach(vaccine => {
-        const row = document.createElement('tr');
-        row.dataset.vaccinationDay = vaccine.vaccination_day;
-        
-        row.innerHTML = `
-            <td>${vaccine.name}</td>
-            <td>${vaccine.manufacturer}</td>
-            <td>
-                <span class="badge ${getVaccinationDayClass(vaccine.vaccination_day)}">
-                    ${vaccine.vaccination_day}
-                </span>
-            </td>
-            <td>${vaccine.current_stock}</td>
-            <td>${vaccine.minimum_stock_level}</td>
-            <td>
-                <span class="badge ${getStatusClass(vaccine.stock_status)}">
-                    ${vaccine.stock_status}
-                </span>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="editVaccine(${vaccine.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteVaccine(${vaccine.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function getVaccinationDayClass(day) {
-    switch(day) {
-        case '7th Day': return 'bg-primary';
-        case '14th Day': return 'bg-success';
-        case '21st Day': return 'bg-info';
-        default: return 'bg-secondary';
-    }
-}
-
-function getStatusClass(status) {
-    switch(status) {
-        case 'OUT_OF_STOCK': return 'bg-danger';
-        case 'LOW_STOCK': return 'bg-warning';
-        default: return 'bg-success';
     }
 }
 

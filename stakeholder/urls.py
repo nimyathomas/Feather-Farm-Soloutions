@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import views 
 from user.views import (
     approve_order,
     download_daily_log,
@@ -38,12 +39,11 @@ from user.views import (
     # chat_room
 #     update_location,
     get_vaccine,
-    vaccination_main,
     vaccine_stock_level,
   
    
 )
-from . import views 
+from .views import stakeholder_vaccination_list  # Remove scan_qr_code from import
 
 # app_name='stakeholder'
 urlpatterns = [
@@ -56,6 +56,7 @@ urlpatterns = [
     path("signup/", register, name="signup"),
     path("stakeholder/", views.stakeholder, name="stakeholder"),
     path("stateholder_batch/", views.stateholder_batch, name="stateholder_batch"),
+
     path("admindash/", admindash, name="admindash"),
     path("stakeholderuser/", stakeholderuser, name="stakeholderuser"),
     path("customeruser/", customeruser, name="customeruser"),
@@ -94,7 +95,7 @@ urlpatterns = [
         views.add_or_edit_farm,
         name="stakeholder_registration",
     ),
-    path("vaccination/", vaccination_main, name="vaccination_main"),
+    path("vaccination-main/", views.vaccination_main, name="vaccination_main"),
     path("vaccine_admin/", vaccine_admin, name="vaccine_admin"),
     
     
@@ -171,10 +172,10 @@ urlpatterns = [
     
     path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
     # path('chat/handle/', views.handle_chat, name='handle_chat'),
-    path('manage-vaccines/', manage_vaccines, name='manage_vaccines'),
+    path('manage-vaccines/', views.manage_vaccines, name='manage_vaccines'),
     # path('schedule-vaccination/', views.schedule_vaccination, name='schedule_vaccination'),
     # path('delete-schedule/<int:schedule_id>/', views.delete_vaccination_schedule, name='delete_schedule'),
-    path('add-vaccine/', add_vaccine, name='add_vaccine'),
+    path('add-vaccine/', views.add_vaccine, name='add_vaccine'),
     path('edit-vaccine/<int:vaccine_id>/', edit_vaccine, name='edit_vaccine'),
     path('delete-vaccine/<int:vaccine_id>/', delete_vaccine, name='delete_vaccine'),
     path('get-vaccine/<int:vaccine_id>/', get_vaccine, name='get_vaccine'),
@@ -186,6 +187,9 @@ urlpatterns = [
     path('batches/qrcodes/', views.view_batch_qrcodes, name='view_batch_qrcodes'),
     # path('test-media/<str:filename>/', views.test_media, name='test_media'),
     path('feed-main-dashboard/', views.feed_main_dashboard, name='feed_main_dashboard'),
+    
+    
+    path('feed/manage/', views.feed_manage, name='feed_manage'),
 
     path('feed-dashboard/', views.feed_dashboard, name='feed_dashboard'),
     path('feed-manage/', views.feed_manage, name='feed_manage'),
@@ -193,11 +197,46 @@ urlpatterns = [
 
     path('feed-stock/create/', views.feed_stock_create, name='feed_stock_create'),
     
+    path('feed-stock/update/', views.update_feed_stock, name='update_feed_stock'),
     path('api/calculate-feed/<int:chick_count>/', views.calculate_feed, name='calculate_feed'),
-    
+    path('feed-stock/<int:feed_id>/delete/', views.delete_feed_stock, name='delete_feed_stock'),
+
     
     path('feed/active-batches/', views.active_batches_feed, name='active_batches_feed'),
     path('feed/assign/<int:batch_id>/', views.batch_feed_assignment, name='batch_feed_assignment'),
     path('feed-tracking/', views.feed_tracking_dashboard, name='feed_tracking_dashboard'),
     path('record-feed/<int:batch_id>/', views.record_feed_consumption, name='record_feed_consumption'),
+    path('vaccine/<int:vaccine_id>/details/', views.get_vaccine_details, name='vaccine_details'),
+    path('vaccine/<int:vaccine_id>/update/', views.update_vaccine, name='update_vaccine'),
+    path('vaccine/<int:vaccine_id>/delete/', views.delete_vaccine, name='delete_vaccine'),
+    
+    
+
+
+
+    path('vaccinations/', views.vaccination_list, name='vaccination_list'),
+    path('vaccinations/assign/', views.assign_vaccination, name='assign_vaccination'),
+    path('vaccinations/delete/<int:schedule_id>/', views.delete_vaccination, name='delete_vaccination'),
+    
+    path('vaccinations/edit/<int:schedule_id>/', views.edit_vaccination, name='edit_vaccination'),
+    path('vaccinations/<int:pk>/scan/', views.scan_qr_code, name='stakeholder_scan_qr'),
+    path('vaccinations/<int:pk>/evidence/', 
+         views.upload_vaccination_evidence, 
+         name='upload_vaccination_evidence'),
+    
+    path('my-vaccinations/', views.stakeholder_vaccination_list, name='stakeholder_vaccination_list'),
+    
+    path('my-vaccinations/', 
+         views.stakeholder_vaccination_list, 
+         name='stakeholder_vaccination_list'),
+    
+    path('vaccination/<int:schedule_id>/validate-vial/', 
+         views.validate_vaccine_vial, 
+         name='validate_vaccine_vial'),
+    
+    path('feed/delete/<int:feed_id>/', views.delete_feed, name='delete_feed'),
+    path('feed/manage/', views.feed_manage, name='feed_manage'),
 ]
+    
+    
+
