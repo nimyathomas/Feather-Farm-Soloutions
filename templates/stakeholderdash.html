@@ -28,7 +28,7 @@
         <p>Your farm profile is up to date!</p>
       </div>
     </div>
-    <div class="card float-end" style="width: 18rem;">
+    {% comment %} <div class="card float-end" style="width: 18rem;">
       <div class="card-body text-end">
         <h5 class="card-title">Food Token Gained</h5>
         {% for batch in chick_batches %}
@@ -36,7 +36,7 @@
           <p class="card-text">{{ batch.food_token }}</p>
           {% endfor %}
       </div>
-    </div>
+    </div> {% endcomment %}
     <a
     href="{% url 'forum_dashboard' %}" class="btn btn-primary"
     >Connect with others</a
@@ -96,7 +96,7 @@
         </div>
       </div>
 
-      <div class="dashboard-card chat-card">
+      {% comment %} <div class="dashboard-card chat-card">
         <div class="card-header">
           <i class="fas fa-comments"></i>
           <h2>Farm Assistant</h2>
@@ -122,7 +122,7 @@
             </div>
           </div>
         </div>
-      </div> 
+      </div>  {% endcomment %}
 
     {% if expiry_soon_alert %}
     <div class="alert-box warning expiry-alert">
@@ -147,6 +147,33 @@
 </div>
 
 <style>
+:root {
+  /* Primary Colors - Modern Blue-Green Palette */
+  --primary-dark: #2A9D8F;    /* Teal */
+  --primary-main: #3FB5AA;    /* Sea Green */
+  --primary-light: #7DD1C9;   /* Light Teal */
+  
+  /* Secondary Colors - Warm Accents */
+  --secondary-dark: #E76F51;  /* Coral */
+  --secondary-main: #F4A261;  /* Sandy */
+  --secondary-light: #FFD6BA; /* Peach */
+  
+  /* Background Colors */
+  --bg-primary: #F8F9FA;      /* Off White */
+  --bg-secondary: #FFFFFF;    /* Pure White */
+  
+  /* Text Colors */
+  --text-primary: #264653;    /* Deep Blue */
+  --text-secondary: #546E7A;  /* Blue Gray */
+  --text-light: #90A4AE;     /* Light Blue Gray */
+  
+  /* Status Colors */
+  --success: #2AC769;        /* Fresh Green */
+  --warning: #FFB347;        /* Mango */
+  --danger: #FF7F6E;         /* Coral Red */
+  --info: #4ECDEF;          /* Sky Blue */
+}
+
 .dashboard-container {
   padding: 2rem;
   max-width: 1400px;
@@ -239,14 +266,15 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  background: #f8fafc;
+  background: var(--primary-main);
   border-bottom: 1px solid #e2e8f0;
+  color: white;
 }
 
 .card-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #2d3748;
+  color: white;
 }
 
 .card-body {

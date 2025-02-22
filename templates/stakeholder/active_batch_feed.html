@@ -1,6 +1,17 @@
 {% extends 'admindash.html' %}
 
 {% block body %}
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -115,78 +126,100 @@
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Chicks:</strong> {{ data.batch.initial_chick_count }}</p>
                                 <p class="mb-1"><strong>Start Date:</strong> {{ data.batch.batch_date }}</p>
-                                <p class="mb-1"><strong>Total Sacks Needed:</strong> {{ data.total_sacks_needed }}</p>
+                                <p class="mb-1">
+                                    <strong>Total Sacks Needed:</strong> {{ data.batch.total_feed_sacks }}
+                                </p>
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Sacks Assigned:</strong> {{ data.sacks_assigned }}</p>
                                 <p class="mb-1"><strong>Recommended for Week:</strong> {{ data.recommended_sacks }}</p>
                                 <p class="mb-1">
                                     <strong>Status:</strong>
-                                    {% if data.can_assign %}
-                                        <span class="text-warning">Needs Assignment</span>
+                                    {% if data.current_week in data.assigned_weeks %}
+                                        <span class="text-success">Feed Assigned for Week {{ data.current_week }}</span>
                                     {% else %}
-                                        <span class="text-success">Up to Date</span>
+                                        <span class="text-warning">Needs Assignment</span>
                                     {% endif %}
                                 </p>
                             </div>
                         </div>
+
+                        <!-- Add this after batch info section -->
+                        {% if data.week_changed %}
+                        <div class="alert alert-info feed-changed mb-3">
+                            <i class="fas fa-clock me-2"></i>
+                            <strong>Week Transition:</strong> Batch has entered Week {{ data.current_week }}
+                            {% if data.can_assign %}
+                            <div class="mt-2 small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Ready to assign {{ data.feed_type }} for Week {{ data.next_week }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Update the status display -->
+                        <p class="mb-1">
+                            <strong>Status:</strong>
+                            {% if data.next_week %}
+                                <span class="text-warning">
+                                    Need to assign feed for Week {{ data.next_week }}
+                                    {% if data.next_week < data.current_week %}(Late){% endif %}
+                                </span>
+                            {% else %}
+                                <span class="text-success">All weeks up to current week assigned</span>
+                            {% endif %}
+                        </p>
 
                         <!-- Feed Assignment Form -->
                         {% if data.can_assign %}
                             <div class="feed-assignment-section mt-3">
                                 <form method="post" action="{% url 'batch_feed_assignment' data.batch.id %}" class="feed-assignment-form">
                                     {% csrf_token %}
-                                    <input type="hidden" name="week_number" value="{{ data.current_week }}">
                                     
-                                    <!-- Week Assignment Status Alert -->
-                                    <div class="alert {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}alert-info{% else %}alert-warning{% endif %} mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}fa-info-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
-                                            <div>
-                                                {% if data.current_week == 1 %}
-                                                    <strong>Start Week 1 Assignment</strong><br>
-                                                    <span class="text-success">Ready to assign feed for the first week</span>
-                                                {% elif data.current_week|add:'-1' in data.assigned_weeks %}
-                                                    <strong>Week {{ data.current_week }} - {{ data.feed_type }}</strong><br>
-                                                    <span class="text-success">Previous week assigned. Ready for Week {{ data.current_week }}</span>
-                                                {% else %}
-                                                    <strong>Week {{ data.current_week }} - Blocked</strong><br>
-                                                    <span class="text-danger">Must assign Week {{ data.current_week|add:'-1' }} first</span>
-                                                    <a href="#" class="alert-link" onclick="scrollToPreviousWeek({{ data.current_week|add:'-1' }})">Go to Week {{ data.current_week|add:'-1' }}</a>
-                                                {% endif %}
-                                            </div>
+                                    <!-- Week Selection -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Assigning Feed for Week {{ data.next_week }}</label>
+                                        <input type="hidden" name="week_number" value="{{ data.next_week }}">
+                                        <div class="text-muted small">
+                                            {% if data.next_week < data.current_week %}
+                                                (Late Assignment)
+                                            {% endif %}
                                         </div>
                                     </div>
 
-                                    <!-- Feed Stock Selection -->
-                                    {% if data.current_week == 1 or data.current_week|add:'-1' in data.assigned_weeks %}
-                                        {% if data.available_feed_stocks %}
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Number of Sacks to Assign</label>
-                                                    <input type="number" 
-                                                           name="sacks_assigned" 
-                                                           class="form-control" 
-                                                           value="{{ data.recommended_sacks }}"
-                                                           min="1" 
-                                                           max="{{ data.available_feed_stocks.0.number_of_sacks }}"
-                                                           required>
-                                                    <small class="text-muted">Recommended: {{ data.recommended_sacks }} sacks</small>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary w-100">
-                                                        <i class="fas fa-check me-2"></i>Assign Feed for Week {{ data.current_week }}
-                                                    </button>
-                                                </div>
+                                    <!-- Feed Assignment Form -->
+                                    {% if data.available_feed_stocks %}
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Number of Sacks to Assign</label>
+                                                <input type="number" 
+                                                       name="sacks_assigned" 
+                                                       class="form-control" 
+                                                       value="{{ data.recommended_sacks }}"
+                                                       min="1" 
+                                                       required>
+                                                <small class="text-muted">Recommended: {{ data.recommended_sacks }} sacks</small>
                                             </div>
-                                        {% else %}
-                                            <div class="alert alert-warning">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                No feed stock available for {{ data.feed_type }}
-                                                <a href="{% url 'feed_manage' %}" class="alert-link">Add Feed Stock</a>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Feed Stock</label>
+                                                <select name="feed_stock" class="form-select" required>
+                                                    {% for stock in data.available_feed_stocks %}
+                                                        <option value="{{ stock.id }}">
+                                                            {{ stock.get_feed_type_display }} - {{ stock.number_of_sacks }} sacks available
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
                                             </div>
-                                        {% endif %}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary mt-3">
+                                            <i class="fas fa-check me-2"></i>Assign Feed for Week {{ data.next_week }}
+                                        </button>
+                                    {% else %}
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            No feed stock available for {{ data.feed_type }}
+                                        </div>
                                     {% endif %}
                                 </form>
                             </div>
@@ -210,7 +243,7 @@
                         <!-- Add Feed History Button -->
                         <div class="mt-3">
                             <button type="button" 
-                                    class="btn btn-outline-primary" 
+                                    class="btn btn-info btn-sm" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#feedHistoryModal{{ data.batch.id }}">
                                 <i class="fas fa-history me-2"></i>Feed History
@@ -330,6 +363,7 @@
 
 .feed-changed {
     animation: slideIn 0.5s ease-out;
+    border-left: 4px solid #17a2b8;
 }
 
 .alert {
@@ -420,26 +454,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <!-- Week Transition Alert -->
-                {% if data.week_changed %}
-                <div class="alert alert-info mb-3">
-                    <i class="fas fa-clock me-2"></i>
-                    Batch has entered Week {{ data.current_week }}
-                    {% if data.can_assign %}
-                    <br>
-                    <small>Ready to assign {{ data.feed_type }} for the new week</small>
-                    {% endif %}
-                </div>
-                {% endif %}
-
-                <!-- Feed History Table -->
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>Week</th>
                                 <th>Feed Type</th>
-                                <th>Sacks</th>
+                                <th>Sacks Assigned</th>
                                 <th>Cost/Sack</th>
                                 <th>Total Cost</th>
                                 <th>Date Assigned</th>
@@ -447,21 +468,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             </tr>
                         </thead>
                         <tbody>
-                            {% for week_data in data.weekly_consumption %}
-                            <tr {% if week_data.week == data.current_week %}class="table-warning"{% endif %}>
-                                <td>Week {{ week_data.week }}</td>
-                                <td>{{ week_data.feed_type }}</td>
-                                <td>{{ week_data.sacks_assigned }} sacks</td>
-                                <td>₹{{ week_data.cost_per_sack }}</td>
-                                <td>₹{{ week_data.total_cost }}</td>
-                                <td>{{ week_data.date_assigned|date:"M d, Y" }}</td>
+                            {% for assignment in data.feed_history %}
+                            <tr>
+                                <td>Week {{ assignment.week_number }}</td>
+                                <td>{{ assignment.get_feed_type_display }}</td>
+                                <td>{{ assignment.sacks_assigned }} sacks</td>
+                                <td>₹{{ assignment.cost_per_sack }}</td>
+                                <td>₹{{ assignment.total_cost }}</td>
+                                <td>{{ assignment.assigned_date|date:"M d, Y" }}</td>
                                 <td>
-                                    {% if week_data.week < data.current_week %}
-                                        <span class="badge bg-success">Completed</span>
-                                    {% elif week_data.week == data.current_week %}
-                                        <span class="badge bg-warning">Current</span>
+                                    {% if assignment.is_late %}
+                                        <span class="badge bg-warning">Late Assignment</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Upcoming</span>
+                                        <span class="badge bg-success">On Time</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -471,19 +490,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             </tr>
                             {% endfor %}
                         </tbody>
-                        <!-- Summary Footer -->
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="2"><strong>Total Consumption</strong></td>
-                                <td><strong>{{ data.sacks_assigned }} sacks</strong></td>
-                                <td colspan="2">
-                                    <strong>Total Cost: ₹{{ data.total_feed_cost }}</strong>
-                                </td>
-                                <td colspan="2">
-                                    <span class="badge bg-info">
-                                        Week {{ data.current_week }} of 6
-                                    </span>
-                                </td>
+                        <tfoot>
+                            <tr class="table-info">
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>{{ data.total_assigned }} sacks</strong></td>
+                                <td></td>
+                                <td><strong>₹{{ data.total_cost }}</strong></td>
+                                <td colspan="2"></td>
                             </tr>
                         </tfoot>
                     </table>

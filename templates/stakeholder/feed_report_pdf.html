@@ -93,34 +93,59 @@
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Batch #</th>
-                <th>Farm</th>
-                <th>Feed Type</th>
-                <th>Week</th>
-                <th>Sacks</th>
-                <th>Cost/Sack</th>
-                <th>Total Cost</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for a in assignments %}
-            <tr>
-                <td>{{ a.assigned_date|time:"H:i" }}</td>
-                <td>{{ a.batch.id }}</td>
-                <td>{{ a.batch.farm.name }}</td>
-                <td>{{ a.feed_type }}</td>
-                <td>Week {{ a.week_number }}</td>
-                <td>{{ a.sacks_assigned }}</td>
-                <td>₹{{ a.cost_per_sack|floatformat:2 }}</td>
-                <td>₹{{ a.total_cost|floatformat:2 }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Add this section for debugging -->
+    {% if not assignments %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        No feed assignments found for {{ report_date|date:"F d, Y" }}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Farm</th>
+                    <th>Week</th>
+                    <th>Feed Type</th>
+                    <th>Sacks</th>
+                    <th>Cost/Sack</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td>Batch #{{ assignment.batch.id }}</td>
+                    <td>{{ assignment.batch.farm.farm_name }}</td>
+                    <td>Week {{ assignment.week_number }}</td>
+                    <td>{{ assignment.feed_stock.get_feed_type_display }}</td>
+                    <td>{{ assignment.sacks_assigned }}</td>
+                    <td>₹{{ assignment.cost_per_sack }}</td>
+                    <td>₹{{ assignment.total_cost }}</td>
+                    <td>
+                        {% if assignment.is_late %}
+                        <span class="badge bg-warning">Late</span>
+                        {% else %}
+                        <span class="badge bg-success">On Time</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-info">
+                    <td colspan="4"><strong>Totals</strong></td>
+                    <td><strong>{{ summary.total_sacks }}</strong></td>
+                    <td></td>
+                    <td><strong>₹{{ summary.total_cost }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
     <div class="footer">
         <p>Generated on {{ generated_at|date:"F d, Y" }} at {{ generated_at|time:"H:i" }}</p>

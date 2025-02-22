@@ -2,272 +2,175 @@
 {% load static %}
 
 {% block body %}
-<div class="vaccination-list">
+<div class="container">
     <div class="page-header">
         <h1><i class="fas fa-clipboard-list"></i> Vaccination Records</h1>
     </div>
 
-    <div class="records-container">
-        {% if vaccinations %}
-            <table class="records-table">
-                <thead>
-                    <tr>
-                        <th>Batch</th>
-                        <th>Vaccine</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>QR Code</th>
-                        <th>Assigned By</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vaccination in vaccinations %}
-                    <tr>
-                        <td>{{ vaccination.batch.batch_number }}</td>
-                        <td>{{ vaccination.vaccine.name }}</td>
-                        <td>{{ vaccination.vaccination_date|date:"M d, Y" }}</td>
-                        <td>
-                            <span class="status-badge status-{{ vaccination.status }}">
-                                {{ vaccination.get_status_display }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if vaccination.qr_code %}
-                                <!-- Debug info -->
-                                <div style="display: none;">
-                                    QR Code URL: {{ vaccination.qr_code.url }}
-                                    Media URL: {{ MEDIA_URL }}
-                                    Base URL: {{ BASE_URL }}
-                                </div>
-                                <img src="{{ vaccination.qr_code.url }}" 
-                                     alt="QR Code" 
-                                     class="qr-code-thumbnail"
-                                     data-bs-toggle="modal"
-                                     data-bs-target="#qrModal{{ vaccination.id }}"
-                                     onerror="console.log('Error loading image:', this.src);"
-                                >
-                                
-                                <!-- QR Code Modal -->
-                                <div class="modal fade qr-modal" id="qrModal{{ vaccination.id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-qrcode me-2"></i>
-                                                    Vaccination QR Code
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="{{ vaccination.qr_code.url }}" 
-                                                     alt="QR Code"
-                                                     class="img-fluid"
-                                                >
-                                                <div class="verification-code">
-                                                    Verification Code: {{ vaccination.verification_code }}
-                                                </div>
-                                                <div class="qr-actions">
-                                                    <a href="{{ vaccination.qr_code.url }}" 
-                                                       class="btn btn-primary" 
-                                                       download="vaccination_qr_{{ vaccination.verification_code }}.png">
-                                                        <i class="fas fa-download me-2"></i>
-                                                        Download QR Code
-                                                    </a>
-                                                    <button type="button" 
-                                                            class="btn btn-secondary" 
-                                                            data-bs-dismiss="modal">
-                                                        <i class="fas fa-times me-2"></i>
-                                                        Close
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <span class="text-muted">
-                                    <i class="fas fa-exclamation-circle me-1"></i>
-                                    No QR code generated
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td>{{ vaccination.assigned_by.username }}</td>
-                        <td class="actions">
-                            <a href="{% url 'edit_vaccination' vaccination.id %}" class="btn-edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button onclick="deleteVaccination({{ vaccination.id }})" class="btn-delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="empty-state">
-                <i class="fas fa-clipboard"></i>
-                <p>No vaccination records found</p>
-            </div>
-        {% endif %}
+    <div class="card">
+        <div class="card-body">
+            {% if vaccinations %}
+                <form id="csrf-form">
+                    {% csrf_token %}
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Batch</th>
+                                <th>Vaccine</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Assigned By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vaccination in vaccinations %}
+                            <tr>
+                                <td>{{ vaccination.batch.batch_number }}</td>
+                                <td>{{ vaccination.vaccine.name }}</td>
+                                <td>{{ vaccination.vaccination_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ vaccination.status }}">
+                                        {{ vaccination.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ vaccination.assigned_by.username }}</td>
+                                <td>
+                                    <a href="{% url 'edit_vaccination' vaccination.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="{{ vaccination.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-clipboard"></i> No vaccination records found
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
-<style>
-    .vaccination-list {
-        padding: 2rem;
-        margin-left: var(--sidebar-width);
-    }
-
-    .page-header {
-        margin-bottom: 2rem;
-    }
-
-    .page-header h1 {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #2c3e50;
-        font-size: 1.8rem;
-    }
-
-    .records-container {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .records-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .records-table th,
-    .records-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
-    .records-table th {
-        background: #f8f9fa;
-        color: #2c3e50;
-        font-weight: 600;
-    }
-
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    .status-assigned {
-        background: #e3f2fd;
-        color: #1976d2;
-    }
-
-    .status-completed {
-        background: #e8f5e9;
-        color: #2e7d32;
-    }
-
-    .status-pending {
-        background: #fff3e0;
-        color: #f57c00;
-    }
-
-    .actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .btn-edit,
-    .btn-delete {
-        padding: 0.5rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        color: white;
-        transition: all 0.3s ease;
-    }
-
-    .btn-edit {
-        background: #3498db;
-    }
-
-    .btn-delete {
-        background: #e74c3c;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: #6c757d;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-
-    .qr-code-thumbnail {
-        width: 100px;
-        height: 100px;
-        object-fit: contain;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    .qr-code-thumbnail:hover {
-        transform: scale(1.1);
-    }
-
-    .qr-modal .modal-body img {
-        max-width: 100%;
-        height: auto;
-    }
-
-    .verification-code {
-        font-family: monospace;
-        background: #f8f9fa;
-        padding: 0.5rem;
-        border-radius: 4px;
-        margin-top: 1rem;
-    }
-
-    .qr-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 1rem;
-    }
-</style>
-
 <script>
-function deleteVaccination(id) {
-    if (confirm('Are you sure you want to delete this vaccination record?')) {
-        fetch(`/vaccinations/delete/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
+document.addEventListener("DOMContentLoaded", function () {
+    function deleteVaccination(id) {
+        if (confirm('Are you sure you want to delete this vaccination record?')) {
+            const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+            fetch(`/vaccinations/delete/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error deleting vaccination record');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                 alert('Error deleting vaccination record');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error deleting vaccination record');
+            });
+        }
+    }
+
+    document.querySelectorAll(".btn-delete").forEach(button => {
+        button.addEventListener("click", function() {
+            const vaccinationId = this.getAttribute("data-id");
+            deleteVaccination(vaccinationId);
         });
+    });
+});
+</script>
+
+<style>
+/* General Page Styling */
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Table Styling */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.thead-dark {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Status Badges */
+.badge {
+    font-size: 14px;
+    padding: 5px 10px;
+}
+
+.badge-completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.badge-pending {
+    background-color: #ffc107;
+    color: #fff;
+}
+
+.badge-failed {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 12px;
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+}
+
+.btn-sm {
+    font-size: 14px;
+}
+
+.btn i {
+    margin-right: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
     }
 }
-</script>
-{% endblock %} 
+</style>
+{% endblock %}

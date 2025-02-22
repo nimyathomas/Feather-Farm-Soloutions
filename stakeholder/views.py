@@ -70,6 +70,8 @@ from .models import ChickBatch, VaccinationSchedule  # Add this import
 from user.models import Vaccine  # Add this import
 from .models import ChickBatch, VaccinationSchedule, VaccinationAuditLog  # Add VaccinationAuditLog
 
+from decimal import Decimal
+
 # At the top of views.py, add this debug code
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
 print(f"\nAttempting to load model from: {MODEL_PATH}")
@@ -1192,12 +1194,15 @@ from .forms import FeedStockForm  # Add this import
 
 @login_required
 def feed_main_dashboard(request):
-    feed_stocks = FeedStock.objects.all()
-    form = FeedStockForm()
     context = {
-        'feed_stocks': feed_stocks,
-        'form': form,
-        'is_admin': request.user.is_staff
+        'feed_type_stats': {
+            'starter': 0,  # Replace with actual values
+            'grower': 0,
+            'finisher': 0
+        },
+        'daily_dates': [],  # Replace with actual dates
+        'daily_costs': [],  # Replace with actual costs
+        'today': timezone.now().date()
     }
     return render(request, 'stakeholder/feed_main_dashboard.html', context)
 
@@ -1279,8 +1284,13 @@ def update_feed_stock(request, feed_id):
             messages.error(request, f'Error updating feed stock: {str(e)}')
     
     return redirect('feed_manage')
-    
-    
+
+def delete_feed_stock(request, feed_id):
+    if request.method == "POST":
+        feed_stock = get_object_or_404(FeedStock, id=feed_id)
+        feed_stock.delete()
+        messages.success(request, "Feed stock deleted successfully.")
+    return redirect('feed_manage')  # Change this to your feed management view name
     
 @login_required
 def feed_manage(request):
@@ -1345,22 +1355,19 @@ def feed_stock_create(request):
 
 @login_required
 def feed_dashboard(request):
-   
     # Get all feed stocks
     feed_stocks = FeedStock.objects.all()
     
-    # Calculate totals
-    total_sacks = sum(stock.number_of_sacks for stock in feed_stocks)
-    total_value = sum(stock.number_of_sacks * stock.price_per_sack for stock in feed_stocks)
-    
-    # Get low stock items
-    low_stock_items = [stock for stock in feed_stocks if stock.number_of_sacks <= stock.minimum_sacks]
+    # Calculate stock by feed type
+    starter_feed = feed_stocks.filter(feed_type='starter').first()
+    grower_feed = feed_stocks.filter(feed_type='grower').first()
+    finisher_feed = feed_stocks.filter(feed_type='finisher').first()
     
     context = {
         'feed_stocks': feed_stocks,
-        'total_sacks': total_sacks,
-        'total_value': total_value,
-        'low_stock_items': low_stock_items,
+        'starter_feed': starter_feed,
+        'grower_feed': grower_feed,
+        'finisher_feed': finisher_feed,
         'is_admin': request.user.is_staff,
     }
     
@@ -1398,42 +1405,10 @@ def update_feed(request):
 
 
 
+
+
 @login_required
-def delete_feed_stock(request, feed_id):
-    """Delete feed stock"""
-    if request.method == 'POST':
-        try:
-            # Get the feed stock from user.models.FeedStock
-            feed_stock = get_object_or_404(FeedStock, id=feed_id)
-            
-            # Store the feed type before deletion
-            feed_type = feed_stock.get_feed_type_display()
-            
-            # Delete the feed stock
-            feed_stock.delete()
-            
-            # Return success response
-            return JsonResponse({
-                'success': True,
-                'message': f'Successfully deleted {feed_type}'
-            })
-            
-        except FeedStock.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'error': 'Feed stock not found'
-            }, status=404)
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=400)
-    
-    return JsonResponse({
-        'success': False,
-        'error': 'Invalid request method'
-    }, status=405)
+
 
 def view_stakeholder_view(request, id):
     user = get_object_or_404(User, id=id)
@@ -1470,75 +1445,58 @@ from user.models import FeedStock
 
 @login_required
 def active_batches_feed(request):
-    """View for listing active batches with their feed status"""
-    # Get filter parameters
-    farm_search = request.GET.get('farm_search', '')
-    feed_type = request.GET.get('feed_type', '')
-    week_filter = request.GET.get('week', '')
-    
-    # Get active batches
+    """View for managing feed assignments for active batches"""
     batches = ChickBatch.objects.filter(batch_status='active')
-    
-    if farm_search:
-        batches = batches.filter(farm__farm_name__icontains=farm_search)
-    
     batch_feed_data = []
+
     for batch in batches:
         # Calculate current week
         days_since_start = (timezone.now().date() - batch.batch_date).days
         current_week = min((days_since_start // 7) + 1, 6)
         
-        # Get feed assignments for this batch
-        assignments = FeedAssignment.objects.filter(batch=batch).order_by('week_number')
-        assigned_weeks = [a.week_number for a in assignments]
+        # Get feed history and assigned weeks
+        feed_history = FeedAssignment.objects.filter(batch=batch).order_by('week_number')
+        assigned_weeks = feed_history.values_list('week_number', flat=True)
         
-        # Calculate feed requirements
-        chick_count = batch.initial_chick_count
-        total_feed_kg = chick_count * 4.2  # 4.2 kg per chick
-        total_sacks = round(total_feed_kg / 50)  # 50 kg per sack
-        
-        # Determine feed type and requirements for current week
-        if current_week == 1:
-            feed_type_current = 'Starter Feed'
-            week_percentage = 0.15
-        elif 2 <= current_week <= 4:
-            feed_type_current = 'Grower Feed'
-            week_percentage = 0.20
+        # Find next unassigned week
+        next_week = None
+        for week in range(1, min(current_week + 1, 7)):
+            if week not in assigned_weeks:
+                next_week = week
+                break
+
+        # Check if week transition happened
+        last_assigned_week = max(assigned_weeks) if assigned_weeks else 0
+        week_changed = current_week > last_assigned_week and current_week <= 6
+
+        # Determine feed type based on next week
+        if next_week and next_week <= 3:
+            feed_type = 'starter'
+        elif next_week and next_week <= 5:
+            feed_type = 'grower'
         else:
-            feed_type_current = 'Finisher Feed'
-            week_percentage = 0.125
-            
-        recommended_sacks = round(total_sacks * week_percentage)
-        
-        # Get available feed stocks
-        available_feed_stocks = FeedStock.objects.filter(
-            feed_type=feed_type_current,
-            number_of_sacks__gt=0
-        )
-        
-        batch_feed_data.append({
+            feed_type = 'finisher'
+
+        batch_data = {
             'batch': batch,
             'current_week': current_week,
-            'feed_type': feed_type_current,
-            'recommended_sacks': recommended_sacks,
-            'total_sacks_needed': total_sacks,
-            'sacks_assigned': sum(a.sacks_assigned for a in assignments),
-            'can_assign': current_week not in assigned_weeks and 
-                         (current_week == 1 or (current_week - 1) in assigned_weeks),
-            'available_feed_stocks': available_feed_stocks,
-            'assigned_weeks': assigned_weeks
-        })
-    
-    context = {
-        'batch_feed_data': batch_feed_data,
-        'active_filters': {
-            'farm_search': farm_search,
-            'feed_type': feed_type,
-            'week': week_filter
+            'next_week': next_week,
+            'week_changed': week_changed,
+            'last_assigned_week': last_assigned_week,
+            'feed_type': dict(FeedStock.FEED_TYPE_CHOICES)[feed_type],
+            'available_feed_stocks': FeedStock.objects.filter(
+                feed_type=feed_type, 
+                number_of_sacks__gt=0
+            ),
+            'assigned_weeks': assigned_weeks,
+            'can_assign': next_week is not None,
+            'recommended_sacks': calculate_recommended_sacks(batch, next_week or current_week),
+            'feed_history': feed_history,
+            'total_assigned': feed_history.aggregate(total=Sum('sacks_assigned'))['total'] or 0,
         }
-    }
-    
-    return render(request, 'stakeholder/active_batch_feed.html', context)
+        batch_feed_data.append(batch_data)
+
+    return render(request, 'stakeholder/active_batch_feed.html', {'batch_feed_data': batch_feed_data})
 
 @login_required
 @transaction.atomic
@@ -1552,60 +1510,18 @@ def batch_feed_assignment(request, batch_id):
             sacks_assigned = int(request.POST.get('sacks_assigned'))
             feed_stock_id = request.POST.get('feed_stock')
             
-            # Validate feed stock
+            # Calculate current week
+            days_since_start = (timezone.now().date() - batch.batch_date).days
+            current_week = min((days_since_start // 7) + 1, 6)
+            is_late = week_number < current_week
+            
+            # Get and update feed stock
             feed_stock = get_object_or_404(FeedStock, id=feed_stock_id)
-            
-            # Create feed assignment
-            FeedAssignment.objects.create(
-                batch=batch,
-                week_number=week_number,
-                sacks_assigned=sacks_assigned,
-                cost_per_sack=feed_stock.price_per_sack,
-                total_cost=sacks_assigned * feed_stock.price_per_sack
-            )
-            
-            messages.success(request, f'Successfully assigned feed for Week {week_number}')
-            
-        except Exception as e:
-            messages.error(request, f"Error assigning feed: {str(e)}")
-    
-    return redirect('active_batches_feed')
-
-
-
-
-@login_required
-@transaction.atomic
-def batch_feed_assignment(request, batch_id):
-    """Handle feed assignment for a specific batch"""
-    batch = get_object_or_404(ChickBatch, id=batch_id)
-    
-    if request.method == 'POST':
-        try:
-            # Get form data
-            week_number = int(request.POST.get('week_number'))
-            sacks_assigned = int(request.POST.get('sacks_assigned'))
-            feed_stock_id = request.POST.get('feed_stock')
-            
-            # Validate feed stock
-            feed_stock = get_object_or_404(FeedStock, id=feed_stock_id)
-            
-            # Check if week is already assigned
-            if FeedAssignment.objects.filter(batch=batch, week_number=week_number).exists():
-                raise ValueError(f"Week {week_number} already has a feed assignment")
-            
-            # Validate sequential assignment
-            if week_number > 1:
-                prev_week = FeedAssignment.objects.filter(
-                    batch=batch, 
-                    week_number=week_number-1
-                ).exists()
-                if not prev_week:
-                    raise ValueError(f"Must assign Week {week_number-1} first")
-            
-            # Check feed stock availability
             if feed_stock.number_of_sacks < sacks_assigned:
-                raise ValueError("Not enough feed stock available")
+                raise ValueError(f"Not enough feed stock available. Requested: {sacks_assigned}, Available: {feed_stock.number_of_sacks}")
+            
+            feed_stock.number_of_sacks -= sacks_assigned
+            feed_stock.save()
             
             # Create feed assignment
             assignment = FeedAssignment.objects.create(
@@ -1613,94 +1529,111 @@ def batch_feed_assignment(request, batch_id):
                 week_number=week_number,
                 sacks_assigned=sacks_assigned,
                 cost_per_sack=feed_stock.price_per_sack,
-                total_cost=sacks_assigned * feed_stock.price_per_sack
+                is_late=is_late,
+                assigned_date=timezone.now(),
+                feed_stock=feed_stock  # Add this line
             )
             
-            # Update feed stock
-            feed_stock.number_of_sacks -= sacks_assigned
-            feed_stock.save()
+            msg = f'Successfully assigned {sacks_assigned} sacks for Week {week_number}'
+            if is_late:
+                msg += ' (Late Assignment)'
+            messages.success(request, msg)
             
-            messages.success(
-                request, 
-                f'Successfully assigned {sacks_assigned} sacks for Week {week_number}'
-            )
-            
-            # Return JSON response for AJAX requests
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'success',
-                    'message': f'Successfully assigned {sacks_assigned} sacks of {feed_stock.get_feed_type_display()} for Week {week_number}'
-                })
-            
-        except ValueError as e:
-            messages.error(request, str(e))
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': str(e)
-                })
         except Exception as e:
             messages.error(request, f"Error assigning feed: {str(e)}")
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': f"Error assigning feed: {str(e)}"
-                })
     
-    # For non-AJAX requests, redirect back to the list
     return redirect('active_batches_feed')
 
 @login_required
 def daily_feed_report(request, date):
     try:
+        print(f"\nDebug - Starting daily report for date: {date}")
+        
         # Convert string date to datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
+        print(f"Debug - Parsed report date: {report_date}")
         
-        # Get all feed assignments for the date
+        # Get start and end of the day in the current timezone
+        start_of_day = timezone.make_aware(datetime.combine(report_date, datetime.min.time()))
+        end_of_day = timezone.make_aware(datetime.combine(report_date, datetime.max.time()))
+        
+        # Get all feed assignments for the date using range
         assignments = FeedAssignment.objects.filter(
-            assigned_date__date=report_date
-        ).select_related('batch', 'batch__farm')
+            assigned_date__range=(start_of_day, end_of_day)
+        ).select_related('batch', 'batch__farm', 'feed_stock')
         
-        # Calculate summary statistics
-        total_assignments = assignments.count()
-        active_batches = assignments.values('batch').distinct().count()
-        total_sacks = assignments.aggregate(total=Sum('sacks_assigned'))['total'] or 0
-        total_cost = assignments.aggregate(
-            total=Sum(F('sacks_assigned') * F('cost_per_sack'))
-        )['total'] or 0
+        print(f"Debug - Found {assignments.count()} assignments")
         
+        # For AJAX requests (modal)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            assignments_data = []
+            
+            for a in assignments:
+                assignment_dict = {
+                    'time': a.assigned_date.astimezone(timezone.get_current_timezone()).strftime('%H:%M'),
+                    'batch_id': a.batch.id,
+                    'farm_name': a.batch.farm.name,  # Changed from farm_name to name
+                    'feed_type': a.feed_stock.get_feed_type_display(),
+                    'week': a.week_number,
+                    'sacks': a.sacks_assigned,
+                    'cost_per_sack': float(a.cost_per_sack),
+                    'total_cost': float(a.sacks_assigned * a.cost_per_sack),
+                    'is_late': a.is_late
+                }
+                assignments_data.append(assignment_dict)
+                print(f"Debug - Processed assignment: {assignment_dict}")
+            
+            response_data = {
+                'success': True,
+                'assignments': assignments_data,
+                'summary': {
+                    'total_assignments': assignments.count(),
+                    'total_sacks': sum(a.sacks_assigned for a in assignments),
+                    'total_cost': float(sum(a.sacks_assigned * a.cost_per_sack for a in assignments)),
+                    'active_batches': assignments.values('batch').distinct().count()
+                }
+            }
+            print(f"Debug - Sending response: {response_data}")
+            return JsonResponse(response_data)
+            
+        # For PDF generation
         context = {
             'report_date': report_date,
             'assignments': assignments,
-            'total_assignments': total_assignments,
-            'active_batches': active_batches,
-            'total_sacks': total_sacks,
-            'total_cost': total_cost,
+            'summary': {
+                'total_assignments': assignments.count(),
+                'total_sacks': sum(a.sacks_assigned for a in assignments),
+                'total_cost': sum(a.sacks_assigned * a.cost_per_sack for a in assignments),
+                'active_batches': assignments.values('batch').distinct().count()
+            },
             'company_name': 'Feather Farm Solutions',
             'generated_at': timezone.now()
         }
         
-        # Generate PDF
         template = get_template('stakeholder/feed_report_pdf.html')
         html = template.render(context)
         
-        # Create PDF response
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'filename=feed_report_{date}.pdf'
         
-        # Convert HTML to PDF
         pisa_status = pisa.CreatePDF(html, dest=response)
         if pisa_status.err:
             return HttpResponse('Error generating PDF', status=500)
             
         return response
         
-    except ValueError:
-        messages.error(request, "Invalid date format. Use YYYY-MM-DD")
-        return redirect('feed_dashboard')
+    except ValueError as e:
+        print(f"Debug - ValueError: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f"Invalid date format: {str(e)}"
+        }, status=400)
     except Exception as e:
-        messages.error(request, f"Error generating report: {str(e)}")
-        return redirect('feed_dashboard')
+        print(f"Debug - Error occurred: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @login_required
 def export_daily_report(request, date):
@@ -1929,25 +1862,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from user.models import FeedStock
 
-@login_required
-def delete_feed(request, feed_id):
-    """Delete feed stock"""
-    try:
-        feed_stock = get_object_or_404(FeedStock, id=feed_id)
-        
-        # Check if feed stock is being used in any FeedAssignment
-        if feed_stock.feedassignment_set.exists():
-            messages.error(request, 'Cannot delete feed stock that is assigned to batches.')
-            return redirect('feed_manage')
-        
-        feed_type = feed_stock.get_feed_type_display()
-        feed_stock.delete()
-        messages.success(request, f'Successfully deleted {feed_type}')
-        
-    except Exception as e:
-        messages.error(request, f'Error deleting feed stock: {str(e)}')
-    
-    return redirect('feed_manage')
+
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -2377,34 +2292,34 @@ def vaccination_main(request):
 
 @login_required
 def delete_vaccination(request, schedule_id):
+    """Delete a vaccination schedule"""
     try:
         # Get the vaccination schedule
         schedule = get_object_or_404(VaccinationSchedule, id=schedule_id)
         
+        # Store info for message
+        vaccine_name = schedule.vaccine.name
+        
         # Delete the schedule
         schedule.delete()
         
-        # Return success response if AJAX request
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'message': 'Vaccination schedule deleted successfully'
-            })
-            
-        # Redirect to list view if regular request
-        messages.success(request, 'Vaccination schedule deleted successfully')
-        return redirect('vaccination_list')
+        # Return success response
+        return JsonResponse({
+            'success': True,
+            'message': f'Successfully deleted vaccination schedule for {vaccine_name}'
+        })
+        
+    except VaccinationSchedule.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Vaccination schedule not found'
+        }, status=404)
         
     except Exception as e:
-        # Handle errors
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'message': str(e)
-            }, status=400)
-            
-        messages.error(request, f'Error deleting vaccination schedule: {str(e)}')
-        return redirect('vaccination_list')
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
 
 @login_required
 def edit_vaccination(request, schedule_id):
@@ -2470,10 +2385,22 @@ def stakeholder_vaccination_list(request):
     # Get vaccinations for all batches in their farms
     vaccinations = VaccinationSchedule.objects.filter(
         batch__farm__in=stakeholder_farms
-    ).order_by('vaccination_date')
+    )
     
-    upcoming_vaccinations = vaccinations.filter(status='assigned')
-    completed_vaccinations = vaccinations.exclude(status='assigned')
+    # Ensure all vaccinations have QR codes
+    for vaccination in vaccinations:
+        if not vaccination.qr_code:
+            vaccination.generate_qr_code()
+    
+    # Order upcoming vaccinations by date (latest first)
+    upcoming_vaccinations = vaccinations.filter(
+        status='assigned'
+    ).order_by('-vaccination_date')
+    
+    # Order completed vaccinations by date (latest first)
+    completed_vaccinations = vaccinations.exclude(
+        status='assigned'
+    ).order_by('-vaccination_date')
     
     context = {
         'upcoming_vaccinations': upcoming_vaccinations,
@@ -2481,7 +2408,7 @@ def stakeholder_vaccination_list(request):
         'farms': stakeholder_farms,
     }
     
-    return render(request, 'stakeholder/stakeholder_vaccination_list.html', context)  # Changed template path
+    return render(request, 'stakeholder/stakeholder_vaccination_list.html', context)
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -2492,79 +2419,99 @@ from .models import VaccinationSchedule
 
 @login_required
 def scan_qr_code(request, pk):
-    # Get vaccination and verify it belongs to user's farm
-    vaccination = get_object_or_404(
-        VaccinationSchedule, 
-        pk=pk,
-        batch__farm__owner=request.user,  # Check farm ownership instead of assignment
-        status='assigned'  # Only allow scanning of assigned vaccinations
-    )
-    
-    if request.method == 'POST':
-        scan_lat = request.POST.get('latitude')
-        scan_lng = request.POST.get('longitude')
+    """Handle QR code scanning for vaccination verification"""
+    try:
+        vaccination = get_object_or_404(
+            VaccinationSchedule, 
+            pk=pk,
+            batch__farm__owner=request.user,
+            status='assigned'
+        )
         
-        if not all([scan_lat, scan_lng]):
-            return JsonResponse({
-                'success': False,
-                'error': 'Location data is required'
-            })
+        if request.method == 'POST':
+            # Assuming you have a way to get the scanned QR code data
+            scanned_data = request.POST.get('scanned_data')  # This should be the JSON string from the QR code
             
-        try:
-            # Update vaccination status
-            vaccination.status = 'qr_scanned'
-            vaccination.scan_coordinates = f"{scan_lat},{scan_lng}"
-            vaccination.save()
-            
-            # Create audit log
-            VaccinationAuditLog.objects.create(
-                vaccination=vaccination,
-                action="QR Code Scanned",
-                performed_by=request.user,
-                notes=f"Scanned at coordinates: {scan_lat}, {scan_lng}"
-            )
-            
-            messages.success(request, 'QR code scanned successfully!')
-            return JsonResponse({
-                'success': True,
-                'redirect_url': reverse('upload_vaccination_evidence', args=[pk])
-            })
+            # Decode the scanned data
+            try:
+                qr_data = json.loads(scanned_data)
                 
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            })
-    
-    return render(request, 'stakeholder/scan_qr.html', {
-        'vaccination': vaccination
-    })
+                # Validate the data
+                if qr_data.get('vaccination_id') != str(vaccination.pk):
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Invalid QR code for this vaccination.'
+                    }, status=400)
+                
+                # Update vaccination status
+                vaccination.status = 'qr_scanned'
+                vaccination.save()
+                
+                # Create audit log
+                VaccinationAuditLog.objects.create(
+                    vaccination=vaccination,
+                    action="QR Code Scanned",
+                    performed_by=request.user,
+                    notes=f"QR scanned with data: {scanned_data}"
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'QR code scanned successfully.'
+                })
+                
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid QR code format.'
+                }, status=400)
+        
+        # Render the scanning page
+        context = {
+            'vaccination': vaccination,
+            'page_title': 'Scan QR Code',
+            'qr_code_url': vaccination.qr_code.url if vaccination.qr_code else None
+        }
+        return render(request, 'stakeholder/scan_qr.html', context)
+        
+    except VaccinationSchedule.DoesNotExist:
+        messages.error(request, 'Invalid QR code or vaccination not found')
+        return redirect('stakeholder_vaccination_list')
+    except Exception as e:
+        messages.error(request, f'Error scanning QR code: {str(e)}')
+        return redirect('stakeholder_vaccination_list')
+
 @login_required
 def stakeholder_scan_qr(request, vaccination_id):
     """Handle QR code scanning for vaccination verification"""
     try:
-        # Get the vaccination schedule
+        # Get the vaccination schedule and verify ownership
         vaccination = get_object_or_404(
             VaccinationSchedule, 
             id=vaccination_id,
-            batch__farm__owner=request.user
+            batch__farm__owner=request.user,
+            status='assigned'  # Only allow scanning of assigned vaccinations
         )
         
         if request.method == 'POST':
             try:
                 # Get location data from request
-                data = json.loads(request.body) if request.body else request.POST
+                data = request.POST
                 latitude = data.get('latitude')
                 longitude = data.get('longitude')
                 
-                if latitude and longitude:
-                    vaccination.scan_coordinates = f"{latitude},{longitude}"
+                if not all([latitude, longitude]):
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Location data is required'
+                    }, status=400)
                 
-                # Update status to indicate QR has been scanned
+                # Update vaccination status and location
+                vaccination.scan_coordinates = f"{latitude},{longitude}"
                 vaccination.status = 'qr_scanned'
                 vaccination.save()
                 
-                # Create audit log entry
+                # Create audit log
                 VaccinationAuditLog.objects.create(
                     vaccination=vaccination,
                     action="QR Code Scanned",
@@ -2575,26 +2522,30 @@ def stakeholder_scan_qr(request, vaccination_id):
                 return JsonResponse({
                     'success': True,
                     'message': 'QR code scanned successfully',
-                    'redirect_url': reverse('upload_vaccination_evidence', kwargs={'vaccination_id': vaccination.id})
+                    'redirect_url': reverse('upload_vaccination_evidence', kwargs={'pk': vaccination.id})
                 })
                 
             except Exception as e:
                 return JsonResponse({
                     'success': False,
-                    'message': f'Error processing QR code: {str(e)}'
+                    'message': str(e)
                 }, status=400)
         
         # For GET requests, render the scanning page
         context = {
             'vaccination': vaccination,
-            'page_title': 'Scan QR Code'
+            'page_title': 'Scan QR Code',
+            'qr_code_url': vaccination.qr_code.url if vaccination.qr_code else None
         }
         return render(request, 'stakeholder/scan_qr.html', context)
         
+    except VaccinationSchedule.DoesNotExist:
+        messages.error(request, 'Invalid QR code or vaccination not found')
+        return redirect('stakeholder_vaccination_list')
     except Exception as e:
-        messages.error(request, f'Error accessing QR scan page: {str(e)}')
-        return redirect('vaccination_list')
-    
+        messages.error(request, f'Error scanning QR code: {str(e)}')
+        return redirect('stakeholder_vaccination_list')
+
 @login_required
 def upload_vaccination_evidence(request, pk):
     vaccination = get_object_or_404(
@@ -2694,41 +2645,153 @@ def validate_vaccine_vial(request, schedule_id):
         return JsonResponse({
             'success': False,
             'error': f'Unexpected error: {str(e)}'
-        }, status=500)
+        }, status=500)# from django.contrib.auth.decorators import login_required
+# from django.db.models import Sum, Avg, Count
+# from django.db.models.functions import TruncMonth
+# from django.utils import timezone
+# from datetime import timedelta
+# import json
+# from user.models import FeedStock
+# from .models import FeedAssignment
+
+# @login_required
+# def feed_analytics(request):
+#     """View for feed purchase analytics"""
+    
+#     # Get date range
+#     today = timezone.now()
+#     thirty_days_ago = today - timedelta(days=30)
+    
+#     # Get all feed stocks
+#     feed_stocks = FeedStock.objects.all()
+    
+#     # Calculate summary statistics
+#     total_feed_sacks = feed_stocks.aggregate(
+#         total=Sum('quantity')
+#     )['total'] or 0
+    
+#     total_feed_cost = feed_stocks.aggregate(
+#         total=Sum('total_cost')
+#     )['total'] or 0
+    
+#     current_stock = feed_stocks.aggregate(
+#         total=Sum('remaining_quantity')
+#     )['total'] or 0
+    
+#     # Calculate average cost per sack for last 30 days
+#     recent_purchases = feed_stocks.filter(
+#         purchase_date__gte=thirty_days_ago
+#     )
+    
+#     avg_cost = recent_purchases.aggregate(
+#         avg=Avg('cost_per_sack')
+#     )['avg'] or 0
+    
+#     # Get feed type distribution
+#     feed_type_distribution = {
+#         'starter': feed_stocks.filter(feed_type='Starter Feed').aggregate(
+#             total=Sum('quantity'))['total'] or 0,
+#         'grower': feed_stocks.filter(feed_type='Grower Feed').aggregate(
+#             total=Sum('quantity'))['total'] or 0,
+#         'finisher': feed_stocks.filter(feed_type='Finisher Feed').aggregate(
+#             total=Sum('quantity'))['total'] or 0
+#     }
+    
+#     # Get current stock levels by feed type
+#     current_stock_levels = {
+#         'starter': feed_stocks.filter(feed_type='Starter Feed').aggregate(
+#             total=Sum('remaining_quantity'))['total'] or 0,
+#         'grower': feed_stocks.filter(feed_type='Grower Feed').aggregate(
+#             total=Sum('remaining_quantity'))['total'] or 0,
+#         'finisher': feed_stocks.filter(feed_type='Finisher Feed').aggregate(
+#             total=Sum('remaining_quantity'))['total'] or 0
+#     }
+    
+#     # Get monthly purchase history
+#     monthly_purchases = feed_stocks.annotate(
+#         month=TruncMonth('purchase_date')
+#     ).values('month').annotate(
+#         total_quantity=Sum('quantity')
+#     ).order_by('month')
+    
+#     # Prepare data for charts
+#     monthly_labels = [p['month'].strftime("%B %Y") for p in monthly_purchases]
+#     monthly_data = [p['total_quantity'] for p in monthly_purchases]
+    
+#     # Get recent purchases for table
+#     recent_purchases = feed_stocks.order_by('-purchase_date')[:10].values(
+#         'purchase_date',
+#         'feed_type',
+#         'quantity',
+#         'price_per_sack',
+#         'supplier__name'  # Use supplier name from related Supplier model
+#     )
+    
+#     context = {
+#         'total_feed_sacks': total_feed_sacks,
+#         'total_feed_cost': total_feed_cost,
+#         'current_stock': current_stock,
+#         'avg_cost_per_sack': avg_cost,
+#         'feed_type_distribution': feed_type_distribution,
+#         'current_stock_levels': current_stock_levels,
+#         'monthly_labels': json.dumps(monthly_labels),
+#         'monthly_purchases': json.dumps(monthly_data),
+#         'recent_purchases': recent_purchases,
+#     }
+    
+#     return render(request, 'feed_analytics.html', context)
 
 @login_required
-def delete_feed_stock(request, feed_id):
-    """Delete feed stock"""
+def update_feed_stock_view(request, feed_id):
+    """View for updating feed stock"""
+    feed_stock = get_object_or_404(FeedStock, id=feed_id)
+    
     if request.method == 'POST':
         try:
-            # Get the feed stock from user.models.FeedStock
-            feed_stock = get_object_or_404(FeedStock, id=feed_id)
+            # Add new sacks to existing count
+            additional_sacks = int(request.POST.get('number_of_sacks', 0))
+            feed_stock.number_of_sacks += additional_sacks
             
-            # Store the feed type before deletion
-            feed_type = feed_stock.get_feed_type_display()
+            # Update price only if provided and not empty
+            new_price = request.POST.get('price_per_sack')
+            if new_price and new_price.strip():  # Check if price is provided and not empty
+                feed_stock.price_per_sack = Decimal(new_price)
+                
+            feed_stock.save()
             
-            # Delete the feed stock
-            feed_stock.delete(confirmDelete=True)
-            
-            # Return success response
-            return JsonResponse({
-                'success': True,
-                'message': f'Successfully deleted {feed_type}'
-            })
-            
-        except FeedStock.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'error': 'Feed stock not found'
-            }, status=404)
+            messages.success(request, f'Added {additional_sacks} sacks to {feed_stock.get_feed_type_display()}')
+            return redirect('feed_manage')
             
         except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=400)
+            messages.error(request, f'Error updating feed stock: {str(e)}')
+            return redirect('feed_manage')
+            
+    context = {
+        'feed_stock': feed_stock,
+        'feed_types': FeedStock.FEED_TYPE_CHOICES,
+        'title': 'Update Feed Stock'
+    }
+    return render(request, 'stakeholder/update_feed_stock.html', context)
+
+def calculate_recommended_sacks(batch, week_number):
+    """Calculate recommended feed sacks based on chick count and week"""
+    chick_count = batch.initial_chick_count
+    total_feed_kg = chick_count * 4.2  # 4.2 kg per chick
+    total_sacks = round(total_feed_kg / 50)  # 50 kg per sack
     
-    return JsonResponse({
-        'success': False,
-        'error': 'Invalid request method'
-    }, status=405)
+    # Weekly feed percentages
+    week_percentages = {
+        1: 0.15,  # 15% for week 1
+        2: 0.20,  # 20% for week 2
+        3: 0.20,  # 20% for week 3
+        4: 0.20,  # 20% for week 4
+        5: 0.125, # 12.5% for week 5
+        6: 0.125  # 12.5% for week 6
+    }
+    
+    return round(total_sacks * week_percentages.get(week_number, 0.15))
+
+
+
+
+

@@ -2,131 +2,195 @@
 {% load static %}
 
 {% block body %}
-<div class="container py-4">
-    <h2>My Vaccinations</h2>
-    
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Upcoming Vaccinations</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Farm</th>
-                                    <th>Vaccine</th>
-                                    <th>QR Code</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for vaccination in upcoming_vaccinations %}
-                                <tr>
-                                    <td>{{ vaccination.vaccination_date }}</td>
-                                    <td>{{ vaccination.batch.farm.name }}</td>
-                                    <td>{{ vaccination.vaccine.name }}</td>
-                                    <td>
-                                        {% if vaccination.qr_code and vaccination.qr_code.name %}
-                                            <div class="d-flex align-items-center gap-2">
-                                                <img src="{{ vaccination.qr_code.url }}" 
-                                                     alt="QR Code" 
-                                                     class="qr-code-img"
-                                                     data-bs-toggle="modal" 
-                                                     data-bs-target="#qrModal{{ vaccination.pk }}"
-                                                     style="cursor: pointer; width: 50px;">
-                                                <a href="{{ vaccination.qr_code.url }}" 
-                                                   download="vaccination_qr_{{ vaccination.pk }}.png"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                            </div>
-                                        {% else %}
-                                            <span class="text-muted">No QR code</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'stakeholder_scan_qr' vaccination.pk %}" 
-                                           class="btn btn-primary btn-sm">
-                                            <i class="fas fa-qrcode"></i> Scan
-                                        </a>
-                                    </td>
-                                </tr>
-
-                                <!-- QR Code Modal -->
-                                {% if vaccination.qr_code and vaccination.qr_code.name %}
-                                <div class="modal fade" id="qrModal{{ vaccination.pk }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Vaccination QR Code</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img src="{{ vaccination.qr_code.url }}" 
-                                                     alt="QR Code" 
-                                                     style="max-width: 300px;">
-                                                <div class="mt-3">
-                                                    <p><strong>Farm:</strong> {{ vaccination.batch.farm.name }}</p>
-                                                    <p><strong>Vaccine:</strong> {{ vaccination.vaccine.name }}</p>
-                                                    <p><strong>Date:</strong> {{ vaccination.vaccination_date }}</p>
-                                                    <a href="{{ vaccination.qr_code.url }}" 
-                                                       download="vaccination_qr_{{ vaccination.pk }}.png"
-                                                       class="btn btn-primary mt-2">
-                                                        <i class="fas fa-download"></i> Download QR Code
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center">No upcoming vaccinations</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<div class="container-fluid p-4">
+    <!-- Page Title -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="text-dark mb-1">Vaccination Management</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item active" aria-current="page">Vaccinations</li>
+                </ol>
+            </nav>
+        </div>
+        <!-- Add this date filter -->
+        <div class="date-filter">
+            <span class="badge bg-light text-dark border">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Latest First
+            </span>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Completed Vaccinations</h5>
+    <!-- Vaccination Cards -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        {% for vaccination in upcoming_vaccinations %}
+        <div class="col">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <!-- Header with Batch and Tags -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1">Batch #{{ vaccination.batch.batch_id }}</h5>
+                            <div class="text-muted">Farm: {{ vaccination.batch.farm.name }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            {% comment %} <span class="badge bg-warning text-dark">Week {{ vaccination.week_number|default:"1" }}</span> {% endcomment %}
+                            <span class="badge bg-info">{{ vaccination.vaccine.name }}</span>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Display -->
+                    <div class="text-center mb-4">
+                        {% if vaccination.qr_code %}
+                            <img src="{{ vaccination.qr_code.url }}" 
+                                 alt="QR Code" 
+                                 class="qr-code-img mb-3"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#qrModal{{ vaccination.pk }}">
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                QR code generation in progress...
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Vaccination Details -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="detail-box p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Chicks</div>
+                                <div class="fw-medium">{{ vaccination.batch.number_of_chicks|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-box p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Start Date</div>
+                                <div class="fw-medium">{{ vaccination.vaccination_date|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-box p-3 bg-light rounded">
+                                {% comment %} <div class="text-muted small mb-1">Total Vaccines</div> {% endcomment %}
+                                <div class="fw-medium">{{ vaccination.total_vaccines|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-box p-3 bg-light rounded">
+                                <div class="text-muted small mb-1">Status</div>
+                                <div class="text-warning">Needs Assignment</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="mb-4">
+                      
+                        {% comment %} <div class="progress" style="height: 8px;">
+                            {% with ''|center:6 as range %}
+                            {% for _ in range %}
+                            <div class="progress-bar {% if forloop.counter == vaccination.week_number|default:1 %}bg-warning{% elif forloop.counter < vaccination.week_number|default:1 %}bg-success{% else %}bg-secondary{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: 16.66%">
+                            </div>
+                            {% endfor %}
+                            {% endwith %}
+                        </div> {% endcomment %}
+                        {% comment %} <div class="d-flex justify-content-between mt-2">
+                            {% for week in "123456"|make_list %}
+                            <span class="text-muted small">{{ week }}</span>
+                            {% endfor %}
+                        </div>
+                    </div> {% endcomment %}
+
+                    <!-- Action Buttons -->
+                    {% if vaccination.qr_code %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ vaccination.qr_code.url }}" 
+                           download="vaccination_qr_{{ vaccination.pk }}.png"
+                           class="btn btn-outline-primary flex-grow-1">
+                            <i class="fas fa-download me-2"></i>Download QR
+                        </a>
+                        <a href="{% url 'stakeholder_scan_qr' vaccination.pk %}" 
+                           class="btn btn-primary flex-grow-1">
+                            <i class="fas fa-qrcode me-2"></i>Scan QR
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="card-body">
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info bg-light border-0 shadow-sm">
+                <i class="fas fa-info-circle me-2"></i>
+                No vaccinations scheduled at the moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add this section after the vaccination cards div -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Completed Vaccinations
+                    </h5>
+                </div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table">
-                            <thead>
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>Date</th>
+                                    <th class="ps-4">Date</th>
                                     <th>Farm</th>
+                                    <th>Batch ID</th>
                                     <th>Vaccine</th>
-                                    <th>Status</th>
+                                    <th class="pe-4">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for vaccination in completed_vaccinations %}
                                 <tr>
-                                    <td>{{ vaccination.vaccination_date }}</td>
-                                    <td>{{ vaccination.batch.farm.name }}</td>
-                                    <td>{{ vaccination.vaccine.name }}</td>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="calendar-icon me-3 text-center">
+                                                <div class="small text-uppercase bg-success text-white px-2 rounded-top">{{ vaccination.vaccination_date|date:"M" }}</div>
+                                                <div class="h5 mb-0 px-2 border border-top-0 rounded-bottom">{{ vaccination.vaccination_date|date:"d" }}</div>
+                                            </div>
+                                            <div class="text-muted small">{{ vaccination.vaccination_date|date:"Y" }}</div>
+                                        </div>
+                                    </td>
                                     <td>
-                                        <span class="badge bg-success">{{ vaccination.status }}</span>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-warehouse text-success me-2"></i>
+                                            {{ vaccination.batch.farm.name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ vaccination.batch.batch_id }}</td>
+                                    <td>
+                                        <span class="badge bg-info rounded-pill">
+                                            {{ vaccination.vaccine.name }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4">
+                                        <span class="badge bg-success rounded-pill">
+                                            {{ vaccination.status }}
+                                        </span>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center">No completed vaccinations</td>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-clipboard-check fs-2 mb-3 d-block"></i>
+                                            <p class="mb-0">No completed vaccinations yet</p>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -138,40 +202,216 @@
     </div>
 </div>
 
+<!-- QR Code Modal -->
+{% for vaccination in upcoming_vaccinations %}
+{% if vaccination.qr_code %}
+<div class="modal fade" id="qrModal{{ vaccination.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-qrcode text-primary me-2"></i>
+                    Vaccination QR Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img src="{{ vaccination.qr_code.url }}" 
+                     alt="QR Code" 
+                     class="qr-code-large mb-4">
+                <div class="vaccination-info bg-light p-3 rounded">
+                    <p class="mb-2"><strong>Farm:</strong> {{ vaccination.batch.farm.name }}</p>
+                    <p class="mb-2"><strong>Batch:</strong> #{{ vaccination.batch.batch_id }}</p>
+                    <p class="mb-2"><strong>Vaccine:</strong> {{ vaccination.vaccine.name }}</p>
+                    <p class="mb-0"><strong>Date:</strong> {{ vaccination.vaccination_date|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
 <style>
+.vaccination-container {
+    position: relative;
+}
+
+.row.flex-nowrap {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f8fafc;
+    -webkit-overflow-scrolling: touch;
+    margin-right: -1rem;
+    margin-left: -1rem;
+    padding: 0 1rem;
+}
+
+.row.flex-nowrap::-webkit-scrollbar {
+    height: 6px;
+}
+
+.row.flex-nowrap::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 3px;
+}
+
+.row.flex-nowrap::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 3px;
+}
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
 .qr-code-img {
-    border: 1px solid #ddd;
-    padding: 3px;
-    background: white;
-}
-
-.modal-body img {
-    border: 1px solid #ddd;
+    width: 150px;
+    height: 150px;
     padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.qr-code-img:hover {
+    transform: scale(1.05);
+}
+
+.qr-code-large {
+    max-width: 250px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
     background: white;
 }
 
-.gap-2 {
-    gap: 0.5rem;
+.detail-box {
+    height: 100%;
+    background-color: rgba(0,0,0,0.02);
+    transition: background-color 0.2s;
 }
 
-.btn-outline-primary {
-    padding: 0.25rem 0.5rem;
-    line-height: 1;
+.detail-box:hover {
+    background-color: rgba(0,0,0,0.04);
 }
 
-.btn-outline-primary:hover {
-    background-color: #0d6efd;
-    color: white;
+.badge {
+    padding: 0.5em 1em;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
-.modal-body .btn-primary {
-    transition: all 0.3s ease;
+.progress {
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    overflow: hidden;
 }
 
-.modal-body .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.btn {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.alert {
+    border-radius: 12px;
+}
+
+.modal-content {
+    border-radius: 15px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+}
+
+@media (max-width: 1200px) {
+    .row-cols-xl-3 > * {
+        flex: 0 0 auto;
+        width: 33.333333%;
+    }
+}
+
+@media (max-width: 992px) {
+    .row-cols-md-2 > * {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+}
+
+@media (max-width: 768px) {
+    .row-cols-1 > * {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+}
+
+.calendar-icon {
+    min-width: 45px;
+    font-size: 0.875rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+}
+
+.table-hover tbody tr {
+    transition: background-color 0.2s;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* Add to your existing styles */
+.date-separator {
+    position: relative;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.date-separator::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.date-separator span {
+    position: relative;
+    background: white;
+    padding: 0 1rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.date-filter {
+    font-size: 0.875rem;
+}
+
+.date-filter .badge {
+    padding: 0.5rem 1rem;
 }
 </style>
 {% endblock %} 

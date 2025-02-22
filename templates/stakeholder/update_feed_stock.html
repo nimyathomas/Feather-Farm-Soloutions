@@ -1,0 +1,52 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Update Feed Stock</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Feed Type</label>
+                            <select class="form-select" name="feed_type" required>
+                                {% for value, label in feed_types %}
+                                    <option value="{{ value }}" 
+                                            {% if value == feed_stock.feed_type %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Add Number of Sacks</label>
+                            <input type="number" class="form-control" name="number_of_sacks" 
+                                   required min="1" placeholder="Enter number of sacks to add">
+                            <small class="text-muted">Current stock: {{ feed_stock.number_of_sacks }} sacks</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Price per Sack (₹) (Optional)</label>
+                            <input type="number" class="form-control" name="price_per_sack" 
+                                   min="0" step="0.01" placeholder="Leave empty to keep current price (₹{{ feed_stock.price_per_sack }})">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Minimum Sacks Alert</label>
+                            <input type="number" class="form-control" name="minimum_sacks" 
+                                   value="{{ feed_stock.minimum_sacks }}" required min="1">
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'feed_manage' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Feed Stock</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

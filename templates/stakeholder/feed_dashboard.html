@@ -39,17 +39,28 @@
             <div class="card border-left-primary shadow h-100">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Starter Feed Stock</h6>
-                    {% if starter_feed.is_low %}
-                    <span class="badge bg-warning">Low Stock</span>
+                    {% if starter_feed and starter_feed.number_of_sacks <= starter_feed.minimum_sacks %}
+                        <span class="badge bg-warning">Low Stock</span>
                     {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ starter_feed.total_sacks }} Sacks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if starter_feed %}
+                                    {{ starter_feed.number_of_sacks }} Sacks ({{ starter_feed.quantity_in_kg }}kg)
+                                {% else %}
+                                    0 Sacks
+                                {% endif %}
+                            </div>
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Available Stock (Week 1)
                             </div>
+                            {% if starter_feed %}
+                                <div class="text-xs text-muted">
+                                    Price: ₹{{ starter_feed.price_per_sack }}/sack
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-box fa-2x text-gray-300"></i>
@@ -64,17 +75,28 @@
             <div class="card border-left-success shadow h-100">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-success">Grower Feed Stock</h6>
-                    {% if grower_feed.is_low %}
-                    <span class="badge bg-warning">Low Stock</span>
+                    {% if grower_feed and grower_feed.number_of_sacks <= grower_feed.minimum_sacks %}
+                        <span class="badge bg-warning">Low Stock</span>
                     {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ grower_feed.total_sacks }} Sacks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if grower_feed %}
+                                    {{ grower_feed.number_of_sacks }} Sacks ({{ grower_feed.quantity_in_kg }}kg)
+                                {% else %}
+                                    0 Sacks
+                                {% endif %}
+                            </div>
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 Available Stock (Week 2-4)
                             </div>
+                            {% if grower_feed %}
+                                <div class="text-xs text-muted">
+                                    Price: ₹{{ grower_feed.price_per_sack }}/sack
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-box fa-2x text-gray-300"></i>
@@ -89,17 +111,28 @@
             <div class="card border-left-info shadow h-100">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-info">Finisher Feed Stock</h6>
-                    {% if finisher_feed.is_low %}
-                    <span class="badge bg-warning">Low Stock</span>
+                    {% if finisher_feed and finisher_feed.number_of_sacks <= finisher_feed.minimum_sacks %}
+                        <span class="badge bg-warning">Low Stock</span>
                     {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ finisher_feed.total_sacks }} Sacks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if finisher_feed %}
+                                    {{ finisher_feed.number_of_sacks }} Sacks ({{ finisher_feed.quantity_in_kg }}kg)
+                                {% else %}
+                                    0 Sacks
+                                {% endif %}
+                            </div>
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Available Stock (Week 5-6)
                             </div>
+                            {% if finisher_feed %}
+                                <div class="text-xs text-muted">
+                                    Price: ₹{{ finisher_feed.price_per_sack }}/sack
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-box fa-2x text-gray-300"></i>

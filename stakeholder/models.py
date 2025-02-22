@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 import numpy as np
 import cv2
 import json
+import random
 
 
 
@@ -240,17 +241,6 @@ class ChickBatch(models.Model):
             except Exception as e:
                 print(f"Error generating QR code: {str(e)}")
             
-        if not self.batch_number:
-            # Generate a batch number if not set
-            # Format: FARM-YYYY-MM-XXX
-            today = timezone.now()
-            farm_prefix = self.farm.name[:3].upper() if self.farm else 'BAT'
-            count = ChickBatch.objects.filter(
-                batch_date__year=today.year,
-                batch_date__month=today.month
-            ).count() + 1
-            self.batch_number = f"{farm_prefix}-{today.strftime('%Y%m')}-{count:03d}"
-        
         super().save(*args, **kwargs)
 
     def check_batch_completion(self):
@@ -579,17 +569,15 @@ class VaccinationSchedule(models.Model):
     
     
     
-    def save(self, *args, **kwargs):
-        if not self.verification_code:
-            # Generate a unique verification code
-            import uuid
-            while True:
-                new_code = str(uuid.uuid4())[:8]
-                if not VaccinationSchedule.objects.filter(verification_code=new_code).exists():
-                    self.verification_code = new_code
-                    break
+    def generate_verification_code(self):
+        """Generate a unique verification code"""
+        while True:
+            code = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=8))
+            if not VaccinationSchedule.objects.filter(verification_code=code).exists():
+                return code
 
-        # Generate QR code if not set
+    def generate_qr_code(self):
+        """Generate QR code for vaccination"""
         if not self.qr_code:
             try:
                 qr = qrcode.QRCode(
@@ -599,18 +587,19 @@ class VaccinationSchedule(models.Model):
                     border=4,
                 )
                 
-                # Create a simple data structure
+                # Create QR code data
                 qr_data = {
                     'verification_code': self.verification_code,
                     'vaccination_id': str(self.pk) if self.pk else '',
-                    'batch_id': str(self.batch.batch_uuid)
+                    'batch_id': str(self.batch.id),  # Using auto-generated ID
+                    'batch_date': self.batch.batch_date.strftime('%Y-%m-%d'),  # Adding batch start date
+                    'vaccine': self.vaccine.name,
+                    'date': self.vaccination_date.strftime('%Y-%m-%d')
                 }
                 
                 # Convert to JSON string
-                json_data = json.dumps(qr_data)
-                print(f"Generated QR Data: {json_data}")  # Debug print
-                
-                qr.add_data(json_data)
+                qr_string = json.dumps(qr_data)
+                qr.add_data(qr_string)
                 qr.make(fit=True)
 
                 # Create QR code image
@@ -628,8 +617,18 @@ class VaccinationSchedule(models.Model):
                 print(f"Error generating QR code: {str(e)}")
                 raise
 
+    def save(self, *args, **kwargs):
+        """Override save to ensure verification code and QR code"""
+        # Generate verification code if not set
+        if not self.verification_code:
+            self.verification_code = self.generate_verification_code()
+            
+        # Generate QR code if not set
+        if not self.qr_code:
+            self.generate_qr_code()  # Call the separate method
+
         super().save(*args, **kwargs)
-    
+
     def verify_location(self, scan_lat, scan_lng):
         """Verify if the scan location matches the farm location"""
         farm_lat, farm_lng = map(float, self.farm_coordinates.split(','))
@@ -988,6 +987,7 @@ class FeedAssignment(models.Model):
     sacks_assigned = models.IntegerField()
     cost_per_sack = models.DecimalField(max_digits=10, decimal_places=2)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    is_late = models.BooleanField(default=False)
     assigned_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     acknowledgment_date = models.DateTimeField(null=True, blank=True)

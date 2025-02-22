@@ -2,28 +2,57 @@
 
 {% block body %}
 <div class="container py-4">
-    <h2>My Farm Vaccinations</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Farm Vaccination Management</h2>
+    </div>
 
     {% if messages %}
     <div class="messages mb-3">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
+    <!-- Farm Summary Cards -->
+    <div class="row mb-4">
+        {% for farm in farms %}
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-warehouse text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-1">{{ farm.name }}</h5>
+                            <p class="card-text text-muted mb-0">
+                                <small>Active Batches: {{ farm.chick_batches.filter(status='active').count }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
     <!-- Upcoming Vaccinations -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="card-title mb-0">Upcoming Vaccinations</h4>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-syringe text-primary me-2"></i>
+                <h4 class="card-title mb-0">Upcoming Vaccinations</h4>
+            </div>
         </div>
         <div class="card-body">
             {% if upcoming_vaccinations %}
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Farm</th>
                             <th>Batch ID</th>
@@ -36,7 +65,7 @@
                     <tbody>
                         {% for vaccination in upcoming_vaccinations %}
                         <tr>
-                            <td>{{ vaccination.batch.farm.name }}</td>
+                            <td><span class="fw-medium">{{ vaccination.batch.farm.name }}</span></td>
                             <td>{{ vaccination.batch.batch_id }}</td>
                             <td>{{ vaccination.vaccine.name }}</td>
                             <td>{{ vaccination.vaccination_date }}</td>
@@ -45,17 +74,17 @@
                                 {% if vaccination.assigned_to == request.user %}
                                     {% if vaccination.status == 'assigned' %}
                                     <a href="{% url 'stakeholder_scan_qr' vaccination.pk %}" 
-                                       class="btn btn-primary btn-sm">
-                                        Scan QR
+                                       class="btn btn-primary btn-sm rounded-pill px-3">
+                                        <i class="fas fa-qrcode me-1"></i> Scan QR
                                     </a>
                                     {% elif vaccination.status == 'qr_scanned' %}
                                     <a href="{% url 'stakeholder_evidence_upload' vaccination.pk %}" 
-                                       class="btn btn-success btn-sm">
-                                        Upload Evidence
+                                       class="btn btn-success btn-sm rounded-pill px-3">
+                                        <i class="fas fa-upload me-1"></i> Upload Evidence
                                     </a>
                                     {% endif %}
                                 {% else %}
-                                    <span class="text-muted">Assigned to other</span>
+                                    <span class="badge bg-secondary">Assigned to other</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -64,7 +93,8 @@
                 </table>
             </div>
             {% else %}
-            <div class="alert alert-info">
+            <div class="alert alert-info bg-light border-0">
+                <i class="fas fa-info-circle me-2"></i>
                 No upcoming vaccinations scheduled.
             </div>
             {% endif %}
@@ -72,15 +102,18 @@
     </div>
 
     <!-- Completed Vaccinations -->
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h4 class="card-title mb-0">Completed Vaccinations</h4>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <h4 class="card-title mb-0">Completed Vaccinations</h4>
+            </div>
         </div>
         <div class="card-body">
             {% if completed_vaccinations %}
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Farm</th>
                             <th>Batch ID</th>
@@ -93,12 +126,12 @@
                     <tbody>
                         {% for vaccination in completed_vaccinations %}
                         <tr>
-                            <td>{{ vaccination.batch.farm.name }}</td>
+                            <td><span class="fw-medium">{{ vaccination.batch.farm.name }}</span></td>
                             <td>{{ vaccination.batch.batch_id }}</td>
                             <td>{{ vaccination.vaccine.name }}</td>
                             <td>{{ vaccination.vaccination_date }}</td>
                             <td>
-                                <span class="badge bg-{{ vaccination.status|lower }}">
+                                <span class="badge bg-{{ vaccination.status|lower }} rounded-pill">
                                     {{ vaccination.get_status_display }}
                                 </span>
                             </td>
@@ -109,33 +142,11 @@
                 </table>
             </div>
             {% else %}
-            <div class="alert alert-info">
+            <div class="alert alert-info bg-light border-0">
+                <i class="fas fa-info-circle me-2"></i>
                 No completed vaccinations yet.
             </div>
             {% endif %}
-        </div>
-    </div>
-
-    <!-- Farm Summary -->
-    <div class="card mt-4">
-        <div class="card-header bg-info text-white">
-            <h4 class="card-title mb-0">My Farms</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                {% for farm in farms %}
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ farm.name }}</h5>
-                            <p class="card-text">
-                                Active Batches: {{ farm.chick_batches.filter(status='active').count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
         </div>
     </div>
 </div>

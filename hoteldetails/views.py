@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
-from django.db.models import Q  # Import Q for complex queries
+from django.db.models import Q, Count, Sum
 from hoteldetails.models import Order, Cart, CartItem, HotelUser
 from stakeholder.models import ChickBatch
 from user.models import User
@@ -24,6 +24,8 @@ from .models import WalletTransaction  # Replace Transaction with WalletTransact
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.db.models.functions import TruncDate, ExtractMonth, ExtractYear
+from django.utils import timezone
 
 def hoteldashboard(request):
     batch_type = request.GET.get("batch_type", "")
@@ -434,12 +436,32 @@ def place_order(request):
 
 @login_required
 def wallet_view(request):
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    
     context = {
-        'wallet': request.user.wallet,
-        'razorpay_key': settings.RAZORPAY_KEY_ID,
-        'user': request.user
+        'wallet': {
+            'balance': '0.00',
+            'loyalty_points': '150',  # Example loyalty points
+            'membership_tier': 'Gold',  # Example tier
+        },
+        'total_added': '0.00',
+        'total_spent': '0.00',
+        'pending_amount': '0.00',
+        'transactions': [],
+        'bank_accounts': [],
+        'available_discounts': [
+            {
+                'code': 'WELCOME20',
+                'description': '20% off on your first order',
+                'expiry': '2025-03-01',
+                'discount_percent': 20,
+            },
+            {
+                'code': 'LOYALTY10',
+                'description': '10% off for Gold members',
+                'expiry': '2025-12-31',
+                'discount_percent': 10,
+            }
+        ],
+        'refund_requests': []
     }
     return render(request, 'hoteldetials/wallet.html', context)
 
@@ -549,3 +571,64 @@ def get_balance(request):
             'success': False,
             'error': str(e)
         }, status=400)
+        
+        
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import ChickBatch, Order
+from decimal import Decimal
+from datetime import datetime, timedelta
+
+def buy_entire_batch(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    
+    # Check if batch is available
+    if batch.batch_status != 'completed':
+        messages.error(request, "This batch is not available for purchase.")
+        return redirect('view_farm', farm_id=batch.farm.id)
+
+    try:
+        # Calculate total price for the entire batch
+        total_price = (
+            (batch.one_kg_count * batch.price_per_kg) +
+            (batch.two_kg_count * 2 * batch.price_per_kg) +
+            (batch.three_kg_count * 3 * batch.price_per_kg)
+        )
+
+        # Apply a 10% discount for buying the entire batch
+        discounted_price = total_price * Decimal('0.90')
+
+        # Set default delivery date (7 days from now)
+        delivery_date = datetime.now().date() + timedelta(days=7)
+
+        # Create the order
+        order = Order.objects.create(
+            user=request.user,
+            batch=batch,
+            one_kg_count=batch.one_kg_count,
+            two_kg_count=batch.two_kg_count,
+            three_kg_count=batch.three_kg_count,
+            price=discounted_price,
+            delivery_date=delivery_date,
+            payment_method='cod',  # Default to COD
+            status='pending',
+            delivery_option='standard'
+        )
+
+        # Update batch quantities to zero since entire batch is purchased
+        batch.one_kg_count = 0
+        batch.two_kg_count = 0
+        batch.three_kg_count = 0
+        batch.batch_status = 'sold'
+        batch.save()
+
+        # Send confirmation email
+        # send_order_confirmation_email(request.user.email, order)
+
+        messages.success(request, 
+        f"Successfully purchased entire batch! You saved 10% on the total price. Order ID: #{order.id}")
+        return redirect('view_orders')
+
+    except Exception as e:
+        messages.error(request, f"Error processing batch purchase: {str(e)}")
+        return redirect('view_farm', farm_id=batch.farm.id)

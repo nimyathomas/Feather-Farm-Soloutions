@@ -91,41 +91,42 @@ class Order(models.Model):
         self.delivery_fee = self.calculate_delivery_fee()
         super().save(*args, **kwargs)
         
-    def confirm_order(self):
-        """Set the status to confirmed and process the stock."""
-        # Check if there are chickens ordered
-        if self.one_kg_count > 0:
-            self.batch.one_kg_count -= self.one_kg_count
-        if self.two_kg_count > 0:
-            self.batch.two_kg_count -= self.two_kg_count
-        if self.three_kg_count > 0:
-            self.batch.three_kg_count -= self.three_kg_count
-
-        # Reduce the total available chickens based on the total order
-        total_ordered = (
-            self.one_kg_count + (self.two_kg_count * 2) + (self.three_kg_count * 3)
-        )
-        self.batch.reduce_stock(total_ordered, "kg")
-
-        # Update the order status
-        self.status = "confirmed"
-        self.save()
-        self.batch.save()  # Save the batch after updating counts
-
     def can_fulfill_order(self):
-        """Check if the order can be fulfilled based on available stock."""
-        total_ordered = (
-            self.one_kg_count + (self.two_kg_count * 2) + (self.three_kg_count * 3)
+        # Get the batch associated with this order
+        batch = self.batch
+        
+        # Check if we have enough chickens of each weight category
+        if (self.one_kg_count <= batch.one_kg_count and 
+            self.two_kg_count <= batch.two_kg_count and 
+            self.three_kg_count <= batch.three_kg_count):
+            return True
+        return False
+
+    def confirm_order(self):
+        if not self.can_fulfill_order():
+            raise ValueError("Not enough chickens available to fulfill this order.")
+
+        # Update the batch quantities
+        batch = self.batch
+        batch.one_kg_count -= self.one_kg_count
+        batch.two_kg_count -= self.two_kg_count
+        batch.three_kg_count -= self.three_kg_count
+        
+        # Update available chickens count
+        batch.available_chickens = (
+            batch.one_kg_count + 
+            batch.two_kg_count + 
+            batch.three_kg_count
         )
-        if self.batch.available_chickens < total_ordered:
-            return False
-        if self.batch.one_kg_count < self.one_kg_count:
-            return False
-        if self.batch.two_kg_count < self.two_kg_count:
-            return False
-        if self.batch.three_kg_count < self.three_kg_count:
-            return False
-        return True
+        
+        # Update status
+        self.status = 'confirmed'
+        
+        # Save changes
+        batch.save()
+        self.save()
+        
+        send_order_confirmation_email(self.user.email, self)
 
     def total_weight(self):
         """Calculate the total weight of the order."""

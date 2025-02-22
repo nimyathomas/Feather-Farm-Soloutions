@@ -27,6 +27,9 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal  # Add this import at the top
 from django.db import transaction
 from django.db import connection
+from django.db.models import Count, Avg, F, Q, Max, Min, Case, When, FloatField, StdDev
+from django.db.models import Subquery, OuterRef
+from django.utils import timezone
 
 def register(request):
     user_type_param = request.GET.get('user_type')
@@ -324,24 +327,27 @@ def customeruserprofile(request, id):
 
 @login_required
 def approve_order(request, order_id):
-    # Fetch the order and update its status
     order = get_object_or_404(Order, id=order_id)
     if request.method == 'POST':
+        # Debug prints
+        print(f"Order quantities - 1kg: {order.one_kg_count}, 2kg: {order.two_kg_count}, 3kg: {order.three_kg_count}")
+        print(f"Batch quantities - 1kg: {order.batch.one_kg_count}, 2kg: {order.batch.two_kg_count}, 3kg: {order.batch.three_kg_count}")
+        
         # Check if the order can be fulfilled
         if not order.can_fulfill_order():
             messages.error(
-                request, "Not enough chickens available to fulfill this order.")
+                request, f"Not enough chickens available. Required: 1kg:{order.one_kg_count}, 2kg:{order.two_kg_count}, 3kg:{order.three_kg_count}. Available: 1kg:{order.batch.one_kg_count}, 2kg:{order.batch.two_kg_count}, 3kg:{order.batch.three_kg_count}")
             return redirect('customeruserprofile', id=order.user.id)
 
         # Confirm the order
         try:
             order.confirm_order()
             messages.success(request, "Order confirmed successfully!")
-            return redirect('customeruserprofile', id=order.user.id)
         except ValueError as e:
             messages.error(request, str(e))
-            return redirect('customeruserprofile', id=order.user.id)
-    # Redirect back to the profile page
+        
+        return redirect('customeruserprofile', id=order.user.id)
+    
     return redirect('customeruserprofile', id=order.user.id)
 
 def toggle_user_status(request, user_id):
@@ -870,3 +876,165 @@ def feed_manage(request):
         'title': 'Feed Management'
     }
     return render(request, 'stakeholder/feed_manage.html', context)
+
+
+
+from django.db.models import Count, Sum, Avg
+from django.db.models.functions import TruncDate, TruncMonth, TruncWeek
+from datetime import datetime, timedelta
+from django.utils import timezone
+import pandas as pd
+import json
+
+def order_analytics(request):
+    try:
+        # Basic Order Statistics
+        total_orders = Order.objects.count()
+        total_revenue = Order.objects.aggregate(total=Sum('price'))['total'] or 0
+        
+        # Orders by Weight Category
+        weight_distribution = {
+            '1KG': Order.objects.aggregate(total=Sum('one_kg_count'))['total'] or 0,
+            '2KG': Order.objects.aggregate(total=Sum('two_kg_count'))['total'] or 0,
+            '3KG': Order.objects.aggregate(total=Sum('three_kg_count'))['total'] or 0
+        }
+
+        # Simple date-based aggregation without timezone complications
+        orders_by_date = Order.objects.extra(
+            select={'order_day': 'DATE(order_date)'}
+        ).values('order_day').annotate(
+            revenue=Sum('price'),
+            count=Count('id')
+        ).order_by('order_day')
+
+        # Prepare data for charts
+        dates = []
+        revenues = []
+        for order in orders_by_date:
+            if order['order_day']:
+                dates.append(order['order_day'].strftime('%Y-%m-%d'))
+                revenues.append(float(order['revenue'] or 0))
+
+        # Payment Methods
+        payment_methods = Order.objects.values('payment_method').annotate(
+            count=Count('id')
+        ).order_by('-count')
+
+        payment_labels = [p['payment_method'] for p in payment_methods]
+        payment_data = [p['count'] for p in payment_methods]
+
+        # Customer Frequency
+        customer_frequency = Order.objects.values(
+            'user__full_name'
+        ).annotate(
+            order_count=Count('id'),
+            total_spent=Sum('price')
+        ).order_by('-order_count')[:10]
+
+        context = {
+            'total_orders': total_orders,
+            'total_revenue': total_revenue,
+            'weight_distribution': weight_distribution,
+            'daily_orders': json.dumps(dates),
+            'daily_revenue': json.dumps(revenues),
+            'payment_labels': json.dumps(payment_labels),
+            'payment_data': json.dumps(payment_data),
+            'customer_frequency': customer_frequency,
+        }
+
+        return render(request, 'order_analytics.html', context)
+
+    except Exception as e:
+        print(f"Error in order_analytics: {str(e)}")  # Debug print
+        messages.error(request, f"Error generating analytics: {str(e)}")
+        return redirect('admindash')
+
+def farm_analytics_dashboard(request):
+    try:
+        # Get all farms with batch information
+        farms = Farm.objects.annotate(
+            active_batches_count=Count(
+                'chickbatch',
+                filter=Q(chickbatch__batch_status='active')
+            ),
+            completed_batches_count=Count(
+                'chickbatch',
+                filter=Q(chickbatch__batch_status='completed')
+            )
+        )
+
+        for farm in farms:
+            # Get active batches with current day calculation
+            farm.active_batches = ChickBatch.objects.filter(
+                farm=farm,
+                batch_status='active'
+            ).annotate(
+                current_day=(timezone.now().date() - F('batch_date')).days,
+                mortality_rate=100 * (F('initial_chick_count') - F('available_chickens')) / F('initial_chick_count')
+            )
+
+            # Get completed batches with distribution details
+            farm.completed_batches = ChickBatch.objects.filter(
+                farm=farm,
+                batch_status='completed'
+            ).annotate(
+                total_distributed=F('one_kg_count') + F('two_kg_count') + F('three_kg_count')
+            ).order_by('-batch_date')[:5]
+
+        # Farm with most chickens
+        top_farms_by_chickens = Farm.objects.annotate(
+            total_chickens=Coalesce(Sum('chickbatch__available_chickens'), 0)
+        ).order_by('-total_chickens')[:5]
+
+        # Farms with lowest mortality rate
+        low_mortality_farms = Farm.objects.annotate(
+            avg_mortality_rate=Avg('chickbatch__mortality_rate')
+        ).filter(
+            avg_mortality_rate__isnull=False
+        ).order_by('avg_mortality_rate')[:5]
+
+        # FCR Analysis
+        fcr_analysis = Farm.objects.annotate(
+            avg_fcr=Avg('chickbatch__fcr')
+        )
+
+        # High FCR Farms (Warning)
+        high_fcr_farms = fcr_analysis.filter(
+            avg_fcr__gt=2.0
+        ).order_by('-avg_fcr')[:5]
+
+        # Low FCR Farms
+        low_fcr_farms = fcr_analysis.filter(
+            avg_fcr__lt=1.8
+        ).order_by('avg_fcr')[:5]
+
+        # FCR Alerts
+        fcr_alerts = []
+        for farm in farms:
+            recent_batches = ChickBatch.objects.filter(
+                farm=farm
+            ).order_by('-created_at')[:3]
+            
+            if recent_batches.count() >= 3:
+                high_fcr_count = sum(1 for batch in recent_batches if batch.fcr and batch.fcr > 2.0)
+                if high_fcr_count >= 2:
+                    fcr_alerts.append({
+                        'farm': farm,
+                        'message': f"Warning: {farm.name} has shown high FCR in {high_fcr_count} of last 3 batches"
+                    })
+
+        context = {
+            'farms': farms,
+            'top_farms_by_chickens': top_farms_by_chickens,
+            'low_mortality_farms': low_mortality_farms,
+            'high_fcr_farms': high_fcr_farms,
+            'low_fcr_farms': low_fcr_farms,
+            'fcr_alerts': fcr_alerts,
+        }
+
+        return render(request, 'farm_analytics_dashboard.html', context)
+
+    except Exception as e:
+        print(f"Error in farm analytics: {str(e)}")
+        messages.error(request, f"Error generating farm analytics: {str(e)}")
+        return redirect('admindash')

@@ -1,0 +1,191 @@
+{% extends 'admindash.html' %}
+{% block body %}
+
+<div class="analytics-container">
+    <!-- Farm List Section -->
+    <div class="farms-section card">
+        <div class="card-header">
+            <h4>Farm Overview</h4>
+        </div>
+        <div class="card-body">
+            {% for farm in farms %}
+            <div class="farm-card" onclick="toggleFarmDetails('farm-{{ farm.id }}')">
+                <div class="farm-summary">
+                    <div class="farm-info">
+                        <h5>{{ farm.name }}</h5>
+                        <div class="batch-counts">
+                            <span class="badge badge-primary">{{ farm.active_batches_count }} Active</span>
+                            <span class="badge badge-secondary">{{ farm.completed_batches_count }} Completed</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+
+                <div id="farm-{{ farm.id }}" class="farm-details" style="display: none;">
+                    <!-- Active Batches -->
+                    {% if farm.active_batches %}
+                    <div class="batch-section">
+                        <h6>Active Batches</h6>
+                        {% for batch in farm.active_batches %}
+                        <div class="batch-card active">
+                            <div class="batch-header">
+                                <span class="batch-type">{{ batch.batch_type }}</span>
+                                <span class="day-count">Day {{ batch.current_day }} of {{ batch.duration }}</span>
+                            </div>
+                            <div class="batch-stats">
+                                <div class="stat">
+                                    <label>Initial Count</label>
+                                    <span>{{ batch.initial_chick_count }}</span>
+                                </div>
+                                <div class="stat">
+                                    <label>Current Count</label>
+                                    <span>{{ batch.available_chickens }}</span>
+                                </div>
+                                <div class="stat">
+                                    <label>Mortality Rate</label>
+                                    <span>{{ batch.mortality_rate|floatformat:2 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Completed Batches -->
+                    {% if farm.completed_batches %}
+                    <div class="batch-section">
+                        <h6>Recent Completed Batches</h6>
+                        {% for batch in farm.completed_batches %}
+                        <div class="batch-card completed">
+                            <div class="batch-header">
+                                <span class="batch-type">{{ batch.batch_type }}</span>
+                                <span class="completion-date">{{ batch.batch_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="distribution-stats">
+                                <div class="stat">
+                                    <label>1KG Birds</label>
+                                    <span>{{ batch.one_kg_count }}</span>
+                                </div>
+                                <div class="stat">
+                                    <label>2KG Birds</label>
+                                    <span>{{ batch.two_kg_count }}</span>
+                                </div>
+                                <div class="stat">
+                                    <label>3KG Birds</label>
+                                    <span>{{ batch.three_kg_count }}</span>
+                                </div>
+                                <div class="stat total">
+                                    <label>Total</label>
+                                    <span>{{ batch.total_distributed }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Your existing analytics sections remain the same -->
+    {{ existing_content }}
+</div>
+
+<style>
+/* Add to your existing styles */
+.farm-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.farm-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+}
+
+.farm-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.batch-counts {
+    display: flex;
+    gap: 10px;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+}
+
+.farm-details {
+    padding: 0 15px 15px;
+    border-top: 1px solid #eee;
+}
+
+.batch-card {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.batch-card.active {
+    border-left: 4px solid #2A9D8F;
+}
+
+.batch-card.completed {
+    border-left: 4px solid #E76F51;
+}
+
+.batch-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.batch-stats, .distribution-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat label {
+    font-size: 0.85em;
+    color: #666;
+}
+
+.stat.total {
+    font-weight: bold;
+}
+</style>
+
+<script>
+function toggleFarmDetails(farmId) {
+    const details = document.getElementById(farmId);
+    const icon = details.previousElementSibling.querySelector('.fa-chevron-down');
+    
+    if (details.style.display === 'none') {
+        details.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        details.style.display = 'none';
+        icon.style.transform = 'rotate(0)';
+    }
+}
+</script>
+
+{% endblock %} 

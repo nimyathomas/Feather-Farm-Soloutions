@@ -1,0 +1,9 @@
+<form method="POST" action="{% url 'update_cart' %}">
+    {% csrf_token %}
+    <!-- Your existing quantity inputs -->
+    
+    <!-- Update the submit button -->
+    <button type="submit" class="btn btn-primary" formaction="{% url 'checkout_view' %}">
+        Proceed to Checkout
+    </button>
+</form> 

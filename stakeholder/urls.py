@@ -40,6 +40,7 @@ from user.views import (
 #     update_location,
     get_vaccine,
     vaccine_stock_level,
+    order_analytics,farm_analytics_dashboard
   
    
 )
@@ -196,14 +197,22 @@ urlpatterns = [
     path('feed-stock/add/', views.add_feed_stock, name='add_feed_stock'),
 
     path('feed-stock/create/', views.feed_stock_create, name='feed_stock_create'),
-    
-    path('feed-stock/update/', views.update_feed_stock, name='update_feed_stock'),
-    path('api/calculate-feed/<int:chick_count>/', views.calculate_feed, name='calculate_feed'),
-    path('feed-stock/<int:feed_id>/delete/', views.delete_feed_stock, name='delete_feed_stock'),
 
     
+    path('feed-stock/update/<int:feed_id>/', 
+         views.update_feed_stock_view, 
+         name='update_feed_stock'),
+    path('feed-stock/delete/<int:feed_id>/', 
+         views.delete_feed_stock, 
+         name='delete_feed_stock'),
+    path('api/calculate-feed/<int:chick_count>/', views.calculate_feed, name='calculate_feed'),
+    
+    path('feed/delete/<int:feed_id>/', views.delete_feed_stock, name='delete_feed_stock'),
+    
     path('feed/active-batches/', views.active_batches_feed, name='active_batches_feed'),
-    path('feed/assign/<int:batch_id>/', views.batch_feed_assignment, name='batch_feed_assignment'),
+    path('feed/batch-assignment/<int:batch_id>/', 
+         views.batch_feed_assignment, 
+         name='batch_feed_assignment'),
     path('feed-tracking/', views.feed_tracking_dashboard, name='feed_tracking_dashboard'),
     path('record-feed/<int:batch_id>/', views.record_feed_consumption, name='record_feed_consumption'),
     path('vaccine/<int:vaccine_id>/details/', views.get_vaccine_details, name='vaccine_details'),
@@ -234,8 +243,13 @@ urlpatterns = [
          views.validate_vaccine_vial, 
          name='validate_vaccine_vial'),
     
-    path('feed/delete/<int:feed_id>/', views.delete_feed, name='delete_feed'),
+    
     path('feed/manage/', views.feed_manage, name='feed_manage'),
+    
+    path('order-analytics/', order_analytics, name='order_analytics'),
+    path('farm-analytics-dashboard/', farm_analytics_dashboard, name='farm_analytics_dashboard'),    
+    path('feed/daily-report/<str:date>/', views.daily_feed_report, name='daily_feed_report'),
+    path('feed/report-pdf/<str:date>/', views.daily_feed_report, name='feed_report_pdf'),
 ]
     
     

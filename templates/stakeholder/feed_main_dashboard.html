@@ -210,7 +210,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
-                            <button class="btn btn-primary w-100" onclick="loadDailyReport()">
+                            <button type="button" class="btn btn-primary" id="loadReportBtn">
                                 <i class="fas fa-sync-alt me-1"></i> Load
                             </button>
                         </div>
@@ -291,17 +291,97 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Feed Type Distribution Chart
+    // Define all functions first
+    function loadDailyReport() {
+        const date = document.getElementById('reportDate').value;
+        console.log('Loading report for date:', date);
+        
+        if (!date) {
+            alert('Please select a date');
+            return;
+        }
+        
+        fetch(`/feed/daily-report/${date}/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load report');
+                }
+                return data;
+            });
+        })
+        .then(data => {
+            console.log('Received data:', data);
+            if (data.success) {
+                // Update summary statistics
+                document.getElementById('totalAssignments').textContent = data.summary.total_assignments;
+                document.getElementById('totalSacks').textContent = data.summary.total_sacks;
+                document.getElementById('activeBatches').textContent = data.summary.active_batches;
+                document.getElementById('totalCost').textContent = `₹${data.summary.total_cost}`;
+                
+                // Update table
+                updateReportTable(data.assignments);
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading report: ' + error.message);
+        });
+    }
+
+    function updateReportTable(assignments) {
+        const tbody = document.getElementById('reportTableBody');
+        if (assignments && assignments.length > 0) {
+            tbody.innerHTML = assignments.map(a => `
+                <tr>
+                    <td>${a.time}</td>
+                    <td>Batch #${a.batch_id}</td>
+                    <td>${a.farm_name}</td>
+                    <td>${a.feed_type}</td>
+                    <td>Week ${a.week}</td>
+                    <td>${a.sacks}</td>
+                    <td>₹${a.cost_per_sack}</td>
+                    <td>₹${a.total_cost}</td>
+                    <td>
+                        <span class="badge ${a.is_late ? 'bg-warning' : 'bg-success'}">
+                            ${a.is_late ? 'Late' : 'On Time'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">No assignments found for this date</td></tr>';
+        }
+    }
+
+    function exportDailyReport() {
+        const date = document.getElementById('reportDate').value;
+        window.location.href = `/feed/export-daily-report/${date}/`;
+    }
+
+    function generatePDF() {
+        const date = document.getElementById('reportDate').value;
+        window.location.href = `/feed/report-pdf/${date}/`;
+    }
+
+    function initializeCharts(feedTypeStats, dailyDates, dailyCosts) {
+        // Feed Type Distribution Chart
         new Chart(document.getElementById('feedTypeChart'), {
             type: 'pie',
             data: {
                 labels: ['Starter Feed', 'Grower Feed', 'Finisher Feed'],
                 datasets: [{
                     data: [
-                        {{ feed_type_stats.starter|default:0 }},
-                        {{ feed_type_stats.grower|default:0 }},
-                        {{ feed_type_stats.finisher|default:0 }}
+                        feedTypeStats.starter || 0,
+                        feedTypeStats.grower || 0,
+                        feedTypeStats.finisher || 0
                     ],
                     backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc']
                 }]
@@ -317,14 +397,14 @@
             }
         });
 
-        // Initialize Feed Cost Trend Chart
+        // Feed Cost Trend Chart
         new Chart(document.getElementById('feedCostTrendChart'), {
             type: 'line',
             data: {
-                labels: {{ daily_dates|safe }},
+                labels: dailyDates,
                 datasets: [{
                     label: 'Daily Feed Cost',
-                    data: {{ daily_costs|safe }},
+                    data: dailyCosts,
                     borderColor: '#4e73df',
                     tension: 0.1
                 }]
@@ -339,71 +419,47 @@
                 }
             }
         });
-    });
+    }
 
-    // Function to update report display
-    function updateDailyReport(data) {
-        console.log('Received data:', data);  // Add debug log
+    // Initialize everything after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Get data from Django template with proper defaults
+            const feedTypeStats = {
+                starter: Number('{{ feed_type_stats.starter|default:"0" }}'),
+                grower: Number('{{ feed_type_stats.grower|default:"0" }}'),
+                finisher: Number('{{ feed_type_stats.finisher|default:"0" }}')
+            };
 
-        // Update summary statistics
-        document.getElementById('totalAssignments').textContent = data.total_assignments;
-        document.getElementById('totalSacks').textContent = data.total_sacks;
-        document.getElementById('activeBatches').textContent = data.active_batches;
-        document.getElementById('totalCost').textContent = `₹${data.total_cost}`;
-        
-        // Update table
-        const tbody = document.getElementById('reportTableBody');
-        if (data.assignments && data.assignments.length > 0) {
-            tbody.innerHTML = data.assignments.map(a => `
-                <tr>
-                    <td>${a.time}</td>
-                    <td>${a.batch_id}</td>
-                    <td>${a.farm_name}</td>
-                    <td>${a.feed_type}</td>
-                    <td>Week ${a.week}</td>
-                    <td>${a.sacks}</td>
-                    <td>₹${a.cost_per_sack}</td>
-                    <td>₹${a.total_cost}</td>
-                    <td><span class="badge bg-success">Completed</span></td>
-                </tr>
-            `).join('');
-        } else {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center">No assignments found for this date</td></tr>';
+            // Parse JSON strings with proper defaults
+            let dailyDates = [];
+            try {
+                dailyDates = JSON.parse('{{ daily_dates|default:"[]"|escapejs }}');
+            } catch (e) {
+                console.warn('Error parsing daily dates:', e);
+            }
+
+            let dailyCosts = [];
+            try {
+                dailyCosts = JSON.parse('{{ daily_costs|default:"[]"|escapejs }}');
+            } catch (e) {
+                console.warn('Error parsing daily costs:', e);
+            }
+
+            // Initialize charts
+            initializeCharts(feedTypeStats, dailyDates, dailyCosts);
+
+            // Add event listener for load button
+            const loadBtn = document.getElementById('loadReportBtn');
+            if (loadBtn) {
+                loadBtn.addEventListener('click', loadDailyReport);
+            } else {
+                console.warn('Load report button not found');
+            }
+        } catch (e) {
+            console.error('Error initializing dashboard:', e);
         }
-    }
-
-    // Function to load daily report
-    function loadDailyReport() {
-        const date = document.getElementById('reportDate').value;
-        console.log('Loading report for date:', date);  // Add debug log
-        
-        fetch(`/feed/daily-report/${date}/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received data:', data);  // Add debug log
-                updateDailyReport(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);  // Add debug log
-                alert('Error loading report: ' + error.message);
-            });
-    }
-
-    // Function to export report
-    function exportDailyReport() {
-        const date = document.getElementById('reportDate').value;
-        window.location.href = `/feed/export-daily-report/${date}/`;
-    }
-
-    function generatePDF() {
-        const date = document.getElementById('reportDate').value;
-        window.location.href = `/feed/report-pdf/${date}/`;
-    }
+    });
     </script>
 </div>
 {% endblock %}
