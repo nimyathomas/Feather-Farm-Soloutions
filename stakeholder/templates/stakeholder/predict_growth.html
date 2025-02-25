@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Chick Growth Prediction</h2>
+    <div class="card">
+        <div class="card-body">
+            <form id="predictionForm" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="days">Number of Days to Predict:</label>
+                    <input type="number" class="form-control" id="days" name="days" min="1" max="30" value="10" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="initial_weight">Initial Chick Weight (g):</label>
+                    <input type="number" class="form-control" id="initial_weight" name="initial_weight" value="40" required>
+                </div>
+
+                <div id="dailyInputs">
+                    <h4 class="mt-4">Last 10 Days Data</h4>
+                    {% for i in "0123456789"|make_list %}
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label>Day {{ forloop.counter }}:</label>
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" name="feed[]" placeholder="Feed (kg)" step="0.01" required>
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" name="water[]" placeholder="Water (L)" step="0.01" required>
+                        </div>
+                        <div class="col">
+                            <input type="number" class="form-control" name="temperature[]" placeholder="Temp (°C)" step="0.1" required>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-4">Predict Growth</button>
+            </form>
+
+            <div id="predictionResults" class="mt-4" style="display: none;">
+                <h4>Prediction Results</h4>
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    let growthChart = null;
+
+    $('#predictionForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{% url 'predict_chick_growth' %}",
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    $('#predictionResults').show();
+                    
+                    // Destroy existing chart if it exists
+                    if (growthChart) {
+                        growthChart.destroy();
+                    }
+                    
+                    // Create new chart
+                    const ctx = document.getElementById('growthChart').getContext('2d');
+                    growthChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: response.days,
+                            datasets: [{
+                                label: 'Predicted Weight (g)',
+                                data: response.predicted_weights,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    title: {
+                                        display: true,
+                                        text: 'Weight (g)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Day'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    alert('Error making prediction: ' + response.error);
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + xhr.responseText);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,63 @@
+{% extends 'admindash.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Contracts</h1>
+        <a href="{% url 'create_contract' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Contract
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Contracts</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Contract Number</th>
+                            <th>Admin</th>
+                            <th>Stakeholder</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contract in contracts %}
+                        <tr>
+                            <td>{{ contract.contract_number }}</td>
+                            <td>{{ contract.admin.full_name }}</td>
+                            <td>{{ contract.stakeholder.full_name }}</td>
+                            <td>
+                                <span class="badge {% if contract.status == 'Pending' %}badge-warning{% elif contract.status == 'Signed' %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {{ contract.status }}
+                                </span>
+                            </td>
+                            <td>{{ contract.created_date|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'contract_detail' contract_id=contract.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if contract.status == 'Pending' %}
+                                <a href="#" class="btn btn-sm btn-success">
+                                    <i class="fas fa-signature"></i> Sign
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No contracts found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

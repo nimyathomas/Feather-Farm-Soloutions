@@ -1,0 +1,329 @@
+{% extends 'stakeholder.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Prediction Input Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calculator"></i> Growth Prediction Input</h5>
+                </div>
+                <div class="card-body">
+                    <form id="prediction-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label>Select Batch</label>
+                            <select class="form-select" id="batch-select" required>
+                                <option value="">Choose batch...</option>
+                                {% for batch in active_batches %}
+                                <option value="{{ batch.id }}" 
+                                        data-start-date="{{ batch.batch_date|date:'Y-m-d' }}">
+                                    Batch #{{ batch.id }} - {{ batch.batch_date|date:"F j, Y" }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Day Number</label>
+                            <input type="number" class="form-control" id="day-number" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Feed Consumed (kg)</label>
+                            <input type="number" class="form-control" id="feed-taken" required step="0.01">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Water Consumed (L)</label>
+                            <input type="number" class="form-control" id="water-taken" required step="0.01">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Temperature (°C)</label>
+                            <input type="number" class="form-control" id="temperature" required step="0.1">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Alive Count</label>
+                            <input type="number" class="form-control" id="alive-count" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Actual Weight (g) (Optional)</label>
+                            <input type="number" class="form-control" id="actual-weight" step="0.01">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> Predict Growth
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prediction Results Card -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Prediction Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="prediction-metric">
+                                <h6>Predicted Weight</h6>
+                                <span id="predicted-weight" class="metric-value">-</span>
+                                <span class="metric-unit">grams</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="prediction-metric">
+                                <h6>Weight Difference</h6>
+                                <span id="weight-difference" class="metric-value">-</span>
+                                <span class="metric-unit">grams</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="prediction-metric">
+                                <h6>Growth Status</h6>
+                                <span id="growth-status" class="metric-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Growth Chart -->
+                    <div class="mt-4">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                    
+                    <!-- Previous Predictions Table -->
+                    <div class="mt-4">
+                        <h6>Previous Predictions</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Day</th>
+                                        <th>Predicted</th>
+                                        <th>Actual</th>
+                                        <th>Difference</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="predictions-history">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.prediction-metric {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.metric-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.metric-unit {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.text-success { color: #28a745 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const batchSelect = document.getElementById('batch-select');
+    const dayNumber = document.getElementById('day-number');
+    let growthChart = null;
+
+    // Update day number when batch is selected
+    batchSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            const startDate = new Date(selectedOption.dataset.startDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            dayNumber.value = diffDays;
+        } else {
+            dayNumber.value = '';
+        }
+    });
+
+    // Handle form submission
+    document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Get form values
+        const formData = new FormData();
+        formData.append('batch_id', document.getElementById('batch-select').value);
+        formData.append('day_number', document.getElementById('day-number').value);
+        formData.append('feed_taken', document.getElementById('feed-taken').value);
+        formData.append('water_taken', document.getElementById('water-taken').value);
+        formData.append('temperature', document.getElementById('temperature').value);
+        formData.append('alive_count', document.getElementById('alive-count').value);
+        formData.append('actual_weight', document.getElementById('actual-weight').value || '');
+
+        try {
+            const response = await fetch('/predict-weight/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                updatePredictionDisplay(data);
+                await loadPredictionHistory(document.getElementById('batch-select').value);
+            } else {
+                throw new Error(data.error || 'Prediction failed');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to get prediction: ' + error.message);
+        }
+    });
+
+    function updatePredictionDisplay(data) {
+        // Update metrics
+        document.getElementById('predicted-weight').textContent = 
+            data.predicted_weight.toFixed(2);
+        
+        const actualWeight = document.getElementById('actual-weight').value;
+        if (actualWeight) {
+            const difference = (actualWeight - data.predicted_weight).toFixed(2);
+            document.getElementById('weight-difference').textContent = difference;
+            document.getElementById('weight-difference').className = 
+                'metric-value ' + getDifferenceClass(difference);
+        } else {
+            document.getElementById('weight-difference').textContent = '-';
+        }
+        
+        const statusElement = document.getElementById('growth-status');
+        statusElement.textContent = data.growth_status;
+        statusElement.className = 'metric-value ' + getStatusClass(data.growth_status);
+        
+        // Update chart
+        updateGrowthChart(data);
+    }
+
+    function getDifferenceClass(difference) {
+        if (Math.abs(difference) <= 20) return 'text-success';
+        if (Math.abs(difference) <= 50) return 'text-warning';
+        return 'text-danger';
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'On Track': return 'text-success';
+            case 'Under-Growing': return 'text-danger';
+            case 'Over-Growing': return 'text-warning';
+            default: return '';
+        }
+    }
+
+    async function loadPredictionHistory(batchId) {
+        try {
+            const response = await fetch(`/prediction-history/${batchId}/`);
+            if (!response.ok) throw new Error('Failed to load history');
+            
+            const data = await response.json();
+            updatePredictionHistory(data.history);
+            
+        } catch (error) {
+            console.error('Error loading history:', error);
+        }
+    }
+
+    function updatePredictionHistory(history) {
+        const tbody = document.getElementById('predictions-history');
+        tbody.innerHTML = history.map(entry => `
+            <tr>
+                <td>${entry.date}</td>
+                <td>${entry.day_number}</td>
+                <td>${entry.predicted_weight.toFixed(2)}g</td>
+                <td>${entry.actual_weight ? entry.actual_weight.toFixed(2) + 'g' : '-'}</td>
+                <td class="${getDifferenceClass(entry.weight_difference)}">
+                    ${entry.weight_difference ? entry.weight_difference.toFixed(2) + 'g' : '-'}
+                </td>
+                <td class="${getStatusClass(entry.growth_status)}">
+                    ${entry.growth_status}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function updateGrowthChart(data) {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        if (growthChart) {
+            growthChart.destroy();
+        }
+        
+        growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.history_days,
+                datasets: [{
+                    label: 'Predicted Weight',
+                    data: data.predicted_weights,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }, {
+                    label: 'Actual Weight',
+                    data: data.actual_weights,
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Weight (g)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Day Number'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

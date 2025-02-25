@@ -1,0 +1,255 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="chat-wrapper">
+    <!-- Sidebar with Admin List -->
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">Admin Contacts</h5>
+        </div>
+        <div class="sidebar-content">
+            {% for admin in admins %}
+            <div class="contact-item">
+                <div class="d-flex align-items-center">
+                    <div class="chat-avatar">
+                        {{ admin.full_name|make_list|first|upper }}
+                    </div>
+                    <div class="contact-info">
+                        <h6 class="mb-1">{{ admin.full_name }}</h6>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <div class="d-flex align-items-center">
+                <div class="chat-avatar">A</div>
+                <div class="chat-info">
+                    <h5 class="mb-0">Chat with Admin</h5>
+                    <small class="text-muted">Online</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-container">
+            {% for message in messages %}
+            <div class="message {% if message.sender == request.user %}stakeholder{% else %}admin{% endif %}">
+                <div class="message-content">
+                    <p class="mb-0">{{ message.message }}</p>
+                    <div class="message-time">
+                        {{ message.created_at|date:"g:i A" }}
+                        {% if message.sender == request.user %}
+                        <i class="fas fa-check-double text-primary ms-1"></i>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input">
+            <form method="POST" class="message-form">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" class="form-control" name="message" 
+                           placeholder="Type a message..." required>
+                    <button type="submit" class="btn btn-send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-wrapper {
+    display: flex;
+    height: calc(100vh - 60px); /* Adjust based on your navbar height */
+    background-color: #f0f2f5;
+    margin: -20px; /* Counteract any padding from the parent */
+}
+
+/* Sidebar Styles */
+.chat-sidebar {
+    width: 300px;
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 16px;
+    background: #f0f2f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-content {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.contact-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.contact-item:hover {
+    background-color: #f5f6f6;
+}
+
+.contact-info {
+    margin-left: 12px;
+}
+
+/* Main Chat Area Styles */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+.chat-header {
+    padding: 16px;
+    background: #f0f2f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #e5ddd5;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415L51.8 0h2.827zM5.373 0l-.83.828L5.96 2.243 8.2 0H5.374zM48.97 0l3.657 3.657-1.414 1.414L46.143 0h2.828zM11.03 0L7.372 3.657 8.787 5.07 13.857 0H11.03zm32.284 0L49.8 6.485 48.384 7.9l-7.9-7.9h2.83zM16.686 0L10.2 6.485 11.616 7.9l7.9-7.9h-2.83zM22.343 0L13.857 8.485 15.272 9.9l7.9-7.9h-.83zm5.657 0L19.514 8.485 20.93 9.9l8.485-8.485h-.485zM32.686 0L22.343 10.343 23.757 11.757 34.1 1.414 32.687 0z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.chat-input {
+    padding: 16px;
+    background: #f0f2f5;
+    border-top: 1px solid #e0e0e0;
+}
+
+.message {
+    margin-bottom: 12px;
+    max-width: 65%;
+    display: flex;
+}
+
+.message.stakeholder {
+    margin-left: auto;
+}
+
+.message-content {
+    padding: 8px 12px;
+    border-radius: 8px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message.stakeholder .message-content {
+    background-color: #dcf8c6;
+    border-bottom-right-radius: 4px;
+}
+
+.message.admin .message-content {
+    background-color: white;
+    border-bottom-left-radius: 4px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: #667781;
+    margin-top: 2px;
+    text-align: right;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #128C7E;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.message-form {
+    display: flex;
+}
+
+.input-group {
+    background: white;
+    border-radius: 24px;
+    padding: 4px;
+}
+
+.input-group input {
+    border: none;
+    padding: 8px 16px;
+    background: transparent;
+}
+
+.input-group input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.btn-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #128C7E;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 0;
+    margin-left: 8px;
+}
+
+.btn-send:hover {
+    background-color: #075E54;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+
+<script>
+// Auto-scroll to bottom
+const chatContainer = document.querySelector('.chat-messages');
+chatContainer.scrollTop = chatContainer.scrollHeight;
+
+// Refresh messages every 30 seconds
+setInterval(() => {
+    window.location.reload();
+}, 30000);
+</script>
+{% endblock %}

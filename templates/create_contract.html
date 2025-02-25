@@ -1,0 +1,131 @@
+{% extends 'admindash.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Create New Contract</h6>
+        </div>
+        <div class="card-body">
+            <form method="post" id="contractForm">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Basic Information</h5>
+                        <div class="form-group">
+                            <label>Contract Type</label>
+                            {{ form.contract_type }}
+                        </div>
+                        <div class="form-group">
+                            <label>Stakeholder</label>
+                            {{ form.stakeholder }}
+                        </div>
+                        <div class="form-group">
+                            <label>Farm Name</label>
+                            <input type="text" class="form-control" name="farm_name" id="farm_name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Stakeholder Name</label>
+                            <input type="text" class="form-control" name="stakeholder_name" id="stakeholder_name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Farm Length (m)</label>
+                            <input type="text" class="form-control" name="farm_length" id="farm_length" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Farm Breadth (m)</label>
+                            <input type="text" class="form-control" name="farm_breadth" id="farm_breadth" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Farm Capacity</label>
+                            <input type="text" class="form-control" name="farm_capacity" id="farm_capacity" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            {{ form.end_date }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>Farm Management Terms</h5>
+                        <div class="form-group">
+                            <label>Chick Capacity</label>
+                            {{ form.chick_capacity }}
+                        </div>
+                        <div class="form-group">
+                            <label>Feed Requirements</label>
+                            {{ form.feed_requirements }}
+                            <small class="form-text text-muted">{{ form.feed_requirements.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    {{ form.additional_notes }}
+                    <small class="form-text text-muted">{{ form.additional_notes.help_text }}</small>
+                </div>
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ field }}: {{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">
+                        Create Contract
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contractForm');
+    const stakeholderSelect = form.querySelector('[name="stakeholder"]');
+
+    stakeholderSelect.addEventListener('change', function() {
+        const stakeholderId = this.value;
+
+        fetch(`/get-farm-details/?stakeholder_id=${stakeholderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const farm = data.farms[0]; // Assuming one farm per stakeholder
+                    document.getElementById('farm_name').value = farm.name;
+                    document.getElementById('farm_length').value = farm.length;
+                    document.getElementById('farm_breadth').value = farm.breadth;
+                    document.getElementById('farm_capacity').value = farm.coopcapacity;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching farm details:', error);
+            });
+    });
+
+    form.addEventListener('submit', function(e) {
+        const startDate = new Date(form.querySelector('[name="start_date"]').value);
+        const endDate = new Date(form.querySelector('[name="end_date"]').value);
+        
+        if (startDate >= endDate) {
+            e.preventDefault();
+            alert('End date must be after start date');
+        }
+    });
+});
+</script>
+{% endblock %}

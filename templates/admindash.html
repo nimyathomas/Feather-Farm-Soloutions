@@ -270,6 +270,18 @@
                     <span>Waste Management</span>
                 </a>
             </li>
+            <li>
+                <a href="{% url  'contract_dashboard' %}">
+                    <i class="fas fa-trash"></i>
+                    <span>My Contracts</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin_chat_view' %}" class="{% if request.path == '/admin-chat/' %}active{% endif %}">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat with Farm Owners</span>
+                </a>
+            </li>
         </ul>
     </aside>
 
@@ -296,8 +308,7 @@
                     <span class="d-none d-md-block">Admin</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                    
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
                         <i class="fas fa-sign-out-alt me-2"></i>Logout

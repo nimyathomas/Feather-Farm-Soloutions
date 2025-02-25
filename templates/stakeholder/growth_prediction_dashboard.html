@@ -1,0 +1,44 @@
+document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    
+    // Log the URL we're trying to reach
+    const predictionUrl = "{% url 'predict_weight' %}";
+    console.log('Sending request to:', predictionUrl);
+    
+    formData.append('batch_id', document.getElementById('batch-select').value);
+    formData.append('day_number', document.getElementById('day-number').value);
+    formData.append('feed_taken', document.getElementById('feed-taken').value);
+    formData.append('water_taken', document.getElementById('water-taken').value);
+    formData.append('temperature', document.getElementById('temperature').value);
+    formData.append('alive_count', document.getElementById('alive-count').value);
+    formData.append('actual_weight', document.getElementById('actual-weight').value || '');
+
+    try {
+        const response = await fetch(predictionUrl, {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('Response status:', response.status); // Debug log
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Prediction response:', data);
+        
+        if (data.success) {
+            updatePredictionDisplay(data);
+            await loadPredictionHistory(document.getElementById('batch-select').value);
+        } else {
+            throw new Error(data.error || 'Prediction failed');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to get prediction: ' + error.message);
+    }
+}); 

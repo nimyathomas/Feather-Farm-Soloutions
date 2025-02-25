@@ -5,6 +5,7 @@ from .forms import BatchSelectionForm, ChickenBatchForm, CompletedBatchUpdateFor
 from django.shortcuts import render
 from .forms import DailyComparisonForm
 from .forms import DailyComparisonForm  # Ensure this is the correct import
+from sklearn.preprocessing import MinMaxScaler
 
 from django.shortcuts import get_object_or_404, redirect
 from .forms import DailyDataForm
@@ -19,7 +20,7 @@ from datetime import timedelta
 from django.contrib.auth import logout
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -70,7 +71,13 @@ from .models import ChickBatch, VaccinationSchedule  # Add this import
 from user.models import Vaccine  # Add this import
 from .models import ChickBatch, VaccinationSchedule, VaccinationAuditLog  # Add VaccinationAuditLog
 
-from decimal import Decimal
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from .models import ChickBatch, GrowthPrediction
+from .prediction_system import ChickGrowthPredictor
 
 # At the top of views.py, add this debug code
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
@@ -589,7 +596,7 @@ def list_daily_data(request, batch_id):
     )
 
     # Implement pagination
-    paginator = Paginator(daily_data_records, 10)  # Show 10 records per page
+    paginator = Paginator(daily_data_records, 40)  # Show 10 records per page
     page_obj = paginator.get_page(request.GET.get("page"))
     # Choose the form based on the batch status
     if batch.batch_status == "completed":
@@ -864,11 +871,23 @@ def forum_dashboard(request, post_id=None):
 # views.py
 from django.shortcuts import render
 
-def chat_room(request, room_name):
-    # Pass the room name to the template
-    return render(request, 'chat_room.html', {
-        'room_name': room_name
-    })
+def chat_room(request, stakeholder_id=None):
+    """Handle chat room view"""
+    context = {
+        'room_name': stakeholder_id or 'general',
+        'stakeholder_id': stakeholder_id
+    }
+    return render(request, 'chat_room.html', context)
+
+def send_message(request):
+    """Handle sending chat messages"""
+    if request.method == 'POST':
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+def get_messages(request, room_id):
+    """Get chat messages for a room"""
+    return JsonResponse({'messages': []})
 
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, owner=request.user)
@@ -1194,15 +1213,12 @@ from .forms import FeedStockForm  # Add this import
 
 @login_required
 def feed_main_dashboard(request):
+    feed_stocks = FeedStock.objects.all()
+    form = FeedStockForm()
     context = {
-        'feed_type_stats': {
-            'starter': 0,  # Replace with actual values
-            'grower': 0,
-            'finisher': 0
-        },
-        'daily_dates': [],  # Replace with actual dates
-        'daily_costs': [],  # Replace with actual costs
-        'today': timezone.now().date()
+        'feed_stocks': feed_stocks,
+        'form': form,
+        'is_admin': request.user.is_staff
     }
     return render(request, 'stakeholder/feed_main_dashboard.html', context)
 
@@ -1284,7 +1300,6 @@ def update_feed_stock(request, feed_id):
             messages.error(request, f'Error updating feed stock: {str(e)}')
     
     return redirect('feed_manage')
-
 def delete_feed_stock(request, feed_id):
     if request.method == "POST":
         feed_stock = get_object_or_404(FeedStock, id=feed_id)
@@ -1446,7 +1461,7 @@ from user.models import FeedStock
 @login_required
 def active_batches_feed(request):
     """View for managing feed assignments for active batches"""
-    batches = ChickBatch.objects.filter(batch_status='active')
+    batches = ChickBatch.objects.filter(status='active')
     batch_feed_data = []
 
     for batch in batches:
@@ -1547,63 +1562,33 @@ def batch_feed_assignment(request, batch_id):
 @login_required
 def daily_feed_report(request, date):
     try:
-        print(f"\nDebug - Starting daily report for date: {date}")
-        
         # Convert string date to datetime
         report_date = datetime.strptime(date, '%Y-%m-%d').date()
-        print(f"Debug - Parsed report date: {report_date}")
         
-        # Get start and end of the day in the current timezone
-        start_of_day = timezone.make_aware(datetime.combine(report_date, datetime.min.time()))
-        end_of_day = timezone.make_aware(datetime.combine(report_date, datetime.max.time()))
-        
-        # Get all feed assignments for the date using range
+        # Get all feed assignments for the date (use date range for full day)
         assignments = FeedAssignment.objects.filter(
-            assigned_date__range=(start_of_day, end_of_day)
+            assigned_date__date=report_date
         ).select_related('batch', 'batch__farm', 'feed_stock')
         
-        print(f"Debug - Found {assignments.count()} assignments")
+        print(f"Debug - Report Date: {report_date}")
+        print(f"Debug - Found Assignments: {assignments.count()}")
         
-        # For AJAX requests (modal)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            assignments_data = []
-            
-            for a in assignments:
-                assignment_dict = {
-                    'time': a.assigned_date.astimezone(timezone.get_current_timezone()).strftime('%H:%M'),
-                    'batch_id': a.batch.id,
-                    'farm_name': a.batch.farm.name,  # Changed from farm_name to name
-                    'feed_type': a.feed_stock.get_feed_type_display(),
-                    'week': a.week_number,
-                    'sacks': a.sacks_assigned,
-                    'cost_per_sack': float(a.cost_per_sack),
-                    'total_cost': float(a.sacks_assigned * a.cost_per_sack),
-                    'is_late': a.is_late
-                }
-                assignments_data.append(assignment_dict)
-                print(f"Debug - Processed assignment: {assignment_dict}")
-            
-            response_data = {
-                'success': True,
-                'assignments': assignments_data,
-                'summary': {
-                    'total_assignments': assignments.count(),
-                    'total_sacks': sum(a.sacks_assigned for a in assignments),
-                    'total_cost': float(sum(a.sacks_assigned * a.cost_per_sack for a in assignments)),
-                    'active_batches': assignments.values('batch').distinct().count()
-                }
-            }
-            print(f"Debug - Sending response: {response_data}")
-            return JsonResponse(response_data)
-            
-        # For PDF generation
+        # Calculate totals
+        total_assignments = assignments.count()
+        total_sacks = sum(a.sacks_assigned for a in assignments)
+        total_cost = sum(a.sacks_assigned * a.cost_per_sack for a in assignments)
+        
+        # Add calculated fields to assignments
+        for assignment in assignments:
+            assignment.total_cost = assignment.sacks_assigned * assignment.cost_per_sack
+        
         context = {
             'report_date': report_date,
             'assignments': assignments,
             'summary': {
-                'total_assignments': assignments.count(),
-                'total_sacks': sum(a.sacks_assigned for a in assignments),
-                'total_cost': sum(a.sacks_assigned * a.cost_per_sack for a in assignments),
+                'total_assignments': total_assignments,
+                'total_sacks': total_sacks,
+                'total_cost': total_cost,
                 'active_batches': assignments.values('batch').distinct().count()
             },
             'company_name': 'Feather Farm Solutions',
@@ -2646,6 +2631,8 @@ def validate_vaccine_vial(request, schedule_id):
             'success': False,
             'error': f'Unexpected error: {str(e)}'
         }, status=500)# from django.contrib.auth.decorators import login_required
+        
+        
 # from django.db.models import Sum, Avg, Count
 # from django.db.models.functions import TruncMonth
 # from django.utils import timezone
@@ -2773,25 +2760,102 @@ def update_feed_stock_view(request, feed_id):
     }
     return render(request, 'stakeholder/update_feed_stock.html', context)
 
-def calculate_recommended_sacks(batch, week_number):
-    """Calculate recommended feed sacks based on chick count and week"""
-    chick_count = batch.initial_chick_count
-    total_feed_kg = chick_count * 4.2  # 4.2 kg per chick
-    total_sacks = round(total_feed_kg / 50)  # 50 kg per sack
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import ChickBatch, GrowthPrediction
+from .prediction_system import ChickGrowthPredictor
+from datetime import datetime
+
+@login_required
+def growth_prediction_dashboard(request):
+    """View for the growth prediction dashboard"""
+    active_batches = ChickBatch.objects.filter(
+        user=request.user,
+        batch_status='active'
+    ).order_by('-batch_date')
     
-    # Weekly feed percentages
-    week_percentages = {
-        1: 0.15,  # 15% for week 1
-        2: 0.20,  # 20% for week 2
-        3: 0.20,  # 20% for week 3
-        4: 0.20,  # 20% for week 4
-        5: 0.125, # 12.5% for week 5
-        6: 0.125  # 12.5% for week 6
+    context = {
+        'active_batches': active_batches,
+        'page_title': 'Growth Prediction Dashboard'
     }
+    return render(request, 'growth_prediction_dashboard.html', context)
+
+@csrf_exempt
+@login_required
+def predict_weight(request):
+    if request.method == 'POST':
+        try:
+            # Get data from request
+            batch_id = request.POST.get('batch_id')
+            prediction_data = {
+                'day_number': request.POST.get('day_number'),
+                'feed_taken': request.POST.get('feed_taken'),
+                'water_taken': request.POST.get('water_taken'),
+                'temperature': request.POST.get('temperature'),
+                'alive_count': request.POST.get('alive_count'),
+                'actual_weight': request.POST.get('actual_weight', '')
+            }
+            
+            # Validate batch exists and belongs to user
+            batch = ChickBatch.objects.get(id=batch_id, user=request.user)
+            
+            # Initialize predictor
+            predictor = ChickGrowthPredictor()
+            
+            # Make prediction
+            prediction_result = predictor.predict(prediction_data)
+            
+            # Save prediction to database
+            GrowthPrediction.objects.create(
+                batch=batch,
+                day_number=prediction_data['day_number'],
+                feed_consumed=prediction_data['feed_taken'],
+                water_consumed=prediction_data['water_taken'],
+                temperature=prediction_data['temperature'],
+                alive_count=prediction_data['alive_count'],
+                predicted_weight=prediction_result['predicted_weight'],
+                actual_weight=prediction_data['actual_weight'] if prediction_data['actual_weight'] else None,
+                weight_difference=prediction_result['weight_difference'],
+                growth_status=prediction_result['growth_status']
+            )
+            
+            return JsonResponse({
+                'success': True,
+                **prediction_result
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
     
-    return round(total_sacks * week_percentages.get(week_number, 0.15))
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-
-
-
-
+@login_required
+def prediction_history(request, batch_id):
+    """API endpoint for batch prediction history"""
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
+        predictions = GrowthPrediction.objects.filter(batch=batch).order_by('day_number')
+        
+        history = [{
+            'date': pred.date.strftime('%Y-%m-%d'),
+            'day_number': pred.day_number,
+            'predicted_weight': pred.predicted_weight,
+            'actual_weight': pred.actual_weight,
+            'weight_difference': pred.weight_difference,
+            'growth_status': pred.growth_status
+        } for pred in predictions]
+        
+        return JsonResponse({
+            'success': True,
+            'history': history
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)

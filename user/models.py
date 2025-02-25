@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from math import radians, cos, sin, asin, sqrt
+import uuid
+from datetime import timedelta
+from django.utils import timezone
 
 from .utils import get_full_address_and_region  # Import the utility function
 
@@ -377,4 +380,80 @@ class FeedStock(models.Model):
     def __str__(self):
         return f"{self.get_feed_type_display()} - {self.number_of_sacks} sacks"
     
+# FeatherFarmSoloutions/user/models.py
+
+from django.db import models
+from django.conf import settings
+
+class Contract(models.Model):
+    STATUS_CHOICES = [
+        ('Draft', 'Draft'),
+        ('Pending_Admin', 'Pending Admin Signature'),
+        ('Pending_Stakeholder', 'Pending Stakeholder Signature'),
+        ('Active', 'Active'),
+        ('Expired', 'Expired'),
+        ('Terminated', 'Terminated')
+    ]
+
+    contract_number = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='admin_contracts')
+    stakeholder = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='stakeholder_contracts')
     
+    # Contract Details
+    start_date = models.DateField(default=timezone.now)  # Default to the current date
+    end_date = models.DateField(default=timezone.now() + timedelta(days=365))  # Default to one year from now
+    contract_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('Standard', 'Standard Contract'),
+            ('Premium', 'Premium Contract'),
+            ('Special', 'Special Agreement')
+        ],
+        default='Standard'
+    )
+    
+    # Terms and Conditions
+    contract_terms = models.JSONField(default=dict)  # Store structured contract terms
+    additional_notes = models.TextField(blank=True)
+    
+    # Digital Signatures
+    admin_signature = models.TextField(blank=True)  # Store base64 signature
+    admin_signed_date = models.DateTimeField(null=True, blank=True)
+    stakeholder_signature = models.TextField(blank=True)  # Store base64 signature
+    stakeholder_signed_date = models.DateTimeField(null=True, blank=True)
+    
+    # Status and Tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    created_date = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Contract {self.contract_number} between {self.admin} and {self.stakeholder}"
+    
+    
+
+class ChatRoom(models.Model):
+    farm_name = models.CharField(max_length=255)
+    stakeholder = models.ForeignKey('User', on_delete=models.CASCADE, related_name='chat_rooms')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Chat with {self.farm_name}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class ChatMessage(models.Model):
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey('User', on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.sender.username} - {self.created_at}"
+
+

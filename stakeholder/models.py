@@ -28,7 +28,7 @@ class Farm(models.Model):
     breadth = models.FloatField(default=None, blank=True, null=True)
     size = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     established_date = models.DateField(null=True, blank=True)
-    coopcapacity = models.IntegerField(default=None, blank=True, null=True)
+    coopcapacity = models.IntegerField(default=0)  # Maximum number of chicks allowed
     is_recommended = models.BooleanField(default=False)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
@@ -1085,5 +1085,38 @@ def validate_and_save_vial(self, vial_photo, expected_batch_no):
             'success': False,
             'error': str(e)
         }
+    
+from django.db import models
+
+class GrowthPrediction(models.Model):
+    GROWTH_STATUS_CHOICES = [
+        ('On Track', 'On Track'),
+        ('Under-Growing', 'Under-Growing'),
+        ('Over-Growing', 'Over-Growing'),
+        ('Pending', 'Pending Verification')
+    ]
+
+    batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    day_number = models.IntegerField()
+    feed_consumed = models.FloatField()
+    water_consumed = models.FloatField()
+    temperature = models.FloatField()
+    alive_count = models.IntegerField()
+    predicted_weight = models.FloatField()
+    actual_weight = models.FloatField(null=True, blank=True)
+    weight_difference = models.FloatField(null=True, blank=True)
+    growth_status = models.CharField(
+        max_length=20, 
+        choices=GROWTH_STATUS_CHOICES,
+        default='Pending'
+    )
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Batch #{self.batch.id} - Day {self.day_number}"
+    
     
     

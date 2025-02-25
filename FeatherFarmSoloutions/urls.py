@@ -10,6 +10,7 @@ from stakeholder.views import logout_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('stakeholder.urls')),
+    #path('user/', include('user.urls')),
     path('hotel/', include('hoteldetails.urls')),
     path('accounts/', include('allauth.urls')),
     path('logout/', logout_view, name='logout'),

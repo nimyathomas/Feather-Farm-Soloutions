@@ -40,8 +40,8 @@ from user.views import (
 #     update_location,
     get_vaccine,
     vaccine_stock_level,
-    order_analytics,farm_analytics_dashboard
-  
+    order_analytics,farm_analytics_dashboard,contract_dashboard,create_contract,view_contracts,
+    get_farm_details,contract_detail,generate_contract_pdf,sign_contract,admin_chat_view,stakeholder_chat_view,get_chat_messages,send_message  
    
 )
 from .views import stakeholder_vaccination_list  # Remove scan_qr_code from import
@@ -166,9 +166,8 @@ urlpatterns = [
     path("waste-management/resources/", view_resources, name="view_resources"),
     path("waste-management/tips/", view_tips, name="view_tips"),
     
-    path('chat/<str:room_name>/',views.chat_room, name='chat_room'),
-
-    
+    # Chat URLs - using views from user.views
+   
     path('api/chat/', views.chat_api, name='chat_api'),
     
     path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
@@ -250,6 +249,39 @@ urlpatterns = [
     path('farm-analytics-dashboard/', farm_analytics_dashboard, name='farm_analytics_dashboard'),    
     path('feed/daily-report/<str:date>/', views.daily_feed_report, name='daily_feed_report'),
     path('feed/report-pdf/<str:date>/', views.daily_feed_report, name='feed_report_pdf'),
+    
+    
+    
+#contract
+
+     path('contracts/dashboard/', contract_dashboard, name='contract_dashboard'),
+     path('contracts/create/', create_contract, name='create_contract'),
+     path('contracts/view/', view_contracts, name='view_contracts'),
+     
+    path('get-farm-details/', get_farm_details, name='get_farm_details'),
+    path('contracts/<int:contract_id>/',contract_detail, name='contract_detail'),
+    path('contracts/generate-pdf/<int:contract_id>/',generate_contract_pdf, name='generate_contract_pdf'),
+   
+    path('contracts/sign/<int:contract_id>/', sign_contract, name='sign_contract'),
+    
+    path('growth-prediction/', views.growth_prediction_dashboard, name='growth_prediction_dashboard'),
+    path('predict-weight/', views.predict_weight, name='predict_weight'),
+    path('prediction-history/<int:batch_id>/', views.prediction_history, name='prediction_history'),
+    
+    # ... existing urls ...
+
+# Chat URLs
+    path('chat/admin/', admin_chat_view, name='admin_chat_view'),
+    path('chat/stakeholder/', stakeholder_chat_view, name='stakeholder_chat_view'),
+    path('chat/<int:room_id>/messages/', get_chat_messages, name='get_chat_messages'),
+    # path('chat/<int:room_id>/mark-read/', mark_messages_read, name='mark_messages_read'),
+    # path('chat/unread-count/', get_unread_message_count, name='get_unread_message_count'),
+    path('chat/<int:room_id>/send/',send_message, name='send_message'),  # Add this line
+# ... existing urls ...
+    
+    
+    
+    
 ]
     
     

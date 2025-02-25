@@ -1,0 +1,188 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Contract Details</h6>
+            <div>
+                <a href="{% url 'generate_contract_pdf' contract.id %}" class="btn btn-sm btn-info">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Contract Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Contract Information</h5>
+                    <p><strong>Contract Number:</strong> {{ contract.contract_number }}</p>
+                    <p><strong>Contract Type:</strong> {{ contract.get_contract_type_display }}</p>
+                    <p><strong>Status:</strong> {{ contract.get_status_display }}</p>
+                    <p><strong>Start Date:</strong> {{ contract.start_date|date:"M d, Y" }}</p>
+                    <p><strong>End Date:</strong> {{ contract.end_date|date:"M d, Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Farm Details</h5>
+                    <p><strong>Farm Name:</strong> {{ contract.farm_name }}</p>
+                    <p><strong>Farm Dimensions:</strong> {{ contract.farm_length }}m × {{ contract.farm_breadth }}m</p>
+                    <p><strong>Farm Capacity:</strong> {{ contract.farm_capacity }} chicks</p>
+                </div>
+            </div>
+
+            <!-- Feed Requirements -->
+            <div class="mb-4">
+                <h5>Feed Requirements</h5>
+                <div class="p-3 bg-light rounded">
+                    {{ contract.feed_requirements|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            {% if contract.additional_notes %}
+            <div class="mb-4">
+                <h5>Additional Notes</h5>
+                <div class="p-3 bg-light rounded">
+                    {{ contract.additional_notes|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Signatures Section -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Admin Signature</h5>
+                    {% if contract.admin_signature %}
+                        <img src="{{ contract.admin_signature }}" alt="Admin Signature" style="max-width: 200px; border: 1px solid #ddd; padding: 10px;">
+                        <p class="text-muted mt-2">Signed on: {{ contract.admin_signed_date|date:"M d, Y" }}</p>
+                    {% else %}
+                        <p class="text-muted">Not signed yet</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5>Stakeholder Signature</h5>
+                    {% if contract.stakeholder_signature %}
+                        <img src="{{ contract.stakeholder_signature }}" alt="Stakeholder Signature" style="max-width: 200px; border: 1px solid #ddd; padding: 10px;">
+                        <p class="text-muted mt-2">Signed on: {{ contract.stakeholder_signed_date|date:"M d, Y" }}</p>
+                    {% else %}
+                        <p class="text-muted">Not signed yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Signature Actions -->
+            <div class="text-center mt-4">
+                {% if contract.status == 'Pending_Admin' and request.user == contract.admin %}
+                    <a href="{% url 'sign_contract' contract.id %}" class="btn btn-primary">
+                        <i class="fas fa-signature"></i> Sign as Admin
+                    </a>
+                {% elif contract.status == 'Pending_Stakeholder' and request.user == contract.stakeholder %}
+                    <a href="{% url 'sign_contract' contract.id %}" class="btn btn-primary">
+                        <i class="fas fa-signature"></i> Sign as Stakeholder
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Signature Modal -->
+<div class="modal fade" id="signatureModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sign Contract</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="signature-pad" class="signature-pad" width="400" height="200"></canvas>
+                <input type="hidden" id="signature-data" name="signature">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="clear-signature">Clear</button>
+                <button type="button" class="btn btn-primary" id="save-signature">Sign Contract</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255, 255, 255)'
+    });
+
+    // Clear signature
+    document.getElementById('clear-signature').addEventListener('click', function() {
+        signaturePad.clear();
+    });
+
+    // Save signature
+    document.getElementById('save-signature').addEventListener('click', function() {
+        if (signaturePad.isEmpty()) {
+            alert('Please provide a signature first.');
+            return;
+        }
+
+        const signatureData = signaturePad.toDataURL();
+        document.getElementById('signature-data').value = signatureData;
+
+        // Submit the signature
+        fetch('{% url "sign_contract" contract.id %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                signature: signatureData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+        } else {
+                alert(data.message || 'Error saving signature');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving signature');
+        });
+    });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.signature-pad {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    height: 200px;
+    background-color: white;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.signature-image {
+    max-width: 200px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+}
+</style>
+{% endblock %} 

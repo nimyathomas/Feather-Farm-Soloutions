@@ -30,6 +30,15 @@ from django.db import connection
 from django.db.models import Count, Avg, F, Q, Max, Min, Case, When, FloatField, StdDev
 from django.db.models import Subquery, OuterRef
 from django.utils import timezone
+from .forms import ContractForm  # Import the ContractForm
+from django.template.loader import render_to_string
+# from weasyprint import HTML  # Assuming you're using WeasyPrint for PDF generation
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
+from .models import ChatRoom, ChatMessage
 
 def register(request):
     user_type_param = request.GET.get('user_type')
@@ -891,7 +900,7 @@ def order_analytics(request):
         # Basic Order Statistics
         total_orders = Order.objects.count()
         total_revenue = Order.objects.aggregate(total=Sum('price'))['total'] or 0
-        
+
         # Orders by Weight Category
         weight_distribution = {
             '1KG': Order.objects.aggregate(total=Sum('one_kg_count'))['total'] or 0,
@@ -1038,3 +1047,321 @@ def farm_analytics_dashboard(request):
         print(f"Error in farm analytics: {str(e)}")
         messages.error(request, f"Error generating farm analytics: {str(e)}")
         return redirect('admindash')
+    
+    
+    
+# views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Contract
+
+
+@login_required
+def contract_dashboard(request):
+    context = {
+        'total_contracts': Contract.objects.count(),
+        'pending_signatures': Contract.objects.filter(status='Pending').count(),
+        'signed_contracts': Contract.objects.filter(status='Signed').count(),
+        'expired_contracts': Contract.objects.filter(status='Expired').count(),
+        'recent_contracts': Contract.objects.all().order_by('-created_date')[:10]
+    }
+    return render(request, 'contract_intro.html', context)
+
+@login_required
+def create_contract(request):
+    if request.method == 'POST':
+        form = ContractForm(request.POST)
+        if form.is_valid():
+            contract = form.save(commit=False)
+            contract.admin = request.user  # Set the admin to the current user
+            
+            # Fetch the user's farm dimensions (assuming you have a Farm model)
+            farm = request.user.farms.first()  # Get the first farm associated with the user
+            if farm:
+                # Set chick capacity based on farm dimensions
+                contract.chick_capacity = farm.coopcapacity  # Assuming coopcapacity is the max number of chicks
+                
+            contract.save()
+            return redirect('contract_detail', contract_id=contract.id)  # Redirect to contract detail page
+    else:
+        form = ContractForm()
+    return render(request, 'create_contract.html', {'form': form})
+
+@login_required
+def view_contracts(request):
+    contracts = Contract.objects.all()
+    if not request.user.is_superuser:  # If not admin, only show contracts related to the user
+        contracts = contracts.filter(
+            models.Q(admin=request.user) | models.Q(stakeholder=request.user))
+    
+    context = {
+        'contracts': contracts
+    }
+    return render(request, 'view_contracts.html', context)
+
+@login_required
+def get_farm_details(request):
+    if request.method == 'GET':
+        stakeholder_id = request.GET.get('stakeholder_id')
+        farms = Farm.objects.filter(owner_id=stakeholder_id).values('name', 'length', 'breadth', 'coopcapacity')
+        
+        if farms.exists():
+            farm_details = list(farms)
+            return JsonResponse({'success': True, 'farms': farm_details})
+        else:
+            return JsonResponse({'success': False, 'message': 'No farms found for this stakeholder.'})
+
+@login_required
+def contract_detail(request, contract_id):
+    contract = get_object_or_404(Contract, id=contract_id)
+    context = {
+        'contract': contract
+    }
+    return render(request, 'contract_detail.html', context)
+
+#   from django.template.loader import render_to_string
+from django.http import HttpResponse
+from xhtml2pdf import pisa
+
+@login_required
+def generate_contract_pdf(request, contract_id):
+       contract = get_object_or_404(Contract, id=contract_id)
+       html_string = render_to_string('contract_detail.html', {'contract': contract})
+       response = HttpResponse(content_type='application/pdf')
+       response['Content-Disposition'] = f'attachment; filename="contract_{contract_id}.pdf"'
+       pisa_status = pisa.CreatePDF(html_string, dest=response)
+       if pisa_status.err:
+           return HttpResponse('Error generating PDF', status=500)
+       return response
+   
+   
+from django.shortcuts import render, redirect, get_object_or_404
+from django.core.mail import send_mail
+from .models import Contract
+
+@login_required
+def sign_contract(request, contract_id):
+    contract = get_object_or_404(Contract, id=contract_id)
+    
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        signature = data.get('signature')
+        
+        if not signature:
+            return JsonResponse({'success': False, 'message': 'No signature provided'})
+            
+        if request.user == contract.admin and contract.status == 'Pending_Admin':
+            contract.admin_signature = signature
+            contract.admin_signed_date = timezone.now()
+            contract.status = 'Pending_Stakeholder'
+            contract.save()
+            return JsonResponse({'success': True})
+            
+        elif request.user == contract.stakeholder and contract.status == 'Pending_Stakeholder':
+            contract.stakeholder_signature = signature
+            contract.stakeholder_signed_date = timezone.now()
+            contract.status = 'Active'
+            contract.save()
+            return JsonResponse({'success': True})
+            
+        return JsonResponse({'success': False, 'message': 'Invalid signing attempt'})
+        
+    return render(request, 'contract_detail.html', {'contract': contract})
+
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from user.models import ChatRoom, ChatMessage, User
+from django.http import JsonResponse
+from django.db.models import Q
+
+@login_required
+def admin_chat_view(request):
+    stakeholders = User.objects.filter(user_type__name='Stakeholder')
+    chat_rooms = ChatRoom.objects.filter(stakeholder__in=stakeholders)
+    
+    # Handle message sending
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id')
+        message_text = request.POST.get('message')
+        
+        if room_id and message_text:
+            chat_room = get_object_or_404(ChatRoom, id=room_id)
+            ChatMessage.objects.create(
+                room=chat_room,
+                sender=request.user,
+                message=message_text
+            )
+            messages.success(request, 'Message sent successfully')
+            return redirect('admin_chat_view')
+    
+    return render(request, 'admin_chat.html', {
+        'stakeholders': stakeholders,
+        'chat_rooms': chat_rooms
+    })
+
+@login_required
+def stakeholder_chat_view(request):
+    # Get or create chat room for this stakeholder
+    chat_room, created = ChatRoom.objects.get_or_create(
+        stakeholder=request.user,
+        defaults={'farm_name': f"{request.user.full_name}'s Farm"}
+    )
+    
+    # Get all admin users
+    admins = User.objects.filter(is_staff=True)
+    
+    # Handle message sending
+    if request.method == 'POST':
+        message_text = request.POST.get('message')
+        if message_text:
+            ChatMessage.objects.create(
+                room=chat_room,
+                sender=request.user,
+                message=message_text
+            )
+            return redirect('stakeholder_chat_view')
+    
+    # Get all messages for this room
+    chat_messages = ChatMessage.objects.filter(room=chat_room).order_by('created_at')
+    
+    return render(request, 'stakeholder_chat.html', {
+        'chat_room': chat_room,
+        'messages': chat_messages,
+        'admins': admins  # Add this to the context
+    })
+
+@login_required
+def get_chat_messages(request, room_id):
+    try:
+        # Get specific chat room
+        chat_room = get_object_or_404(ChatRoom, id=room_id)
+        # Get messages only for this specific room
+        messages = ChatMessage.objects.filter(room=chat_room).order_by('created_at')
+        
+        messages_data = [{
+            'text': msg.message,
+            'sender': msg.sender.full_name,
+            'sender_type': 'admin' if msg.sender.is_staff else 'stakeholder',
+            'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        } for msg in messages]
+        
+        return JsonResponse({
+            'status': 'success',
+            'messages': messages_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@login_required
+def get_unread_message_count(request):
+    """
+    Get count of unread messages for the current user
+    """
+    try:
+        if request.user.is_staff:
+            # For admin, count unread messages from all chat rooms
+            unread_count = ChatMessage.objects.filter(
+                is_read=False
+            ).exclude(
+                sender=request.user
+            ).count()
+        else:
+            # For stakeholder, count unread messages in their chat room
+            unread_count = ChatMessage.objects.filter(
+                room__stakeholder=request.user,
+                is_read=False
+            ).exclude(
+                sender=request.user
+            ).count()
+
+        return JsonResponse({
+            'status': 'success',
+            'unread_count': unread_count
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@login_required
+def mark_messages_read(request, room_id):
+    """
+    Mark all messages in a room as read
+    """
+    try:
+        chat_room = get_object_or_404(ChatRoom, id=room_id)
+        
+        # Check if user has access to this chat room
+        if not (request.user.is_staff or request.user == chat_room.stakeholder):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Access denied'
+            }, status=403)
+
+        # Mark all messages as read
+        ChatMessage.objects.filter(
+            room=chat_room
+        ).exclude(
+            sender=request.user
+        ).update(is_read=True)
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Messages marked as read'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@login_required
+@ensure_csrf_cookie
+def send_message(request, room_id):
+    if request.method == 'POST':
+        try:
+            # Get specific chat room
+            chat_room = get_object_or_404(ChatRoom, id=room_id)
+            message_text = request.POST.get('message')
+            
+            if not message_text:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Message content is required'
+                }, status=400)
+
+            # Create message in specific room
+            message = ChatMessage.objects.create(
+                room=chat_room,
+                sender=request.user,
+                message=message_text
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': {
+                    'id': message.id,
+                    'text': message.message,
+                    'sender': message.sender.full_name,
+                    'sender_type': 'admin' if message.sender.is_staff else 'stakeholder',
+                    'timestamp': message.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)

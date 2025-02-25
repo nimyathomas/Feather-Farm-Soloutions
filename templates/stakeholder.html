@@ -70,19 +70,21 @@
             <li>
                 <a href="{% url 'disease_analysis_list' %}" class="{% if request.path == 'disease_analysis_list' %}active{% endif %}">🔬 Disease History</a>
             </li>
+            <li>
+                <a href="{% url 'growth_prediction_dashboard' %}" class="{% if request.path == 'growth_prediction_dashboard' %}active{% endif %}">🔬 Growth Prediction</a>
+            </li>
 
             <li>
               <a href="{% url 'feed_tracking_dashboard' %}" class="menu-item">
                 <i class="fas fa-chart-line"></i>
                 <span>Feed Tracking</span>
             </a>           
-            <li>
-
-
-
-
-
             
+            <li>
+                <a href="{% url 'stakeholder_chat_view' %}" class="{% if request.path == '/stakeholder-chat/' %}active{% endif %}">
+                    💬 Chat with Admin
+                </a>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -90,5 +92,10 @@
       <!-- Main Content Section -->
       <main class="content">{% block body %} {% endblock %}</main>
     </div>
+
+    <!-- Floating Chat Button -->
+    <a href="{% url 'stakeholder_chat_view' %}" class="floating-chat-btn">
+        💬
+    </a>
   </body>
 </html>
