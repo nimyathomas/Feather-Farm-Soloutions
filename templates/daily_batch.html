@@ -14,9 +14,11 @@
         <option value="{{ b.id }}"
                 data-initial-chick-count="{{ b.initial_chick_count }}"
                 data-live-chick-count="{{ b.live_chick_count }}"
-                data-mortality-count="{{ b.total_mortality_count }}" 
+                data-mortality-count="{{ b.total_mortality_count }}"
+                data-total-feed-sacks="{{ b.total_feed_sacks }}"
                 {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}> 
-                        Batch #{{ b.id }} - {{b.batch_date|date:"F j, Y" }}
+                        Batch #{{ b.id }} - Started {{ b.batch_date|date:"F j, Y" }}
+                        ({{ b.total_feed_sacks }} sacks)
         </option>
         {% endfor %}
       </select>
@@ -94,37 +96,90 @@
             </div>
 
             <!-- Feed Management Card -->
-            <div class="data-card">
+            <div class="data-card mb-4">
                 <div class="data-card-header">
                     <h6><i class="fas fa-wheat-alt"></i> Feed Management</h6>
-                    <button class="btn btn-sm btn-outline-primary" onclick="recordFeedConsumption()">
-                        <i class="fas fa-plus"></i> Record
-                    </button>
-                </div>
-                <div class="feed-overview">
-                    <div class="current-feed">
-                        <span class="feed-label">Current Feed:</span>
-                        <span id="current-feed-type" class="feed-value">-</span>
+                    <div class="feed-status">
+                        <span class="badge bg-primary" id="feed-day">Day: -</span>
+                        <span class="badge bg-info" id="total-sacks">Total Sacks: -</span>
                     </div>
-                    <div class="feed-progress">
-                        <div class="progress">
-                            <div id="current-feed-progress" class="progress-bar" role="progressbar"></div>
+                </div>
+                <div class="card-body">
+                    <!-- Current Feed Status -->
+                    <div class="feed-status-container mb-3">
+                        <div class="current-feed mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Current Feed Type:</strong> 
+                                    <span id="current-feed-type" class="badge bg-primary">-</span>
+                                </div>
+                                <div>
+                                    <strong>Total Feed Assigned:</strong>
+                                    <span id="total-feed-sacks" class="badge bg-info">0 sacks</span>
+                                </div>
+                            </div>
                         </div>
-                        <span id="feed-consumption" class="small">0/0 sacks</span>
+                        <div class="feed-consumption-details">
+                            <div class="progress-label d-flex justify-content-between mb-2">
+                                <span>Total Consumption Progress</span>
+                                <span id="feed-consumption">0/0 sacks</span>
+                            </div>
+                            <div class="progress mb-3">
+                                <div id="current-feed-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="feed-assignments">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th>Week</th>
-                                <th>Type</th>
-                                <th>Usage</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="feed-assignments"></tbody>
-                    </table>
+
+                    <!-- Daily Feed Consumption Form -->
+                    <form id="feed-consumption-form" class="mb-3">
+                        {% csrf_token %}
+                        <input type="hidden" id="day-number" name="day_number">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Morning Consumption (Sacks)</label>
+                                <input type="number" class="form-control" id="morning-consumption" 
+                                       step="0.1" min="0" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Evening Consumption (Sacks)</label>
+                                <input type="number" class="form-control" id="evening-consumption" 
+                                       step="0.1" min="0" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes (Optional)</label>
+                                <textarea class="form-control" id="consumption-notes" rows="2"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save"></i> Record Feed Consumption
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Feed Consumption History -->
+                    <div class="consumption-history">
+                        <h6 class="mb-2">Recent Feed Consumption</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Day</th>
+                                        <th>Morning</th>
+                                        <th>Evening</th>
+                                        <th>Total</th>
+                                        <th>Remaining</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feed-consumption-history">
+                                    <tr>
+                                        <td colspan="6" class="text-center">No records found</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -299,6 +354,41 @@
 .h-100 {
     height: 100%;
 }
+
+/* Feed Management Styles */
+.feed-status-container {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.current-feed {
+    margin-bottom: 10px;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.consumption-history {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.feed-status {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#feed-consumption-form {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
 </style>
 
 <script>
@@ -425,7 +515,7 @@ document.getElementById('batch-select').addEventListener('change', function() {
     
     // Fetch feed assignments
     if (selectedOption.value) {
-        fetch(`/api/batch/${selectedOption.value}/feed-assignments/`)
+        fetch(`batch/${selectedOption.value}/feed-assignments/`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

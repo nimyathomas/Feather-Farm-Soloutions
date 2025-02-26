@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td>{{ assignment.get_feed_type_display }}</td>
                                 <td>{{ assignment.sacks_assigned }} sacks</td>
                                 <td>₹{{ assignment.cost_per_sack }}</td>
-                                <td>₹{{ assignment.total_cost }}</td>
+                                {% comment %} <td>₹{{ assignment.total_cost }}</td> {% endcomment %}
                                 <td>{{ assignment.assigned_date|date:"M d, Y" }}</td>
                                 <td>
                                     {% if assignment.is_late %}

@@ -279,9 +279,15 @@ urlpatterns = [
     path('chat/<int:room_id>/send/',send_message, name='send_message'),  # Add this line
 # ... existing urls ...
     
+    path('feed/day-consumption/<int:batch_id>/<int:day_number>/', 
+         views.day_feed_consumption, 
+         name='day_feed_consumption'),
     
+    path('feed/batch-info/<int:batch_id>/', views.batch_feed_info, name='batch_feed_info'),
     
-    
+    path('batch/<int:batch_id>/feed-assignments/', 
+         views.get_feed_assignments, 
+         name='get_feed_assignments'),
 ]
     
     

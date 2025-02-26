@@ -167,6 +167,10 @@ class ChickBatch(models.Model):
     )
     last_feed_transition = models.DateTimeField(null=True, blank=True)
     feed_transition_notified = models.BooleanField(default=False)
+    
+    
+    
+    
 
 
     def generate_qr_code(self):
@@ -978,13 +982,13 @@ class FeedAssignment(models.Model):
         ('rejected', 'Rejected')
     ]
 
-    batch = models.ForeignKey('stakeholder.ChickBatch',  # Specify the full path
-                             on_delete=models.CASCADE)
+    batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE, related_name='feed_assignments')
     feed_stock = models.ForeignKey('user.FeedStock',  
                                   on_delete=models.CASCADE)
     week_number = models.IntegerField()
     feed_type = models.CharField(max_length=50, choices=FEED_TYPES)
-    sacks_assigned = models.IntegerField()
+    sacks_assigned = models.DecimalField(max_digits=10, decimal_places=2)
+    sacks_consumed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     cost_per_sack = models.DecimalField(max_digits=10, decimal_places=2)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     is_late = models.BooleanField(default=False)
@@ -1003,7 +1007,29 @@ class FeedAssignment(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}" 
+        return f"Batch {self.batch.id} - Week {self.week_number} - {self.feed_type}"
+    @property
+    def total_consumed(self):
+        return self.daily_consumptions.aggregate(
+            total=models.Sum(
+                models.F('morning_consumption') + models.F('evening_consumption')
+            )
+        )['total'] or 0
+
+    @property
+    def remaining_sacks(self):
+        return self.sacks_assigned - self.total_consumed
+    @property
+    def remaining_sacks(self):
+        """Calculate remaining sacks"""
+        return self.sacks_assigned - self.sacks_consumed
+
+    def update_consumption(self, consumed_amount):
+        """Update sacks consumed"""
+        if self.sacks_consumed + consumed_amount > self.sacks_assigned:
+            raise ValueError(f"Cannot consume more than assigned. Only {self.remaining_sacks} sacks remaining")
+        self.sacks_consumed += consumed_amount
+        self.save()
     def total_cost(self):
         return self.sacks_assigned * self.cost_per_sack
     

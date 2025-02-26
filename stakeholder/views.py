@@ -1461,7 +1461,7 @@ from user.models import FeedStock
 @login_required
 def active_batches_feed(request):
     """View for managing feed assignments for active batches"""
-    batches = ChickBatch.objects.filter(status='active')
+    batches = ChickBatch.objects.filter(batch_status='active')
     batch_feed_data = []
 
     for batch in batches:
@@ -1730,52 +1730,6 @@ def generate_feed_report_pdf(request, date):
         messages.error(request, f"Error generating PDF report: {str(e)}")
         return redirect('feed_dashboard')
 
-@login_required
-def record_feed_consumption(request, batch_id, assignment_id):
-    try:
-        batch = get_object_or_404(ChickBatch, id=batch_id)
-        assignment = get_object_or_404(FeedAssignment, id=assignment_id, batch=batch)
-        
-        if request.method == 'POST':
-            form = DailyFeedConsumptionForm(request.POST)
-            if form.is_valid():
-                consumption = form.save(commit=False)
-                consumption.batch = batch
-                consumption.feed_assignment = assignment
-                consumption.recorded_by = request.user
-                consumption.date = timezone.now().date()
-                
-                # Calculate day number
-                consumption.day_number = (consumption.date - batch.batch_date).days + 1
-                
-                try:
-                    # Validate consumption doesn't exceed remaining sacks
-                    consumption.full_clean()
-                    consumption.save()
-                    messages.success(request, "Feed consumption recorded successfully!")
-                    return redirect('list_daily_feed', batch_id=batch.id)
-                except ValidationError as e:
-                    for field, errors in e.message_dict.items():
-                        for error in errors:
-                            messages.error(request, error)
-            else:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f"{field}: {error}")
-        else:
-            form = DailyFeedConsumptionForm()
-        
-        context = {
-            'form': form,
-            'batch': batch,
-            'assignment': assignment,
-        }
-        
-        return render(request, 'stakeholder/record_feed_consumption.html', context)
-        
-    except Exception as e:
-        messages.error(request, f"Error recording feed consumption: {str(e)}")
-        return redirect('list_daily_feed', batch_id=batch_id)
 
 @login_required
 def list_daily_feed(request, batch_id):
@@ -1860,38 +1814,69 @@ from user.models import FeedStock
 
 @login_required
 def feed_tracking_dashboard(request):
-    # Get active batches for the stakeholder
+    # Get active batches for the stakeholder with all necessary related data
     active_batches = ChickBatch.objects.filter(
         user=request.user,
-        batch_status='Active'
-    ).select_related('farm')
-
-    # Get feed assignments for these batches
-    feed_assignments = FeedAssignment.objects.filter(
-        batch__in=active_batches
-    ).select_related('batch', 'feed_stock')
-
-    # Organize data for template
-    batch_data = {}
-    for batch in active_batches:
-        batch_data[batch.id] = {
-            'batch': batch,
-            'assignments': [],
-            'total_sacks': 0,
-            'total_cost': 0
-        }
-
-    for assignment in feed_assignments:
-        if assignment.batch_id in batch_data:
-            batch_data[assignment.batch_id]['assignments'].append(assignment)
-            batch_data[assignment.batch_id]['total_sacks'] += assignment.sacks_assigned
-            batch_data[assignment.batch_id]['total_cost'] += assignment.total_cost
+        batch_status='active'
+    ).select_related(
+        'farm'
+    ).prefetch_related(
+        'feed_assignments',
+        'daily_feed_records'
+    )
 
     context = {
-        'batch_data': batch_data,
+        'active_batches': active_batches,
         'page_title': 'Feed Tracking'
     }
-    return render(request, 'stakeholder/feed_tracking.html', context)
+    return render(request, 'stakeholder/feed_tracking.html', context) 
+
+
+
+@login_required
+def acknowledge_feed_assignment(request, assignment_id):
+    """Handle feed assignment acknowledgment"""
+    if request.method == 'POST':
+        try:
+            assignment = get_object_or_404(FeedAssignment, id=assignment_id)
+            action = request.POST.get('action')
+            notes = request.POST.get('notes', '')
+
+            if action == 'acknowledge':
+                assignment.status = 'acknowledged'
+            elif action == 'reject':
+                assignment.status = 'rejected'
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid action'
+                })
+
+            assignment.acknowledgment_date = timezone.now()
+            assignment.acknowledgment_notes = notes
+            assignment.save()
+
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Feed assignment {action}d successfully'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    })
+
+
+
+
+
+
 
 @login_required
 @require_http_methods(["GET"])
@@ -2630,103 +2615,7 @@ def validate_vaccine_vial(request, schedule_id):
         return JsonResponse({
             'success': False,
             'error': f'Unexpected error: {str(e)}'
-        }, status=500)# from django.contrib.auth.decorators import login_required
-        
-        
-# from django.db.models import Sum, Avg, Count
-# from django.db.models.functions import TruncMonth
-# from django.utils import timezone
-# from datetime import timedelta
-# import json
-# from user.models import FeedStock
-# from .models import FeedAssignment
-
-# @login_required
-# def feed_analytics(request):
-#     """View for feed purchase analytics"""
-    
-#     # Get date range
-#     today = timezone.now()
-#     thirty_days_ago = today - timedelta(days=30)
-    
-#     # Get all feed stocks
-#     feed_stocks = FeedStock.objects.all()
-    
-#     # Calculate summary statistics
-#     total_feed_sacks = feed_stocks.aggregate(
-#         total=Sum('quantity')
-#     )['total'] or 0
-    
-#     total_feed_cost = feed_stocks.aggregate(
-#         total=Sum('total_cost')
-#     )['total'] or 0
-    
-#     current_stock = feed_stocks.aggregate(
-#         total=Sum('remaining_quantity')
-#     )['total'] or 0
-    
-#     # Calculate average cost per sack for last 30 days
-#     recent_purchases = feed_stocks.filter(
-#         purchase_date__gte=thirty_days_ago
-#     )
-    
-#     avg_cost = recent_purchases.aggregate(
-#         avg=Avg('cost_per_sack')
-#     )['avg'] or 0
-    
-#     # Get feed type distribution
-#     feed_type_distribution = {
-#         'starter': feed_stocks.filter(feed_type='Starter Feed').aggregate(
-#             total=Sum('quantity'))['total'] or 0,
-#         'grower': feed_stocks.filter(feed_type='Grower Feed').aggregate(
-#             total=Sum('quantity'))['total'] or 0,
-#         'finisher': feed_stocks.filter(feed_type='Finisher Feed').aggregate(
-#             total=Sum('quantity'))['total'] or 0
-#     }
-    
-#     # Get current stock levels by feed type
-#     current_stock_levels = {
-#         'starter': feed_stocks.filter(feed_type='Starter Feed').aggregate(
-#             total=Sum('remaining_quantity'))['total'] or 0,
-#         'grower': feed_stocks.filter(feed_type='Grower Feed').aggregate(
-#             total=Sum('remaining_quantity'))['total'] or 0,
-#         'finisher': feed_stocks.filter(feed_type='Finisher Feed').aggregate(
-#             total=Sum('remaining_quantity'))['total'] or 0
-#     }
-    
-#     # Get monthly purchase history
-#     monthly_purchases = feed_stocks.annotate(
-#         month=TruncMonth('purchase_date')
-#     ).values('month').annotate(
-#         total_quantity=Sum('quantity')
-#     ).order_by('month')
-    
-#     # Prepare data for charts
-#     monthly_labels = [p['month'].strftime("%B %Y") for p in monthly_purchases]
-#     monthly_data = [p['total_quantity'] for p in monthly_purchases]
-    
-#     # Get recent purchases for table
-#     recent_purchases = feed_stocks.order_by('-purchase_date')[:10].values(
-#         'purchase_date',
-#         'feed_type',
-#         'quantity',
-#         'price_per_sack',
-#         'supplier__name'  # Use supplier name from related Supplier model
-#     )
-    
-#     context = {
-#         'total_feed_sacks': total_feed_sacks,
-#         'total_feed_cost': total_feed_cost,
-#         'current_stock': current_stock,
-#         'avg_cost_per_sack': avg_cost,
-#         'feed_type_distribution': feed_type_distribution,
-#         'current_stock_levels': current_stock_levels,
-#         'monthly_labels': json.dumps(monthly_labels),
-#         'monthly_purchases': json.dumps(monthly_data),
-#         'recent_purchases': recent_purchases,
-#     }
-    
-#     return render(request, 'feed_analytics.html', context)
+        }, status=500)
 
 @login_required
 def update_feed_stock_view(request, feed_id):
@@ -2859,3 +2748,253 @@ def prediction_history(request, batch_id):
             'success': False,
             'error': str(e)
         }, status=400)
+
+def calculate_recommended_sacks(batch, week):
+    """Calculate recommended feed sacks for a specific week based on chick count"""
+    daily_feed_grams = {
+        1: 15, 2: 35, 3: 59,
+        4: 88, 5: 102, 6: 121
+    }
+    
+    # Get daily feed requirement for the week
+    daily_grams = daily_feed_grams.get(week, 0)
+    # Calculate weekly feed in kg ((daily grams * chicks * 7 days) / 1000 for kg)
+    weekly_kg = (daily_grams * batch.initial_chick_count * 7) / 1000
+    # Convert to sacks (50kg per sack) and round up
+    return max(1, round(weekly_kg / 50))
+
+
+@login_required
+def record_feed_consumption(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            batch = get_object_or_404(ChickBatch, id=data['batch_id'])
+            
+            # Get current feed assignment
+            current_assignment = FeedAssignment.objects.filter(
+                batch=batch,
+                status='acknowledged'
+            ).order_by('-week_number').first()
+            
+            if not current_assignment:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No active feed assignment found'
+                })
+            
+            # Calculate total consumption
+            morning_consumption = Decimal(str(data['morning_consumption']))
+            evening_consumption = Decimal(str(data['evening_consumption']))
+            total_consumption = morning_consumption + evening_consumption
+            
+            # Check if enough feed is available from assignment
+            if total_consumption > current_assignment.remaining_sacks:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Not enough feed available. Only {current_assignment.remaining_sacks} sacks remaining'
+                })
+            
+            try:
+                # Create consumption record
+                consumption = DailyFeedConsumption.objects.create(
+                    batch=batch,
+                    feed_assignment=current_assignment,
+                    date=timezone.now().date(),
+                    morning_consumption=morning_consumption,
+                    evening_consumption=evening_consumption,
+                    notes=data.get('notes', ''),
+                    recorded_by=request.user
+                )
+                
+                # Update assignment's consumed amount
+                current_assignment.update_consumption(total_consumption)
+                
+                return JsonResponse({
+                    'success': True,
+                    'remaining_sacks': float(current_assignment.remaining_sacks),
+                    'total_sacks': float(current_assignment.sacks_assigned),
+                    'consumption_data': {
+                        'date': consumption.date.strftime('%Y-%m-%d'),
+                        'morning': float(consumption.morning_consumption),
+                        'evening': float(consumption.evening_consumption),
+                        'total': float(total_consumption),
+                        'remaining': float(current_assignment.remaining_sacks)
+                    }
+                })
+                
+            except ValueError as e:
+                return JsonResponse({
+                    'success': False,
+                    'error': str(e)
+                })
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+def feed_consumption_history(request, batch_id):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        current_assignment = FeedAssignment.objects.filter(
+            batch=batch,
+            status='acknowledged'
+        ).order_by('-week_number').first()
+        
+        history = DailyFeedConsumption.objects.filter(
+            batch=batch,
+            feed_assignment=current_assignment
+        ).order_by('-date')[:7]  # Get last 7 days
+        
+        history_data = [{
+            'date': record.date.strftime('%Y-%m-%d'),
+            'morning_consumption': float(record.morning_consumption),
+            'evening_consumption': float(record.evening_consumption),
+            'total_consumption': float(record.morning_consumption + record.evening_consumption),
+            'remaining_sacks': float(record.feed_assignment.remaining_sacks)
+        } for record in history]
+        
+        current_status = {
+            'feed_type': current_assignment.feed_type if current_assignment else None,
+            'assigned_sacks': float(current_assignment.sacks_assigned) if current_assignment else 0,
+            'remaining_sacks': float(current_assignment.remaining_sacks) if current_assignment else 0,
+            'week_number': current_assignment.week_number if current_assignment else None
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'history': history_data,
+            'current_status': current_status
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+def day_feed_consumption(request, batch_id, day_number):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        target_date = batch.batch_date + timedelta(days=day_number - 1)
+        
+        # Get feed consumption for the specific day
+        consumption = DailyFeedConsumption.objects.filter(
+            batch=batch,
+            date=target_date
+        ).first()
+        
+        # Get current feed assignment
+        current_assignment = FeedAssignment.objects.filter(
+            batch=batch,
+            status='acknowledged'
+        ).order_by('-week_number').first()
+        
+        consumption_data = None
+        if consumption:
+            consumption_data = {
+                'morning': float(consumption.morning_consumption),
+                'evening': float(consumption.evening_consumption),
+                'notes': consumption.notes,
+                'total': float(consumption.morning_consumption + consumption.evening_consumption)
+            }
+        
+        return JsonResponse({
+            'success': True,
+            'consumption': consumption_data,
+            'feed_type': current_assignment.feed_type if current_assignment else None,
+            'remaining_sacks': float(current_assignment.remaining_sacks) if current_assignment else 0,
+            'day_number': day_number
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+def batch_feed_info(request, batch_id):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        current_assignment = FeedAssignment.objects.filter(
+            batch=batch,
+            status='acknowledged'
+        ).order_by('-week_number').first()
+        
+        # Calculate current day
+        current_day = (timezone.now().date() - batch.batch_date).days + 1
+        
+        # Get today's consumption
+        today_consumption = DailyFeedConsumption.objects.filter(
+            batch=batch,
+            date=timezone.now().date()
+        ).first()
+        
+        # Get consumption history
+        history = DailyFeedConsumption.objects.filter(
+            batch=batch
+        ).order_by('-date')[:7]  # Last 7 days
+        
+        return JsonResponse({
+            'success': True,
+            'current_feed_type': current_assignment.feed_type if current_assignment else None,
+            'total_sacks': float(current_assignment.sacks_assigned) if current_assignment else 0,
+            'total_consumed': float(current_assignment.total_consumed) if current_assignment else 0,
+            'remaining_sacks': float(current_assignment.remaining_sacks) if current_assignment else 0,
+            'current_day': current_day,
+            'today_consumption': {
+                'morning': float(today_consumption.morning_consumption),
+                'evening': float(today_consumption.evening_consumption),
+                'notes': today_consumption.notes
+            } if today_consumption else None,
+            'consumption_history': [{
+                'date': record.date.strftime('%Y-%m-%d'),
+                'day_number': (record.date - batch.batch_date).days + 1,
+                'morning_consumption': float(record.morning_consumption),
+                'evening_consumption': float(record.evening_consumption),
+                'total_consumption': float(record.total_consumption),
+                'remaining_sacks': float(record.feed_assignment.remaining_sacks)
+            } for record in history]
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+        
+        
+        
+        
+        
+@login_required
+def get_feed_assignments(request, batch_id):
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        assignments = FeedAssignment.objects.filter(batch=batch).order_by('week_number')
+        
+        assignments_data = [{
+            'week_number': assignment.week_number,
+            'feed_type': assignment.feed_type,
+            'sacks_assigned': float(assignment.sacks_assigned),
+            'total_consumed': float(assignment.total_consumed),
+            'remaining_sacks': float(assignment.sacks_assigned - assignment.total_consumed),
+            'status': assignment.status
+        } for assignment in assignments]
+        
+        return JsonResponse({
+            'success': True,
+            'assignments': assignments_data,
+            'total_feed_sacks': float(batch.total_feed_sacks)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
