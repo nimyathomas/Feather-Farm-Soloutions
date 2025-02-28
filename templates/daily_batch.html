@@ -95,40 +95,7 @@
                 </div>
             </div>
 
-            <!-- Feed Management Card -->
-            <div class="data-card mb-4">
-                <div class="data-card-header">
-                    <h6><i class="fas fa-wheat-alt"></i> Feed Management</h6>
-                    <div class="feed-status">
-                        <span class="badge bg-primary" id="feed-day">Day: -</span>
-                        <span class="badge bg-info" id="total-sacks">Total Sacks: -</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Current Feed Status -->
-                    <div class="feed-status-container mb-3">
-                        <div class="current-feed mb-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>Current Feed Type:</strong> 
-                                    <span id="current-feed-type" class="badge bg-primary">-</span>
-                                </div>
-                                <div>
-                                    <strong>Total Feed Assigned:</strong>
-                                    <span id="total-feed-sacks" class="badge bg-info">0 sacks</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feed-consumption-details">
-                            <div class="progress-label d-flex justify-content-between mb-2">
-                                <span>Total Consumption Progress</span>
-                                <span id="feed-consumption">0/0 sacks</span>
-                            </div>
-                            <div class="progress mb-3">
-                                <div id="current-feed-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
+           
 
                     <!-- Daily Feed Consumption Form -->
                     <form id="feed-consumption-form" class="mb-3">
@@ -157,34 +124,7 @@
                         </div>
                     </form>
 
-                    <!-- Feed Consumption History -->
-                    <div class="consumption-history">
-                        <h6 class="mb-2">Recent Feed Consumption</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Day</th>
-                                        <th>Morning</th>
-                                        <th>Evening</th>
-                                        <th>Total</th>
-                                        <th>Remaining</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="feed-consumption-history">
-                                    <tr>
-                                        <td colspan="6" class="text-center">No records found</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                    
 
 <style>
 .dashboard-container {
@@ -393,101 +333,6 @@
 
 <script>
 // Helper functions should be defined before they're used
-function getFeedTypeColor(feedType) {
-    switch(feedType.toLowerCase()) {
-        case 'starter': return 'info';
-        case 'grower': return 'success';
-        case 'finisher': return 'warning';
-        default: return 'secondary';
-    }
-}
-
-function getRemainingSacksClass(remaining) {
-    if (remaining > 10) return 'bg-success';
-    if (remaining > 5) return 'bg-warning';
-    return 'bg-danger';
-}
-
-function getStatusBadgeClass(status) {
-    switch(status.toLowerCase()) {
-        case 'completed': return 'bg-success';
-        case 'pending': return 'bg-warning';
-        case 'cancelled': return 'bg-danger';
-        default: return 'bg-secondary';
-    }
-}
-
-function getProgressBarClass(remaining) {
-    if (remaining > 10) return 'bg-success';
-    if (remaining > 5) return 'bg-warning';
-    return 'bg-danger';
-}
-
-function getCurrentWeek() {
-    const weekText = document.getElementById('current-week').textContent;
-    return parseInt(weekText.replace('Week ', ''));
-}
-
-function recordFeedConsumption() {
-    const batchId = document.getElementById('batch-select').value;
-    if (!batchId) {
-        alert('Please select a batch first');
-        return;
-    }
-    
-    // Get the current feed assignment
-    const currentWeek = getCurrentWeek();
-    
-    // Redirect to the feed records list for this batch
-    window.location.href = `/stakeholder/batch/${batchId}/feed/records/`;
-}
-
-function updateFeedAssignments(assignments) {
-    const container = document.getElementById('feed-assignments');
-    if (assignments.length === 0) {
-        container.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-muted">No feed assignments found</td>
-            </tr>`;
-        return;
-    }
-
-    container.innerHTML = assignments.map(assignment => `
-        <tr>
-            <td>Week ${assignment.week_number}</td>
-            <td>
-                <span class="badge bg-${getFeedTypeColor(assignment.feed_type)} feed-status-badge">
-                    ${assignment.feed_type}
-                </span>
-            </td>
-            <td class="feed-amount">${assignment.total_consumed}/${assignment.sacks_assigned}</td>
-            <td>
-                <span class="badge ${getRemainingSacksClass(assignment.remaining_sacks)} feed-status-badge">
-                    ${assignment.remaining_sacks}
-                </span>
-            </td>
-            <td>
-                <span class="badge ${getStatusBadgeClass(assignment.status)} feed-status-badge">
-                    ${assignment.status}
-                </span>
-            </td>
-        </tr>
-    `).join('');
-
-    // Update current week feed info
-    const currentWeek = getCurrentWeek();
-    const currentAssignment = assignments.find(a => a.week_number === currentWeek);
-    if (currentAssignment) {
-        document.getElementById('current-feed-type').textContent = currentAssignment.feed_type;
-        document.getElementById('feed-consumption').textContent = 
-            `${currentAssignment.total_consumed}/${currentAssignment.sacks_assigned} sacks used`;
-        
-        const progress = (currentAssignment.total_consumed / currentAssignment.sacks_assigned) * 100;
-        const progressBar = document.getElementById('current-feed-progress');
-        progressBar.style.width = `${progress}%`;
-        progressBar.className = `progress-bar ${getProgressBarClass(currentAssignment.remaining_sacks)}`;
-    }
-}
 
 // Event Listeners
 document.getElementById('batch-select').addEventListener('change', function() {

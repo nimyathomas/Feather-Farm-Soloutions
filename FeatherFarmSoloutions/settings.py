@@ -98,7 +98,7 @@ ASGI_APPLICATION = 'FeatherFarmSoloutions.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'featherfarm',
+        'NAME': 'feather_project',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',  # Set to your database host

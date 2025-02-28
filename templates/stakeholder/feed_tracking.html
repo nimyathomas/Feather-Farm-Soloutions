@@ -25,67 +25,9 @@
                 </div>
                 
                 <div class="card-body">
-                    <!-- Feed Assignments Section -->
-                    <div class="mb-4">
-                        <h5 class="mb-3">Feed Assignments</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Week</th>
-                                        <th>Feed Type</th>
-                                        <th>Sacks</th>
-                                        <th>Cost/Sack</th>
-                                        <th>Total Cost</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for assignment in batch.feed_assignments.all %}
-                                    <tr data-assignment-id="{{ assignment.id }}">
-                                        <td>Week {{ assignment.week_number }}</td>
-                                        <td>{{ assignment.feed_type_display }}</td>
-                                        <td>{{ assignment.sacks_assigned }}</td>
-                                        <td>₹{{ assignment.cost_per_sack }}</td>
-                                        <td>₹{{ assignment.total_cost }}</td>
-                                        <td>
-                                            <span class="badge {% if assignment.status == 'acknowledged' %}bg-success
-                                                {% elif assignment.status == 'pending' %}bg-warning
-                                                {% else %}bg-danger{% endif %}">
-                                                {{ assignment.status|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if assignment.status == 'pending' %}
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-success acknowledge-btn" 
-                                                        data-assignment-id="{{ assignment.id }}"
-                                                        data-action="acknowledge">
-                                                    <i class="fas fa-check"></i> Accept
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger reject-btn"
-                                                        data-assignment-id="{{ assignment.id }}"
-                                                        data-action="reject">
-                                                    <i class="fas fa-times"></i> Reject
-                                                </button>
-                                            </div>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="7" class="text-center">No feed assignments found</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
                     <!-- Current Feed Status -->
                     <div class="row mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h6>Assigned Feed</h6>
@@ -93,51 +35,73 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card bg-light">
                                 <div class="card-body">
-                                    <h6>Consumed Today</h6>
-                                    <h4>{{ batch.get_today_consumption }} sacks</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6>Remaining Feed</h6>
-                                    <h4>{{ batch.get_current_feed_assignment.remaining_sacks }} sacks</h4>
+                                    <h6>Feed Type</h6>
+                                    <h4>{{ batch.get_current_feed_type }}</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Record Consumption Form -->
-                    <form method="post" action="{% url 'record_feed_consumption' batch.id %}" class="mb-4">
-                        {% csrf_token %}
-                        <h5 class="mb-3">Record Today's Consumption</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label>Morning Consumption (Sacks)</label>
-                                    <input type="number" name="morning_consumption" 
-                                           class="form-control" step="0.1" min="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label>Evening Consumption (Sacks)</label>
-                                    <input type="number" name="evening_consumption" 
-                                           class="form-control" step="0.1" min="0" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label>Notes (Optional)</label>
-                            <textarea name="notes" class="form-control" rows="2"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Record Consumption</button>
-                    </form>
+                    <!-- Feed Assignments Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Week</th>
+                                    <th>Feed Type</th>
+                                    <th>Sacks</th>
+                                    <th>Cost/Sack</th>
+                                    <th>Total Cost</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in batch.feed_assignments.all %}
+                                <tr data-assignment-id="{{ assignment.id }}">
+                                    <td>Week {{ assignment.week_number }}</td>
+                                    <td>{{ assignment.feed_type }}</td>
+                                    <td>{{ assignment.sacks_assigned }}</td>
+                                    <td>₹{{ assignment.cost_per_sack }}</td>
+                                    <td>₹{{ assignment.total_cost }}</td>
+                                    <td>
+                                        <span class="badge {% if assignment.status == 'acknowledged' %}bg-success
+                                            {% elif assignment.status == 'pending' %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ assignment.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if assignment.status == 'pending' %}
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-success acknowledge-btn" 
+                                                    data-assignment-id="{{ assignment.id }}"
+                                                    data-action="acknowledge">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger reject-btn"
+                                                    data-assignment-id="{{ assignment.id }}"
+                                                    data-action="reject">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No feed assignments found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
+                    <!-- Record Consumption Form -->
+                   
                     <!-- Consumption History -->
                     <h5 class="mb-3">Recent Consumption History</h5>
                     <div class="table-responsive">
