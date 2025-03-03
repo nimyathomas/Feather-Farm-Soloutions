@@ -53,10 +53,10 @@
                                     <th>Week</th>
                                     <th>Feed Type</th>
                                     <th>Sacks</th>
-                                    <th>Cost/Sack</th>
+                                    {% comment %} <th>Cost/Sack</th>
                                     <th>Total Cost</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Actions</th> {% endcomment %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,7 +65,7 @@
                                     <td>Week {{ assignment.week_number }}</td>
                                     <td>{{ assignment.feed_type }}</td>
                                     <td>{{ assignment.sacks_assigned }}</td>
-                                    <td>₹{{ assignment.cost_per_sack }}</td>
+                                    {% comment %} <td>₹{{ assignment.cost_per_sack }}</td>
                                     <td>₹{{ assignment.total_cost }}</td>
                                     <td>
                                         <span class="badge {% if assignment.status == 'acknowledged' %}bg-success
@@ -89,44 +89,11 @@
                                             </button>
                                         </div>
                                         {% endif %}
-                                    </td>
+                                    </td> {% endcomment %}
                                 </tr>
                                 {% empty %}
                                 <tr>
                                     <td colspan="7" class="text-center">No feed assignments found</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Record Consumption Form -->
-                   
-                    <!-- Consumption History -->
-                    <h5 class="mb-3">Recent Consumption History</h5>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Morning</th>
-                                    <th>Evening</th>
-                                    <th>Total</th>
-                                    <th>Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in batch.daily_feed_records.all|slice:":7" %}
-                                <tr>
-                                    <td>{{ record.date|date:"M d, Y" }}</td>
-                                    <td>{{ record.morning_consumption }}</td>
-                                    <td>{{ record.evening_consumption }}</td>
-                                    <td>{{ record.total_consumption }}</td>
-                                    <td>{{ record.notes|default:"-" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center">No consumption records yet</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -149,41 +116,94 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Handle acknowledge buttons
     document.querySelectorAll('.acknowledge-btn, .reject-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
             const assignmentId = this.dataset.assignmentId;
             const action = this.dataset.action;
+            const row = this.closest('tr');
+            
+            console.log('Button clicked for assignment:', assignmentId); // Debug log
             
             let notes = '';
             if (action === 'reject') {
                 notes = prompt('Please provide a reason for rejection:');
-                if (!notes) return; // Don't proceed if no rejection reason is provided
+                if (!notes) return;
             }
 
-            const formData = new FormData();
-            formData.append('action', action);
-            formData.append('notes', notes);
-            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            try {
+                const formData = new FormData();
+                formData.append('action', action);
+                formData.append('notes', notes);
 
-            fetch(`/stakeholder/feed/acknowledge/${assignmentId}/`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
+                // Make sure the URL is correct
+                const response = await fetch(`/feed/acknowledge/${assignmentId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
+
+                const data = await response.json();
+                console.log('Server response:', data); // Debug log
+
                 if (data.status === 'success') {
-                    location.reload(); // Reload the page to show updated status
+                    // Update the status badge
+                    const statusCell = row.querySelector('td:nth-last-child(2)');
+                    const newStatus = action === 'acknowledge' ? 'acknowledged' : 'rejected';
+                    const badgeClass = action === 'acknowledge' ? 'bg-success' : 'bg-danger';
+                    
+                    statusCell.innerHTML = `
+                        <span class="badge ${badgeClass}">
+                            ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}
+                        </span>
+                    `;
+                    
+                    // Remove action buttons
+                    const actionCell = row.querySelector('td:last-child');
+                    actionCell.innerHTML = '';
+                    
+                    // Show success message
+                    showToast(data.message, 'success');
+                    
+                    // Reload after 2 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
-                    alert('Error updating status: ' + data.message);
+                    showToast(data.message || 'An error occurred', 'danger');
                 }
-            })
-            .catch(error => {
-                alert('An error occurred while updating the status');
-            });
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while processing your request', 'danger');
+            }
         });
     });
 });
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-message alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3`;
+    toast.style.zIndex = '1050';
+    toast.style.minWidth = '300px';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+            <div>${message}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
 </script>
-{% endblock %} 
+{% endblock %}

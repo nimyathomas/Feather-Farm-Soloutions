@@ -41,7 +41,7 @@
                                     <th>Alive</th>
                                     <th>Sick</th>
                                     <th>Mortality</th>
-                                    <th>Feed (kg)</th>
+                                    <th>Feed (sacks)</th>  <!-- Changed from Feed (kg) -->
                                     <th>Water (L)</th>
                                     <th>Weight (g)</th>
                                     <th>Temp (°C)</th>
@@ -53,7 +53,8 @@
                                     <td><input type="number" name="alive_count[]" class="form-control" min="0" required></td>
                                     <td><input type="number" name="sick_chicks[]" class="form-control" min="0" required></td>
                                     <td><input type="number" name="mortality_count[]" class="form-control" min="0" required></td>
-                                    <td><input type="number" name="feed_uplifted[]" class="form-control" min="0" step="0.01" required></td>
+                                    <td><input type="number" name="feed_uplifted[]" class="form-control" min="0" step="0.01" required 
+                                               placeholder="Enter sacks consumed"></td>                              
                                     <td><input type="number" name="water_consumption[]" class="form-control" min="0" step="0.01" required></td>
                                     <td><input type="number" name="weight_gain[]" class="form-control" min="0" step="0.01" required></td>
                                     <td><input type="number" name="temperature[]" class="form-control" step="0.1" required></td>
@@ -97,32 +98,7 @@
 
            
 
-                    <!-- Daily Feed Consumption Form -->
-                    <form id="feed-consumption-form" class="mb-3">
-                        {% csrf_token %}
-                        <input type="hidden" id="day-number" name="day_number">
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Morning Consumption (Sacks)</label>
-                                <input type="number" class="form-control" id="morning-consumption" 
-                                       step="0.1" min="0" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Evening Consumption (Sacks)</label>
-                                <input type="number" class="form-control" id="evening-consumption" 
-                                       step="0.1" min="0" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Notes (Optional)</label>
-                                <textarea class="form-control" id="consumption-notes" rows="2"></textarea>
-                            </div>
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-save"></i> Record Feed Consumption
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                  
 
                     
 

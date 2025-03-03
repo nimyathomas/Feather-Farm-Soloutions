@@ -23,6 +23,41 @@
         </div>
     </div>
     {% endif %}
+    <!-- Add this at the top of your template for debugging -->
+{% if debug %}
+<div class="debug-info" style="background: #f5f5f5; padding: 10px; margin: 10px;">
+    <h4>Debug Information:</h4>
+    <pre>
+    Feed Acknowledgments: {{ feed_acknowledgments|length }}
+    Notifications Count: {{ notifications_count }}
+    Pending Assignments: {{ pending_assignments }}
+    Active Batches: {{ active_batches_count }}
+    Feed Stats: {{ feed_type_stats }}
+    </pre>
+</div>
+{% endif %}
+
+    <!-- Add this after the Feed Transition Alerts section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for notification in feed_acknowledgments %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-bell me-2"></i>
+                    <div>
+                        <strong>Feed Assignment Update - Batch #{{ notification.batch_id }}</strong><br>
+                        Feed assignment for Week {{ notification.week_number }} has been {{ notification.status }}
+                        {% if notification.notes %}
+                        <br>
+                        <small class="text-muted">Note: {{ notification.notes }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">

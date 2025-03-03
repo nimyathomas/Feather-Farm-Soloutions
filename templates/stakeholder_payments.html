@@ -1,0 +1,207 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+  <h1>Stakeholder Payments</h1>
+  
+  <!-- Filter Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Filter Payments</h5>
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          <label for="stakeholder" class="form-label">Stakeholder</label>
+          <select name="stakeholder" id="stakeholder" class="form-select" onchange="updateFarms()">
+            <option value="">All Stakeholders</option>
+            {% for user in stakeholders %}
+              <option value="{{ user.id }}" {% if selected_stakeholder == user.id|stringformat:"i" %}selected{% endif %}>
+                {{ user.get_full_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="farm" class="form-label">Farm</label>
+          <select name="farm" id="farm" class="form-select">
+            <option value="">All Farms</option>
+            {% for farm in farms %}
+              <option value="{{ farm.id }}" {% if selected_farm == farm.id|stringformat:"i" %}selected{% endif %} class="farm-option">
+                {{ farm.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="payment_status" class="form-label">Payment Status</label>
+          <select name="payment_status" id="payment_status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="pending" {% if selected_payment_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="paid" {% if selected_payment_status == 'paid' %}selected{% endif %}>Paid</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="start_date" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+        </div>
+        <div class="col-md-2">
+          <label for="end_date" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+        </div>
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-primary">Filter</button>
+          <a href="{% url 'stakeholder_payments' %}" class="btn btn-secondary">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Batches List -->
+  {% if batches %}
+    {% for batch in batches %}
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Batch #{{ batch.id }} - {{ batch.farm.name }}</h5>
+          <div>
+            <span class="badge bg-success">Completed</span>
+            <span class="badge {% if batch.payment_status == 'pending' %}bg-warning{% elif batch.payment_status == 'paid' %}bg-success{% endif %}">
+              Payment: {{ batch.get_payment_status_display }}
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <p><strong>Stakeholder:</strong> {{ batch.user.get_full_name }}</p>
+              <p><strong>Farm:</strong> {{ batch.farm.name }}</p>
+              <p><strong>Batch Date:</strong> {{ batch.batch_date }}</p>
+              <p><strong>Completion Date:</strong> {{ batch.completion_date }}</p>
+            </div>
+            <div class="col-md-4">
+              <p><strong>Initial Count:</strong> {{ batch.initial_chick_count }}</p>
+              <p><strong>Live Count:</strong> {{ batch.live_chick_count }}</p>
+              <p><strong>Mortality Rate:</strong> {{ batch.mortality_rate|floatformat:2 }}%</p>
+            </div>
+            <div class="col-md-4">
+              <p><strong>Target FCR:</strong> {{ batch.target_fcr|floatformat:2 }}</p>
+              <p><strong>Actual FCR:</strong> {{ batch.actual_fcr|floatformat:2 }}</p>
+              <p><strong>Stakeholder Payment:</strong> ₹{{ batch.stakeholder_payment|floatformat:2 }}</p>
+            </div>
+          </div>
+          
+          <div class="row mt-3">
+            <div class="col-md-12 text-end">
+              {% if batch.payments.exists %}
+                                {% with payment=batch.payments.first %}
+                                    {% if payment.status == 'completed' %}
+                                        <a href="{% url 'payment_details' payment.id %}" class="btn btn-info">View Payment</a>
+                                    {% else %}
+                                        <!-- Change this line to point to process_payment -->
+                                        <a href="{% url 'process_payment' payment.id %}" class="btn btn-warning">Complete Payment</a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <a href="{% url 'create_payment' batch.id %}" class="btn btn-primary">Create Payment</a>
+                            {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First">
+              <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last">
+              <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-info">No completed batches found matching your criteria.</div>
+  {% endif %}
+</div>
+
+<script>
+  // Store the stakeholder-farm mapping
+  const stakeholderFarms = {{ stakeholder_farms|safe }};
+  
+  // Function to update farm dropdown based on selected stakeholder
+  function updateFarms() {
+    const stakeholderSelect = document.getElementById('stakeholder');
+    const farmSelect = document.getElementById('farm');
+    const selectedStakeholderId = stakeholderSelect.value;
+    
+    // Reset farm dropdown
+    farmSelect.innerHTML = '<option value="">All Farms</option>';
+    
+    // If a stakeholder is selected, populate with their farms
+    if (selectedStakeholderId) {
+      const farms = stakeholderFarms[selectedStakeholderId] || [];
+      
+      farms.forEach(farm => {
+        const option = document.createElement('option');
+        option.value = farm.id;
+        option.textContent = farm.name;
+        farmSelect.appendChild(option);
+      });
+      
+      // If only one farm, select it automatically
+      if (farms.length === 1) {
+        farmSelect.value = farms[0].id;
+      }
+    } else {
+      // If no stakeholder selected, show all farms
+      {% for farm in farms %}
+        const option = document.createElement('option');
+        option.value = "{{ farm.id }}";
+        option.textContent = "{{ farm.name }}";
+        farmSelect.appendChild(option);
+      {% endfor %}
+    }
+  }
+  
+  // Initialize farms on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    // If a stakeholder is already selected, update farms
+    const stakeholderSelect = document.getElementById('stakeholder');
+    if (stakeholderSelect.value) {
+      updateFarms();
+    }
+  });
+</script>
+{% endblock %}

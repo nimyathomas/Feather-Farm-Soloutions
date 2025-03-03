@@ -4,7 +4,6 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io
-from .apps import disease_model  # Ensure your global model is loaded here
 
 # --- Define your desired class mapping and reverse mapping ---
 # Desired mapping: keys are class names, values are indices
@@ -34,7 +33,8 @@ def preprocess_image(image):
 
 # --- Prediction function ---
 def predict_disease(image_file):
-    """Predict disease from image file."""
+    """ML-based disease detection"""
+    print("🔵 UTILS.PY VERSION OF predict_disease CALLED 🔵")
     try:
         # Check if model is loaded
         if disease_model is None:

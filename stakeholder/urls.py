@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
 
 from . import views 
 from user.views import (
@@ -213,6 +214,7 @@ urlpatterns = [
          views.batch_feed_assignment, 
          name='batch_feed_assignment'),
     path('feed-tracking/', views.feed_tracking_dashboard, name='feed_tracking_dashboard'),
+    path('feed/acknowledge/<int:assignment_id>/', views.acknowledge_feed_assignment, name='acknowledge_feed_assignment'),
     path('record-feed/<int:batch_id>/', views.record_feed_consumption, name='record_feed_consumption'),
     path('vaccine/<int:vaccine_id>/details/', views.get_vaccine_details, name='vaccine_details'),
     path('vaccine/<int:vaccine_id>/update/', views.update_vaccine, name='update_vaccine'),
@@ -288,7 +290,31 @@ urlpatterns = [
     path('batch/<int:batch_id>/feed-assignments/', 
          views.get_feed_assignments, 
          name='get_feed_assignments'),
+    
+    
+    
+
+    # ... other urls ...
+    path('fcr-dashboard/', views.stakeholder_dashboard, name='fcr_dashboard'),
+    path('batch/<int:batch_id>/complete/', views.complete_batch, name='complete_batch'),
+    path('batch/<int:batch_id>/recalculate/', views.recalculate_batch_metrics, name='recalculate_batch_metrics'),
+    
+    
+    
+
+    # ... existing URLs ...
+    path('payments/', views.stakeholder_payments_view, name='stakeholder_payments'),
+    path('payment/<int:payment_id>/', views.payment_details, name='payment_details'),
+    path('payment/create/<int:batch_id>/', views.create_payment, name='create_payment'),
+    path('payment/process/<int:payment_id>/', views.process_payment, name='process_payment'),
+    path('payment/callback/', views.razorpay_callback, name='razorpay_callback'),  # Add this line
+
+
+
+    # Not payments/complete/<int:payment_id>/ as shown in your logs
+    # Other patterns...
 ]
+
     
     
 

@@ -271,6 +271,12 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'stakeholder_payments' %}">
+                    <i class="fas fa-trash"></i>
+                    <span>Payments</span>
+                </a>
+            </li>
+            <li>
                 <a href="{% url  'contract_dashboard' %}">
                     <i class="fas fa-trash"></i>
                     <span>My Contracts</span>
@@ -323,6 +329,18 @@
         {% block body %}
         {% endblock %}
     </main>
+
+    {% if settings.DEBUG and settings.RAZORPAY_MOCK_ENABLED %}
+    <div class="alert alert-warning" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">
+      <strong>Razorpay Mock Mode Enabled</strong>
+      <a href="{% url 'toggle_razorpay_mock' %}" class="btn btn-sm btn-warning ml-2">Disable</a>
+    </div>
+    {% elif settings.DEBUG and not settings.RAZORPAY_MOCK_ENABLED %}
+    <div class="alert alert-info" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">
+      <strong>Razorpay Live Mode</strong>
+      <a href="{% url 'toggle_razorpay_mock' %}" class="btn btn-sm btn-info ml-2">Enable Mock</a>
+    </div>
+    {% endif %}
 
     <script>
         function toggleSidebar() {

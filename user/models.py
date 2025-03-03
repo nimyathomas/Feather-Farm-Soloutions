@@ -455,5 +455,17 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} - {self.created_at}"
+from django.db import models
+from django.conf import settings
+import uuid
+from datetime import timedelta
+from django.utils import timezone
+from decimal import Decimal
 
+# This is the fix - import ChickBatch from stakeholder.models
+
+
+ # In user/models.py
+# Remove this import
+# from stakeholder.models import ChickBatch
 

@@ -1,0 +1,70 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-center">Complete Payment</h3>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <h4>Payment Details</h4>
+            <p><strong>Amount:</strong> ₹{{ payment.amount|floatformat:2 }}</p>
+            <p><strong>Batch:</strong> #{{ payment.batch.id }}</p>
+            <p><strong>Stakeholder:</strong> {{ stakeholder_name }}</p>
+            <p><strong>Payment Method:</strong> {{ payment_method }}</p>
+          </div>
+          
+          <form id="payment-form" method="POST" action="{% url 'payment_success' payment.id %}">
+            {% csrf_token %}
+            <div class="text-center">
+              <button type="button" id="rzp-button" class="btn btn-primary btn-lg">Pay Now</button>
+              <a href="{% url 'payment_details' payment.id %}" class="btn btn-secondary btn-lg ml-2">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById('rzp-button').onclick = function(e) {
+    const options = {
+      key: '{{ razorpay_key }}',
+      amount: {{ amount }},
+      currency: '{{ currency }}',
+      name: 'FATHER FARM SOLUTIONS',
+      description: 'Stakeholder Payment for Batch #{{ payment.batch.id }}',
+      handler: function (response) {
+        // Add the payment ID to the form
+        const form = document.getElementById('payment-form');
+        const paymentIdInput = document.createElement('input');
+        paymentIdInput.type = 'hidden';
+        paymentIdInput.name = 'razorpay_payment_id';
+        paymentIdInput.value = response.razorpay_payment_id;
+        form.appendChild(paymentIdInput);
+        
+        // Submit the form
+        form.submit();
+      },
+      prefill: {
+        name: '{{ stakeholder_name }}',
+        email: '{{ stakeholder_email }}',
+        contact: '{{ stakeholder_phone }}'
+      },
+      theme: {
+        color: '#F37254'
+      }
+    };
+
+    const razorpay = new Razorpay(options);
+    razorpay.open();
+    e.preventDefault();
+  };
+</script>
+{% endblock %} 

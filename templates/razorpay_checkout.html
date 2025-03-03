@@ -1,0 +1,61 @@
+{% extends 'admindash.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Complete Payment</h3>
+                </div>
+                <div class="card-body text-center">
+                    <h5>Amount: ₹{{ payment.amount }}</h5>
+                    <button id="rzp-button" class="btn btn-primary">Pay with Razorpay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+    "key": "{{ razorpay_key_id }}", 
+    "amount": "{{ amount }}", 
+    "currency": "INR",
+    "name": "Feather Farm Solutions",
+    "description": "Payment for Batch #{{ payment.batch.id }}",
+    "order_id": "{{ razorpay_order_id }}", 
+    "handler": function (response) {
+        // On successful payment
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+        document.getElementById('payment-form').submit();
+    },
+    "prefill": {
+        "name": "{{ stakeholder_name }}",
+        "email": "{{ stakeholder_email }}",
+        "contact": "{{ stakeholder_phone }}"
+    },
+    "theme": {
+        "color": "#3399cc"
+    }
+};
+
+document.getElementById('rzp-button').onclick = function(e) {
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+    e.preventDefault();
+};
+</script>
+
+<form id="payment-form" action="{% url 'razorpay_callback' %}" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    <input type="hidden" name="payment_id" value="{{ payment.id }}">
+</form>
+{% endblock %} 

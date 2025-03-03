@@ -15,6 +15,7 @@ import numpy as np
 import cv2
 import json
 import random
+from decimal import Decimal
 
 
 
@@ -167,6 +168,16 @@ class ChickBatch(models.Model):
     )
     last_feed_transition = models.DateTimeField(null=True, blank=True)
     feed_transition_notified = models.BooleanField(default=False)
+    
+    target_fcr = models.DecimalField(max_digits=4, decimal_places=2, default=1.50)
+    actual_fcr = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    stakeholder_payment = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    admin_revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('paid', 'Paid')],
+        default='pending'
+    )
     
     
     
@@ -394,7 +405,136 @@ class ChickBatch(models.Model):
     @property
     def current_day(self):
         return (timezone.now().date() - self.batch_date).days + 1
+    
+    
+    
+    
+    def calculate_final_metrics(self):
+        print(f"Starting calculate_final_metrics for batch #{self.id}")
+        if self.batch_status == 'completed':
+            try:
+                print(f"Batch status is 'completed'")
+                
+                # Get total feed consumed from DailyData (in kg)
+                total_feed_consumed_sacks = (
+                    self.daily_data.aggregate(
+                        total_feed=models.Sum("feed_uplifted")
+                    )["total_feed"] or 0.0
+                )
+                SACK_WEIGHT = 50  # kg per sack
+                total_feed_consumed_kg = Decimal(str(total_feed_consumed_sacks)) * Decimal(str(SACK_WEIGHT))
+                print(f"Total feed consumed: {total_feed_consumed_sacks} sacks = {total_feed_consumed_kg} kg")
 
+                # Calculate total weight in kg
+                try:
+                    latest_log = self.daily_data.latest('date')
+                    avg_weight_grams = latest_log.weight_gain  # Average weight per chick in grams
+                    avg_weight_kg = Decimal(str(avg_weight_grams)) / Decimal('1000')  # Convert to kg
+                    total_weight_kg = avg_weight_kg * Decimal(str(self.live_chick_count))
+                    print(f"Average weight per chick: {avg_weight_kg} kg")
+                    print(f"Total weight: {total_weight_kg} kg")
+                except Exception as e:
+                    print(f"Error getting weight data: {e}")
+                    # Fallback to a reasonable average weight if no data
+                    avg_weight_kg = Decimal('1.8')  # Typical weight for a mature chicken
+                    total_weight_kg = avg_weight_kg * Decimal(str(self.live_chick_count))
+                    print(f"Using fallback weight: {avg_weight_kg} kg per chicken")
+                
+                if total_weight_kg > 0:
+                    # Limit FCR to a reasonable range to avoid database errors
+                    calculated_fcr = total_feed_consumed_kg / total_weight_kg
+                    # Cap FCR at a reasonable maximum value (e.g., 10.0)
+                    self.actual_fcr = min(calculated_fcr, Decimal('10.0'))
+                    print(f"Calculated FCR: {calculated_fcr}, Capped FCR: {self.actual_fcr}")
+                else:
+                    self.actual_fcr = Decimal('0')
+                    print("Total weight is zero, setting FCR to 0")
+
+                # Calculate stakeholder payment
+                base_payment = self.live_chick_count * Decimal('10.00')  # ₹10 per bird
+                print(f"Base payment: {base_payment}, Live chick count: {self.live_chick_count}")
+                
+                # FCR Bonus calculation
+                fcr_bonus = Decimal('0')
+                if self.actual_fcr < self.target_fcr:
+                    feed_saved_kg = (self.target_fcr - self.actual_fcr) * total_weight_kg
+                    fcr_bonus = (feed_saved_kg * Decimal('30.00')) * Decimal('0.50')
+                    print(f"FCR bonus: {fcr_bonus}")
+
+                # Mortality penalty
+                mortality_rate = Decimal(str((self.initial_chick_count - self.live_chick_count) / self.initial_chick_count))
+                print(f"Mortality rate: {mortality_rate}")
+                mortality_penalty = Decimal('0')
+                if mortality_rate > Decimal('0.05'):
+                    excess_mortality = Decimal(str(self.initial_chick_count)) * (mortality_rate - Decimal('0.05'))
+                    mortality_penalty = excess_mortality * Decimal('5.00')
+                    print(f"Mortality penalty: {mortality_penalty}")
+
+                # Set final payments
+                self.stakeholder_payment = base_payment + fcr_bonus - mortality_penalty
+                print(f"Final stakeholder payment: {self.stakeholder_payment}")
+                
+                # Check if weight distribution has been manually set
+                # We'll consider it manually set if the sum equals the live chick count
+                total_weight_counts = (self.one_kg_count or 0) + (self.two_kg_count or 0) + (self.three_kg_count or 0)
+                
+                if total_weight_counts == self.live_chick_count:
+                    # Use the manually entered values
+                    print(f"Using manually entered weight distribution: 1kg: {self.one_kg_count}, 2kg: {self.two_kg_count}, 3kg: {self.three_kg_count}")
+                else:
+                    # Calculate weight distribution based on average weight
+                    print(f"Calculating weight distribution (current total: {total_weight_counts}, should be: {self.live_chick_count})")
+                    try:
+                        # Use a more realistic distribution based on average weight
+                        if avg_weight_kg < 1.0:
+                            # Mostly small birds
+                            self.one_kg_count = int(self.live_chick_count * 0.8)
+                            self.two_kg_count = int(self.live_chick_count * 0.2)
+                            self.three_kg_count = 0
+                        elif 1.0 <= avg_weight_kg <= 2.0:
+                            # Mix of small and medium birds
+                            self.one_kg_count = int(self.live_chick_count * 0.3)
+                            self.two_kg_count = int(self.live_chick_count * 0.6)
+                            self.three_kg_count = self.live_chick_count - self.one_kg_count - self.two_kg_count
+                        else:
+                            # Mostly large birds
+                            self.one_kg_count = int(self.live_chick_count * 0.1)
+                            self.two_kg_count = int(self.live_chick_count * 0.3)
+                            self.three_kg_count = self.live_chick_count - self.one_kg_count - self.two_kg_count
+                        
+                        print(f"Calculated weight distribution: 1kg: {self.one_kg_count}, 2kg: {self.two_kg_count}, 3kg: {self.three_kg_count}")
+                    except Exception as e:
+                        print(f"Error calculating weight distribution: {e}")
+                        # Default to a reasonable distribution
+                        self.one_kg_count = int(self.live_chick_count * 0.2)
+                        self.two_kg_count = int(self.live_chick_count * 0.6)
+                        self.three_kg_count = self.live_chick_count - self.one_kg_count - self.two_kg_count
+                        print(f"Using fallback weight distribution: 1kg: {self.one_kg_count}, 2kg: {self.two_kg_count}, 3kg: {self.three_kg_count}")
+                
+                # Calculate admin revenue with configurable prices
+                LIGHT_PRICE = Decimal('150.00')  # Price per kg for 1kg chickens
+                MEDIUM_PRICE = Decimal('180.00')  # Price per kg for 2kg chickens
+                HEAVY_PRICE = Decimal('210.00')  # Price per kg for 3kg chickens
+
+                self.admin_revenue = (
+                    (self.one_kg_count * LIGHT_PRICE * Decimal('1')) +
+                    (self.two_kg_count * MEDIUM_PRICE * Decimal('2')) +
+                    (self.three_kg_count * HEAVY_PRICE * Decimal('3'))
+                )
+                print(f"Admin revenue: {self.admin_revenue}")
+
+                self.save()
+                print("Saved batch with updated metrics")
+                return True
+            except Exception as e:
+                print(f"Error in calculate_final_metrics: {e}")
+                import traceback
+                traceback.print_exc()
+                return False
+        else:
+            print(f"Batch status is not 'completed', it's '{self.batch_status}'")
+            return False
+    # ... other methods ...
 
 class DailyData(models.Model):
     batch = models.ForeignKey(
@@ -408,12 +548,17 @@ class DailyData(models.Model):
     alive_count = models.IntegerField(help_text="Number of chicks alive on this day")
     sick_chicks = models.IntegerField(default=0, help_text="Number of sick chicks")
     weight_gain = models.FloatField(help_text="Weight gain per chick (in grams)")
-    feed_uplifted = models.FloatField(help_text="Feed consumed (in kg)")
+    feed_uplifted =  models.DecimalField(
+    max_digits=5,
+    decimal_places=2,default=0,
+    help_text="Number of feed sacks consumed")
     water_consumption = models.FloatField(help_text="Water consumed (in liters)")
     temperature = models.FloatField(help_text="Housing temperature")
     mortality_count = models.IntegerField(
         default=0, help_text="Number of chicks that died"
     )
+    
+    
 
     class Meta:
         unique_together = ("batch", "date")
@@ -488,7 +633,7 @@ class DailyData(models.Model):
             ]
             or 0
         )
-
+    
 
 class FeedMonitoring(models.Model):
     batch = models.ForeignKey(ChickBatch, on_delete=models.CASCADE)
@@ -1145,4 +1290,66 @@ class GrowthPrediction(models.Model):
         return f"Batch #{self.batch.id} - Day {self.day_number}"
     
     
+class FeedNotification(models.Model):
+    batch = models.ForeignKey('ChickBatch', on_delete=models.CASCADE)
+    feed_assignment = models.ForeignKey('FeedAssignment', on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=50)
+    status = models.CharField(max_length=50)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Feed Notification - Batch #{self.batch.id} - {self.notification_type}"
     
+    @property
+    def week_number(self):
+        """Get week number from associated feed assignment"""
+        return self.feed_assignment.week_number
+    
+    
+class StakeholderPayment(models.Model):
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('bank_transfer', 'Bank Transfer'),
+        ('upi', 'UPI'),
+        ('cash', 'Cash'),
+        ('check', 'Check'),
+        
+    ]
+    
+    # Use string reference instead of direct import
+    batch = models.ForeignKey('stakeholder.ChickBatch', on_delete=models.CASCADE, related_name='payments')
+    stakeholder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    base_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    fcr_bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    mortality_penalty = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, null=True, blank=True)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    notes = models.TextField(blank=True)
+    processed_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='processed_payments'
+    )
+    
+    def __str__(self):
+        return f"Payment of ₹{self.amount} for Batch #{self.batch.id}"
+    
+    class Meta:
+        ordering = ['-payment_date']
+        
+        

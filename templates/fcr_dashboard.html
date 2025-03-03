@@ -1,0 +1,628 @@
+{% extends 'stakeholder.html' %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid px-4 py-4">
+    <!-- Dashboard Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="text-primary fw-bold mb-0">
+                <i class="fas fa-chart-line me-2"></i>FCR & Payment Management
+            </h2>
+            <p class="text-muted mt-2">Track batch performance and manage payments</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="fas fa-file-export me-2"></i>Export Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-gradient-primary border-0 rounded-3 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-white p-3 me-3">
+                            <i class="fas fa-money-bill-wave text-primary fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-white mb-1">Pending Payments</h6>
+                            <h3 class="text-white mb-0">₹{{ total_pending|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Completed Batches</h6>
+                            <h3 class="mb-0">{{ batches|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-chart-pie text-info fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">Average FCR</h6>
+                            <h3 class="mb-0">
+                                {% with total_fcr=0 count=0 %}
+                                    {% for batch in batches %}
+                                        {% with total_fcr=total_fcr|add:batch.actual_fcr count=count|add:1 %}
+                                        {% endwith %}
+                                    {% endfor %}
+                                    {% if count > 0 %}
+                                        {{ total_fcr|floatformat:2 }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                {% endwith %}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this after the summary cards section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">FCR Metrics Explained</h5>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#fcrExplanation">
+                        <i class="fas fa-info-circle me-1"></i> Show/Hide
+                    </button>
+                </div>
+                <div class="collapse" id="fcrExplanation">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary mb-3">What is FCR?</h6>
+                                <p>Feed Conversion Ratio (FCR) is a measure of how efficiently your birds convert feed into body weight.</p>
+                                <p><strong>FCR Formula:</strong> Total Feed Consumed (kg) ÷ Total Weight Gain (kg)</p>
+                                <p><strong>Lower FCR is better</strong> - it means your birds are more efficient at converting feed to weight.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary mb-3">How Payments Are Calculated</h6>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item bg-transparent"><i class="fas fa-check text-success me-2"></i> Base payment: ₹10 per bird</li>
+                                    <li class="list-group-item bg-transparent"><i class="fas fa-check text-success me-2"></i> FCR Bonus: 50% of feed cost saved when FCR is below target</li>
+                                    <li class="list-group-item bg-transparent"><i class="fas fa-times text-danger me-2"></i> Mortality Penalty: ₹5 per bird for mortality above 5%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace the FCR Performance Analytics section with this more compact version -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">FCR Performance Analytics</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-2" type="button" data-bs-toggle="collapse" data-bs-target="#weightDistribution">
+                            <i class="fas fa-chart-pie me-1"></i> Weight Distribution
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#fcrTips">
+                            <i class="fas fa-lightbulb me-1"></i> FCR Tips
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Collapsible Weight Distribution -->
+                    <div class="collapse" id="weightDistribution">
+                        <div class="p-4 border-bottom">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="chart-container" style="position: relative; height:200px;">
+                                        <canvas id="weightDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mb-0">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th>Batch</th>
+                                                    <th>1kg</th>
+                                                    <th>2kg</th>
+                                                    <th>3kg</th>
+                                                    <th>Avg</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for batch in batches %}
+                                                <tr>
+                                                    <td>#{{ batch.id }}</td>
+                                                    <td>{{ batch.one_kg_count }}</td>
+                                                    <td>{{ batch.two_kg_count }}</td>
+                                                    <td>{{ batch.three_kg_count }}</td>
+                                                    <td>
+                                                        {% with one_kg=batch.one_kg_count|default:0 %}
+                                                        {% with two_kg=batch.two_kg_count|default:0 %}
+                                                        {% with three_kg=batch.three_kg_count|default:0 %}
+                                                        {% with total_birds=batch.live_chick_count|default:1 %}
+                                                        {% with total_weight=one_kg|add:two_kg|add:two_kg|add:three_kg|add:three_kg|add:three_kg %}
+                                                        {% widthratio total_weight total_birds 1.0 as avg_weight %}
+                                                        {{ avg_weight|floatformat:2 }}kg
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Collapsible FCR Tips -->
+                    <div class="collapse" id="fcrTips">
+                        <div class="p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="alert alert-info mb-0">
+                                        <h6 class="fw-bold"><i class="fas fa-info-circle me-2"></i>Improve Your FCR</h6>
+                                        <ul class="mb-0 ps-3 small">
+                                            <li>Optimize feed quality and formulation</li>
+                                            <li>Maintain ideal temperature and ventilation</li>
+                                            <li>Ensure clean water is always available</li>
+                                            <li>Implement disease prevention measures</li>
+                                            <li>Follow proper feeding schedules</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    {% for batch in batches %}
+                                        {% if batch.actual_fcr > batch.target_fcr %}
+                                        <div class="alert alert-warning mb-0 small">
+                                            <h6 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Batch #{{ batch.id }} Alert</h6>
+                                            <p class="mb-0">FCR {{ batch.actual_fcr|floatformat:2 }} > Target {{ batch.target_fcr }}</p>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Always visible summary metrics -->
+                    <div class="p-3">
+                        <div class="row g-3">
+                            {% for batch in batches %}
+                            <div class="col-md-4 col-sm-6">
+                                <div class="p-3 bg-light rounded-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold">Batch #{{ batch.id }}</span>
+                                        <span class="badge {% if batch.actual_fcr <= batch.target_fcr %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                            FCR: {{ batch.actual_fcr|floatformat:2 }}
+                                        </span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio batch.one_kg_count|default:0 batch.live_chick_count|default:1 100 %}%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio batch.two_kg_count|default:0 batch.live_chick_count|default:1 100 %}%" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio batch.three_kg_count|default:0 batch.live_chick_count|default:1 100 %}%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>1kg: {{ batch.one_kg_count }}</span>
+                                        <span>2kg: {{ batch.two_kg_count }}</span>
+                                        <span>3kg: {{ batch.three_kg_count }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch List -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold fs-4">Batch Performance & Payments</h5>
+                </div>
+                <div class="card-body p-0 table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 batch-column" style="width: 28%;">Batch</th>
+                                    <th class="farm-column" style="width: 22%;">Farm</th>
+                                    <th class="fcr-column" style="width: 15%;">FCR</th>
+                                    <th class="status-column" style="width: 15%;">Status</th>
+                                    <th class="payment-column" style="width: 15%;">Payment</th>
+                                    <th class="text-end pe-4 actions-column" style="width: 10%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        {% for batch in batches %}
+                                <tr>
+                                    <td class="ps-4 batch-column">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                                <i class="fas fa-layer-group text-primary fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fs-5">Batch #{{ batch.id }}</h6>
+                                                <small class="text-muted">{{ batch.batch_date }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="farm-column fs-5">{{ batch.farm.name }}</td>
+                                    <td>
+                                        <span class="badge {% if batch.actual_fcr <= batch.target_fcr %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                            {{ batch.actual_fcr|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if batch.payment_status == 'pending' %}bg-warning{% else %}bg-success{% endif %} rounded-pill">
+                        {{ batch.payment_status|title }}
+                    </span>
+                                    </td>
+                                    <td class="payment-column fs-5">₹{{ batch.stakeholder_payment|floatformat:2 }}</td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#batchModal{{ batch.id }}">
+                                            <i class="fas fa-eye me-1"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="py-5">
+                                            <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                                            <p class="fs-4">No completed batches found.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Detail Modals -->
+    {% for batch in batches %}
+    <div class="modal fade" id="batchModal{{ batch.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-layer-group me-2"></i>Batch #{{ batch.id }} Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-4 p-3 bg-light rounded-3">
+                                <h6 class="fw-bold text-primary mb-3">FCR Performance</h6>
+                                <div class="row g-3">
+                            <div class="col-6">
+                                        <div class="p-3 bg-white rounded-3 text-center">
+                                            <p class="text-muted small mb-1">Actual FCR</p>
+                                            <h4 class="mb-0 fw-bold">{{ batch.actual_fcr|floatformat:2 }}</h4>
+                                        </div>
+                            </div>
+                            <div class="col-6">
+                                        <div class="p-3 bg-white rounded-3 text-center">
+                                            <p class="text-muted small mb-1">Target FCR</p>
+                                            <h4 class="mb-0 fw-bold">{{ batch.target_fcr }}</h4>
+                                        </div>
+                            </div>
+                        </div>
+                                <div class="mt-3 text-center">
+                                    <span class="badge {% if batch.actual_fcr <= batch.target_fcr %}bg-success{% else %}bg-warning{% endif %} rounded-pill px-3">
+                                        <i class="fas {% if batch.actual_fcr <= batch.target_fcr %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-1"></i>
+                                {% if batch.actual_fcr <= batch.target_fcr %}
+                                            Excellent Performance
+                                {% else %}
+                                    Needs Improvement
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-primary mb-3">
+                                    <i class="fas fa-calculator me-2"></i>Payment Breakdown
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="text-muted">Base Payment</td>
+                                            <td class="text-end fw-bold">₹{{ batch.stakeholder_payment|floatformat:2 }}</td>
+                            </tr>
+                            {% if batch.actual_fcr <= batch.target_fcr %}
+                            <tr>
+                                            <td class="text-muted">FCR Bonus</td>
+                                            <td class="text-end text-success fw-bold">+₹{{ batch.fcr_bonus|default:"0.00" }}</td>
+                            </tr>
+                            {% endif %}
+                                        <tr class="border-top">
+                                            <td class="fw-bold">Total Payment</td>
+                                            <td class="text-end fw-bold text-primary">₹{{ batch.stakeholder_payment|floatformat:2 }}</td>
+                            </tr>
+                        </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add a new row with detailed metrics -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-calculator me-2"></i>Detailed FCR Metrics
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Value</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Total Feed Consumed</td>
+                                            <td>{{ batch.total_feed_consumed|default:"N/A" }} sacks ({{ batch.total_feed_consumed_kg|default:"N/A" }} kg)</td>
+                                            <td>Total feed used throughout the batch cycle</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Initial Count</td>
+                                            <td>{{ batch.initial_chick_count }}</td>
+                                            <td>Number of chicks at the start</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Current Count</td>
+                                            <td>{{ batch.live_chick_count }}</td>
+                                            <td>Number of birds alive at completion</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Mortality Rate</td>
+                                            <td>{{ batch.mortality_rate|floatformat:2 }}%</td>
+                                            <td>Percentage of birds lost during the cycle</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Average Weight</td>
+                                            <td>{{ batch.average_weight_grams|default:"N/A" }} grams</td>
+                                            <td>Average weight per bird</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Weight</td>
+                                            <td>{{ batch.total_weight_kg|default:"N/A" }} kg</td>
+                                            <td>Total weight of all birds</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Target FCR</td>
+                                            <td>{{ batch.target_fcr }}</td>
+                                            <td>Expected feed conversion ratio</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Actual FCR</td>
+                                            <td class="{% if batch.actual_fcr <= batch.target_fcr %}text-success{% else %}text-warning{% endif %} fw-bold">
+                                                {{ batch.actual_fcr|floatformat:2 }}
+                                            </td>
+                                            <td>Achieved feed conversion ratio</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Batch Information
+                            </h6>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <p class="text-muted small mb-1">Initial Count</p>
+                                        <h5 class="mb-0 fw-bold">{{ batch.initial_count }}</h5>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <p class="text-muted small mb-1">Current Count</p>
+                                        <h5 class="mb-0 fw-bold">{{ batch.current_count }}</h5>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <p class="text-muted small mb-1">Farm</p>
+                                        <h5 class="mb-0 fw-bold">{{ batch.farm.name }}</h5>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <p class="text-muted small mb-1">Date</p>
+                                        <h5 class="mb-0 fw-bold">{{ batch.batch_date }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="{% url 'recalculate_batch_metrics' batch.id %}" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Recalculate Metrics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-export me-2"></i>Export Data
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p>Select the format to export your FCR and payment data:</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-excel me-2"></i>Export as Excel
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-pdf me-2"></i>Export as PDF
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-csv me-2"></i>Export as CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #4e73df 0%, #224abe 100%);
+    }
+    
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Updated table styles for better readability */
+    .table-responsive {
+        overflow-x: visible;
+    }
+    
+    .table {
+        width: 100%;
+        table-layout: fixed;
+    }
+    
+    .table td, .table th {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+    
+    /* Make the table cells more spacious */
+    .table td {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+    }
+    
+    /* Increase the size of the badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+    }
+    
+    .rounded-3 {
+        border-radius: 0.5rem !important;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(78, 115, 223, 0.05);
+    }
+    
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+    
+    .modal-header {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+    
+    /* Make the batch performance card wider */
+    @media (min-width: 992px) {
+        .container-fluid {
+            max-width: 100%;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        .table-container {
+            min-height: auto;
+            max-height: none;
+            overflow-x: visible;
+        }
+        
+        .content {
+            padding: 1rem !important;
+        }
+    }
+    
+    /* Adjust column widths for better horizontal space usage */
+    .batch-column { width: 25%; }
+    .farm-column { width: 20%; }
+    .fcr-column { width: 15%; }
+    .status-column { width: 15%; }
+    .payment-column { width: 15%; }
+    .actions-column { width: 10%; }
+    
+    /* Increase the size of the action buttons */
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

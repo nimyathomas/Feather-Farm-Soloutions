@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <th>Sacks</th>
                                 <th>Cost/Sack</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                {% comment %} <th>Actions</th> {% endcomment %}
                             </tr>
                         </thead>
                         <tbody>
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {{ assignment.status|title }}
                                     </span>
                                 </td>
-                                <td>
+                                {% comment %} <td>
                                     {% if assignment.status == 'pending' %}
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-success acknowledge-btn" 
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </button>
                                     </div>
                                     {% endif %}
-                                </td>
+                                </td> {% endcomment %}
                             </tr>
                             {% empty %}
                             <tr>

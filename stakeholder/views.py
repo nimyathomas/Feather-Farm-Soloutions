@@ -78,6 +78,31 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import ChickBatch, GrowthPrediction
 from .prediction_system import ChickGrowthPredictor
+# Add this import at the top of your file (around line 66-67)
+from django.db import models
+
+# Then your existing imports continue...
+from datetime import datetime
+from django.http import JsonResponse
+from django.db.models import F
+
+# Add this import at the top of your file (around line 94-95)
+from .utils import predict_disease  # Import from local utils.py file
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
+from django.contrib import messages
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
+import razorpay
+import json
+from decimal import Decimal
+from .models import ChickBatch, Farm, StakeholderPayment# Add user_passes_test here
+import razorpay
+
+
 
 # At the top of views.py, add this debug code
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
@@ -100,14 +125,17 @@ except Exception as e:
     model = None
 
 CLASS_MAPPING = {
-    0: "Healthy",
-    1: "Coccidiosis",
+    0: "Coccidiosis",
+    1: "Healthy",
     2: "New Castle Disease",
     3: "Salmonella"
 }
 
 def predict_disease(image_file):
     """ML-based disease detection"""
+    print("🔴 VIEWS.PY VERSION OF predict_disease CALLED 🔴")
+
+
     try:
         # Preprocess image
         img = Image.open(image_file).convert('RGB')
@@ -1213,12 +1241,38 @@ from .forms import FeedStockForm  # Add this import
 
 @login_required
 def feed_main_dashboard(request):
+    # Get feed stocks
     feed_stocks = FeedStock.objects.all()
     form = FeedStockForm()
+
+    # Get recent feed acknowledgments for the last 7 days
+    feed_notifications = FeedNotification.objects.filter(
+        notification_type='acknowledgment',
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).select_related('batch', 'feed_assignment').order_by('-created_at')
+
+    # Get pending assignments count
+    pending_assignments = FeedAssignment.objects.filter(status='pending').count()
+
+    # Get active batches count
+    active_batches_count = ChickBatch.objects.filter(batch_status='active').count()
+
+    # Prepare feed type statistics
+    feed_type_stats = {
+        'starter': FeedStock.objects.filter(feed_type='starter').aggregate(total=Sum('number_of_sacks'))['total'] or 0,
+        'grower': FeedStock.objects.filter(feed_type='grower').aggregate(total=Sum('number_of_sacks'))['total'] or 0,
+        'finisher': FeedStock.objects.filter(feed_type='finisher').aggregate(total=Sum('number_of_sacks'))['total'] or 0,
+    }
+
     context = {
         'feed_stocks': feed_stocks,
         'form': form,
-        'is_admin': request.user.is_staff
+        'is_admin': request.user.is_staff,
+        'feed_acknowledgments': feed_notifications,
+        'pending_assignments': pending_assignments,
+        'active_batches_count': active_batches_count,
+        'feed_type_stats': feed_type_stats,
+        'notifications_count': feed_notifications.count(),
     }
     return render(request, 'stakeholder/feed_main_dashboard.html', context)
 
@@ -1809,12 +1863,19 @@ from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
-from .models import ChickBatch, FeedAssignment
+from .models import ChickBatch, FeedAssignment,FeedNotification
 from user.models import FeedStock
 
 @login_required
 def feed_tracking_dashboard(request):
-    # Get active batches for the stakeholder with all necessary related data
+    # Add debug print statements
+    try:
+        template = get_template('stakeholder/feed_tracking1.html')
+        print(f"Template found at: {template.origin.name}")  # This will print the template path
+    except TemplateDoesNotExist as e:
+        print(f"Template not found: {str(e)}")
+
+    # Get active batches for the stakeholder
     active_batches = ChickBatch.objects.filter(
         user=request.user,
         batch_status='active'
@@ -1829,13 +1890,14 @@ def feed_tracking_dashboard(request):
         'active_batches': active_batches,
         'page_title': 'Feed Tracking'
     }
-    return render(request, 'stakeholder/feed_tracking.html', context) 
+    
+    print("Rendering template with context:", context.keys())  # Debug print
+    return render(request, 'stakeholder/feed_tracking1.html', context)
 
 
 
 @login_required
 def acknowledge_feed_assignment(request, assignment_id):
-    """Handle feed assignment acknowledgment"""
     if request.method == 'POST':
         try:
             assignment = get_object_or_404(FeedAssignment, id=assignment_id)
@@ -1844,8 +1906,10 @@ def acknowledge_feed_assignment(request, assignment_id):
 
             if action == 'acknowledge':
                 assignment.status = 'acknowledged'
+                message = 'Feed assignment acknowledged successfully'
             elif action == 'reject':
                 assignment.status = 'rejected'
+                message = 'Feed assignment rejected successfully'
             else:
                 return JsonResponse({
                     'status': 'error',
@@ -1856,9 +1920,18 @@ def acknowledge_feed_assignment(request, assignment_id):
             assignment.acknowledgment_notes = notes
             assignment.save()
 
+            # Create notification
+            FeedNotification.objects.create(
+                batch=assignment.batch,
+                feed_assignment=assignment,
+                notification_type='acknowledgment',
+                status=action,
+                notes=notes
+            )
+
             return JsonResponse({
                 'status': 'success',
-                'message': f'Feed assignment {action}d successfully'
+                'message': message
             })
 
         except Exception as e:
@@ -2998,3 +3071,429 @@ def get_feed_assignments(request, batch_id):
             'success': False,
             'error': str(e)
         })
+        
+        
+# Step 1: Complete Batch View
+@login_required
+def complete_batch(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    if request.method == 'POST':
+        batch.batch_status = 'completed'
+        if batch.calculate_final_metrics():
+            messages.success(request, f"Batch completed. FCR: {batch.actual_fcr:.2f}")
+            return redirect('batch_details', batch_id=batch_id)
+        messages.error(request, "Error calculating final metrics")
+    return redirect('batch_list')
+
+# Step 2: Stakeholder Dashboard
+@login_required
+def stakeholder_dashboard(request):
+    completed_batches = ChickBatch.objects.filter(
+        farm__owner=request.user,
+        batch_status='completed'
+    ).order_by('-batch_date')
+
+    context = {
+        'batches': completed_batches,
+        'total_pending': sum(
+            b.stakeholder_payment 
+            for b in completed_batches 
+            if b.payment_status == 'pending'
+        )
+    }
+    return render(request, 'stakeholder/dashboard.html', context)
+
+# Step 3: Admin Payment Management
+@login_required
+def admin_payment_dashboard(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    completed_batches = ChickBatch.objects.filter(
+        batch_status='completed'
+    ).select_related('farm__owner')
+
+    context = {
+        'batches': completed_batches,
+        'total_pending_payments': sum(
+            b.stakeholder_payment 
+            for b in completed_batches 
+            if b.payment_status == 'pending'
+        )
+    }
+    return render(request, 'stakeholder/admin_payments.html', context)
+
+# Step 4: Mark Payment Complete
+from django.views.decorators.http import require_POST  # Add this import
+
+# Step 1: Complete Batch View
+@login_required
+def complete_batch(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    if request.method == 'POST':
+        batch.batch_status = 'completed'
+        if batch.calculate_final_metrics():
+            messages.success(request, f"Batch completed. FCR: {batch.actual_fcr:.2f}")
+            return redirect('batch_details', batch_id=batch_id)
+        messages.error(request, "Error calculating final metrics")
+    return redirect('batch_list')
+
+# Step 2: Stakeholder Dashboard
+@login_required
+def stakeholder_dashboard(request):
+    completed_batches = ChickBatch.objects.filter(
+        farm__owner=request.user,
+        batch_status='completed'
+    ).order_by('-batch_date')
+
+    context = {
+        'batches': completed_batches,
+        'total_pending': sum(
+            b.stakeholder_payment 
+            for b in completed_batches 
+            if b.payment_status == 'pending'
+        )
+    }
+    return render(request, 'fcr_dashboard.html', context)
+
+# Step 3: Admin Payment Management
+@login_required
+def admin_payment_dashboard(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    completed_batches = ChickBatch.objects.filter(
+        batch_status='completed'
+    ).select_related('farm__owner')
+
+    context = {
+        'batches': completed_batches,
+        'total_pending_payments': sum(
+            b.stakeholder_payment 
+            for b in completed_batches 
+            if b.payment_status == 'pending'
+        )
+    }
+    return render(request, 'stakeholder/admin_payments.html', context)
+
+# Step 4: Mark Payment Complete
+@login_required
+@require_POST
+
+
+def mark_payment_complete(request, batch_id):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    batch.payment_status = 'paid'
+    batch.save()
+    
+    return JsonResponse({'success': True})
+
+@login_required
+@login_required
+def recalculate_batch_metrics(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    
+    if batch.batch_status == 'completed':
+        success = batch.calculate_final_metrics()
+        if success:
+            messages.success(request, f"Metrics recalculated for Batch #{batch_id}")
+        else:
+            messages.error(request, f"Error recalculating metrics for Batch #{batch_id}")
+    else:
+        messages.warning(request, f"Batch #{batch_id} is not marked as completed")
+    
+    return redirect('fcr_dashboard')  # Changed from 'stakeholder_dashboard' to 'fcr_dashboard'@login_required
+def recalculate_batch_metrics(request, batch_id):
+    batch = get_object_or_404(ChickBatch, id=batch_id)
+    
+    print(f"Recalculating metrics for batch #{batch_id}")
+    print(f"Batch status: {batch.batch_status}")
+    
+    if batch.batch_status == 'completed':
+        success = batch.calculate_final_metrics()
+        if success:
+            messages.success(request, f"Metrics recalculated for Batch #{batch_id}")
+            print(f"Recalculation successful. FCR: {batch.actual_fcr}, Payment: {batch.stakeholder_payment}")
+        else:
+            messages.error(request, f"Error recalculating metrics for Batch #{batch_id}")
+            print("Recalculation failed")
+    else:
+        messages.warning(request, f"Batch #{batch_id} is not marked as completed. Current status: {batch.batch_status}")
+        print(f"Batch not completed, status: {batch.batch_status}")
+    
+    return redirect('fcr_dashboard')
+
+import razorpay
+# Initialize Razorpay client once
+client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+User = get_user_model()
+
+@login_required
+def stakeholder_payments_view(request):
+    """View to display completed batches with payment information"""
+    
+    print(f"Request path: {request.path}")
+    print(f"User authenticated: {request.user.is_authenticated}")
+    print(f"Request path: {request.path}")
+    print(f"User authenticated: {request.user.is_authenticated}")
+    print(f"User: {request.user.username}")
+    print(f"GET params: {request.GET}")
+    
+    # Rest of your function...
+    
+    # Before returning the response:
+    print("About to render template")
+    # Debug code to inspect User model fields
+    user_fields = User._meta.get_fields()
+    field_names = [field.name for field in user_fields]
+    print("User model fields:", field_names)
+
+    # Check if user_type is a relation
+    user_type_field = User._meta.get_field('user_type')
+    print("user_type field type:", type(user_type_field))
+    if isinstance(user_type_field, models.ForeignKey):
+    # If it's a foreign key, print the related model
+        related_model = user_type_field.related_model
+        print("Related model:", related_model)
+        # Print the fields of the related model
+        related_fields = related_model._meta.get_fields()
+        related_field_names = [field.name for field in related_fields]
+        print("Related model fields:", related_field_names)
+    # Get filter parameters
+    stakeholder_id = request.GET.get('stakeholder', '')
+    payment_status = request.GET.get('payment_status', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    farm_id = request.GET.get('farm', '')
+    
+    # Build query
+    batches = ChickBatch.objects.filter(batch_status='completed').select_related('farm', 'user')
+    
+    if stakeholder_id:
+        batches = batches.filter(user_id=stakeholder_id)
+    
+    if payment_status:
+        batches = batches.filter(payment_status=payment_status)
+    
+    if start_date:
+        batches = batches.filter(completion_date__gte=start_date)
+    
+    if end_date:
+        batches = batches.filter(completion_date__lte=end_date)
+        
+    if farm_id:
+        batches = batches.filter(farm_id=farm_id)
+    
+    # Pagination
+    paginator = Paginator(batches, 10)  # Show 10 batches per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all stakeholders - let's get users who own farms
+    # This is a more reliable approach since we know these users are stakeholders
+    stakeholders = User.objects.filter(
+        farms__isnull=False  # Users who own at least one farm
+    ).distinct()
+    
+    # Get all farms for the filter dropdown
+    farms = Farm.objects.all()
+    
+    # Create a mapping of stakeholders to their farms for JavaScript
+    stakeholder_farms = {}
+    for stakeholder in stakeholders:
+        stakeholder_farms[stakeholder.id] = list(Farm.objects.filter(owner=stakeholder).values('id', 'name'))
+    
+    context = {
+        'batches': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'stakeholders': stakeholders,
+        'farms': farms,
+        'stakeholder_farms': json.dumps(stakeholder_farms),
+        'selected_stakeholder': stakeholder_id,
+        'selected_payment_status': payment_status,
+        'selected_farm': farm_id,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    
+    return render(request, 'stakeholder_payments.html', context)
+
+
+@login_required
+def create_payment(request, batch_id):
+    """Create a new payment for a batch"""
+    try:
+        # Get the batch
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        
+        # Check if payment already exists
+        if batch.payments.exists():
+            messages.warning(request, "Payment already exists for this batch.")
+            return redirect('process_payment', payment_id=batch.payments.first().id)
+        
+        # Calculate payment amount (adjust the calculation as per your business logic)
+        amount = batch.live_chick_count * 10  # Example: ₹10 per live chick
+        
+        # Create the payment
+        payment = StakeholderPayment.objects.create(
+            batch=batch,
+            stakeholder=batch.user,
+            amount=amount,
+            status='pending'
+        )
+        
+        messages.success(request, "Payment created successfully.")
+        # Change this line to redirect to process_payment instead of payment_details
+        return redirect('process_payment', payment_id=payment.id)
+        
+    except Exception as e:
+        messages.error(request, f"Error creating payment: {str(e)}")
+        return redirect('stakeholder_payments')
+
+# Initialize Razorpay client
+def payment_details(request, payment_id):
+    """View payment details"""
+    try:
+        payment = get_object_or_404(StakeholderPayment, id=payment_id)
+        
+        context = {
+            'payment': payment,
+        }
+        
+        return render(request, 'payment_details.html', context)
+    except Exception as e:
+        messages.error(request, f"Error viewing payment details: {str(e)}")
+        return redirect('stakeholder_payments')
+@login_required
+def process_payment(request, payment_id):
+    try:
+        payment = get_object_or_404(StakeholderPayment, id=payment_id)
+        
+        if request.method == 'POST':
+            payment_method = request.POST.get('payment_method')
+            
+            if payment_method == 'cash':
+                # Handle cash payment as before
+                payment.payment_method = 'cash'
+                payment.status = 'completed'
+                payment.processed_by = request.user
+                payment.save()
+                
+                if payment.batch:
+                    payment.batch.payment_status = 'paid'
+                    payment.batch.save()
+                
+                messages.success(request, "Cash payment recorded successfully!")
+                return redirect('payment_details', payment_id=payment_id)
+            
+            elif payment_method in ['razorpay', 'bank_transfer']:
+                try:
+                    # Initialize Razorpay client
+                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                    
+                    # Create Razorpay order
+                    amount_in_paise = int(float(payment.amount) * 100)
+                    order_data = {
+                        'amount': amount_in_paise,
+                        'currency': 'INR',
+                        'payment_capture': 1,
+                        'notes': {
+                            'payment_id': payment.id,
+                            'batch_id': payment.batch.id if payment.batch else '',
+                        }
+                    }
+                    
+                    # Create the order
+                    order = client.order.create(data=order_data)
+                    print(f"Razorpay order created: {order}")  # Debug print
+                    
+                    # Update payment record
+                    payment.payment_method = payment_method
+                    payment.transaction_id = order['id']
+                    payment.status = 'processing'
+                    payment.save()
+                    
+                    # Prepare context for template
+                    context = {
+                        'payment': payment,
+                        'razorpay_order_id': order['id'],
+                        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+                        'amount': amount_in_paise,
+                        'currency': 'INR',
+                        'stakeholder_name': payment.stakeholder.get_full_name(),
+                        'stakeholder_email': getattr(payment.stakeholder, 'email', ''),
+                        'stakeholder_phone': getattr(payment.stakeholder, 'phone_number', ''),
+                    }
+                    
+                    return render(request, 'razorpay_checkout.html', context)
+                    
+                except Exception as e:
+                    print(f"Razorpay Error: {str(e)}")  # Debug print
+                    messages.error(request, f"Error setting up payment: {str(e)}")
+                    return redirect('process_payment', payment_id=payment_id)
+        
+        # For GET requests
+        return render(request, 'process_payment.html', {
+            'payment': payment,
+            'payment_methods': ['cash', 'razorpay', 'bank_transfer'],
+        })
+        
+    except Exception as e:
+        print(f"Process payment error: {str(e)}")
+        messages.error(request, f"Error processing payment: {str(e)}")
+        return redirect('stakeholder_payments')
+    
+    
+@csrf_exempt  # Required for Razorpay webhook
+def razorpay_callback(request):
+    """Handle Razorpay payment callback"""
+    if request.method == "POST":
+        try:
+            # Get payment details from POST data
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+            
+            # Initialize Razorpay client
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            
+            # Verify the payment signature
+            params_dict = {
+                'razorpay_payment_id': payment_id,
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_signature': signature
+            }
+            
+            try:
+                client.utility.verify_payment_signature(params_dict)
+                
+                # Find the payment record
+                payment = StakeholderPayment.objects.get(transaction_id=razorpay_order_id)
+                
+                # Update payment status
+                payment.status = 'completed'
+                payment.processed_by = request.user if request.user.is_authenticated else None
+                payment.save()
+                
+                # Update batch payment status
+                if payment.batch:
+                    payment.batch.payment_status = 'paid'
+                    payment.batch.save()
+                
+                messages.success(request, "Payment completed successfully!")
+                return redirect('payment_details', payment_id=payment.id)
+                
+            except Exception as e:
+                # Signature verification failed
+                messages.error(request, "Payment verification failed. Please contact support.")
+                return redirect('payment_details', payment_id=payment.id)
+                
+        except Exception as e:
+            messages.error(request, f"Error processing payment callback: {str(e)}")
+            return redirect('stakeholder_payments')
+    
+    return redirect('stakeholder_payments')
