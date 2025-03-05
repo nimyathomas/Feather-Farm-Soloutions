@@ -2,600 +2,258 @@
 {% load static %}
 
 {% block body %}
-<div class="health-scanner-container">
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
+<div class="container-fluid px-4">
+    <!-- Disease Analysis Section -->
+    <div class="card shadow mb-4 w-100">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0 text-center">Disease Analysis</h5>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="scanner-header">
-        <h2>Disease Prediction</h2>
-        <p class="subtitle">Upload an image of your chick for disease analysis</p>
-    </div>
-
-    <div class="upload-section">
-        <form method="POST" enctype="multipart/form-data" class="upload-form" id="analysisForm">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="batch_id">Select Batch</label>
-                <select name="batch_id" id="batch_id" required class="form-control">
-                    <option value="">Choose a batch...</option>
-                    {% for batch in batches %}
-                    <option value="{{ batch.id }}" {% if selected_batch.id == batch.id %}selected{% endif %}>
-                        Batch #{{ batch.id }} - {{ batch.batch_type }} 
-                        (Started: {{ batch.batch_date|date:"M d, Y" }})
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="file-upload-wrapper">
-                <input type="file" name="chick_image" id="chick_image" accept="image/*" required>
-                <label for="chick_image" class="upload-label">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <span>Choose an image or drag it here</span>
-                </label>
-                <div id="preview" class="image-preview"></div>
-            </div>
-
-            <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
-                <i class="fas fa-microscope"></i>
-                <span class="btn-text">Analyze Disease</span>
-            </button>
-        </form>
-    </div>
-
-    {% if result %}
-    <div id="resultSection" class="result-section">
-        <div class="result-card {% if not result.is_diseased %}healthy{% else %}unhealthy{% endif %}">
-            <div class="result-header">
-                <i class="fas {% if not result.is_diseased %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-                <h3>Disease Analysis Result</h3>
-            </div>
-            <div class="result-details">
-                <p class="status">Status: 
-                    <span class="{% if not result.is_diseased %}text-success{% else %}text-danger{% endif %}">
-                        {{ result.status }}
-                    </span>
-                </p>
-                <p class="confidence">Confidence: <span>{{ result.confidence }}%</span></p>
-                
-                {% if result.disease_name %}
-                <div class="disease-info">
-                    <h4>Detected Disease:</h4>
-                    <p class="disease-name">{{ result.disease_name }}</p>
-                    <p class="disease-description">{{ result.disease_description }}</p>
+        <div class="card-body p-4">
+            <div class="row justify-content-center">
+                <!-- Analysis Form -->
+                <div class="col-md-3">
+                    <form id="analysisForm" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <label for="batch_id" class="form-label fw-bold">Select Batch</label>
+                            <select name="batch_id" id="batch_id" class="form-select shadow-sm" required>
+                                <option value="">Choose a batch...</option>
+                                {% for batch in batches %}
+                                    <option value="{{ batch.id }}">Batch #{{ batch.id }} - {{ batch.farm.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="image" class="form-label fw-bold">Upload Image</label>
+                            <input type="file" name="image" id="image" class="form-control shadow-sm" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 shadow" id="analyzeButton">
+                            <i class="fas fa-microscope me-2"></i>Analyze
+                        </button>
+                    </form>
                 </div>
-                {% endif %}
 
-                <div class="metrics-grid">
-                    <div class="metric-item">
-                        <label>Symptom Severity</label>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ result.metrics.severity }}%"></div>
-                        </div>
-                        <span>{{ result.metrics.severity }}%</span>
-                    </div>
-                    <div class="metric-item">
-                        <label>Treatment Urgency</label>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ result.metrics.urgency }}%"></div>
-                        </div>
-                        <span>{{ result.metrics.urgency }}%</span>
+                <!-- Uploaded Image -->
+                <div class="col-md-4 text-center">
+                    <div id="resultImage" class="text-center" style="display: none;">
+                        <h6 class="mb-3 fw-bold">Uploaded Image</h6>
+                        <img src="" alt="Analyzed Image" class="img-fluid rounded shadow-sm" style="max-height: 250px;">
                     </div>
                 </div>
 
-                {% if result.recommendations %}
-                <div class="recommendations">
-                    <h4>Treatment Recommendations:</h4>
-                    <ul>
-                        {% for recommendation in result.recommendations %}
-                        <li>{{ recommendation }}</li>
+                <!-- Analysis Results -->
+                <div class="col-md-4">
+                    <div id="resultContent" style="display: none;">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Previous Analyses Section -->
+    <div class="card shadow w-100">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0 text-center">Previous Analyses</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Batch</th>
+                            <th>Disease</th>
+                            <th>Confidence</th>
+                            <th>Image</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for analysis in analyses %}
+                        <tr>
+                            <td>{{ analysis.analyzed_date|date:"Y-m-d H:i" }}</td>
+                            <td>Batch #{{ analysis.batch.id }}</td>
+                            <td>
+                                <span class="badge {% if analysis.predicted_disease == 'Healthy' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ analysis.predicted_disease }}
+                                </span>
+                            </td>
+                            <td style="width: 200px;">
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ analysis.confidence_score }}%" 
+                                         aria-valuenow="{{ analysis.confidence_score }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ analysis.confidence_score|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <img src="{{ analysis.image.url }}" alt="Analysis Image" 
+                                     style="height: 50px; cursor: pointer;"
+                                     onclick="showImageModal(this.src)"
+                                     class="rounded shadow-sm">
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">No previous analyses found</td>
+                        </tr>
                         {% endfor %}
-                    </ul>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% comment %} 
+    <!-- Replace the metrics section with this -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Model Performance Metrics</h5>
                 </div>
-                {% endif %}
-
-                {% if result.warning %}
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    {{ result.warning }}
-                </div>
-                {% endif %}
-
-                <div class="all-predictions mt-4">
-                    <h5>Detailed Analysis:</h5>
-                    <div class="prediction-bars">
-                        {% for disease, probability in result.all_predictions.items %}
-                        <div class="prediction-item">
-                            <label>{{ disease|title }}</label>
-                            <div class="progress-bar">
-                                <div class="progress {% if probability > 50 %}bg-danger{% else %}bg-secondary{% endif %}" 
-                                     style="width: {{ probability }}%">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Accuracy</h6>
+                                    <h3 class="mb-0">{{ metrics.accuracy|floatformat:3 }}</h3>
                                 </div>
                             </div>
-                            <span>{{ probability|floatformat:1 }}%</span>
                         </div>
-                        {% endfor %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Precision</h6>
+                                    <h3 class="mb-0">{{ metrics.precision|floatformat:3 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Recall</h6>
+                                    <h3 class="mb-0">{{ metrics.recall|floatformat:3 }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">F1 Score</h6>
+                                    <h3 class="mb-0">{{ metrics.f1|floatformat:3 }}</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
+</div> {% endcomment %}
 
-    <!-- Modified Analysis History Section with Toggle Button -->
-    <div class="history-section">
-        <button class="history-toggle-btn" onclick="toggleHistory()">
-            <i class="fas fa-history"></i>
-            Show Recent Disease History
-            <i class="fas fa-chevron-down" id="historyArrow"></i>
-        </button>
-        
-        <div class="analysis-history" id="analysisHistory" style="display: none;">
-            <div class="history-grid">
-                {% for analysis in recent_analyses %}
-                <div class="history-card">
-                    <img src="{{ analysis.image.url }}" alt="Chick Analysis Image">
-                    <div class="history-details">
-                        <span class="date">{{ analysis.date|date:"M d, Y" }}</span>
-                        <span class="status {{ analysis.status|lower }}">
-                            {{ analysis.disease_name|default:"No Disease" }}
-                        </span>
-                        <span class="confidence">Confidence: {{ analysis.confidence }}%</span>
-                    </div>
-                </div>
-                {% empty %}
-                <p class="text-muted text-center">No previous analyses found</p>
-                {% endfor %}
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Analysis Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" alt="Full Size Image" class="img-fluid">
             </div>
         </div>
-    </div>
-
-    <div class="upload-guidelines mt-3">
-        <h5>Image Guidelines:</h5>
-        <ul>
-            <li>Upload clear, well-lit photos of the chicken</li>
-            <li>Ensure the chicken is clearly visible in the frame</li>
-            <li>Supported formats: JPG, JPEG, PNG</li>
-            <li>Avoid blurry or dark images</li>
-            <li>Try to capture any visible symptoms</li>
-        </ul>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('analysisForm');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const fileInput = document.getElementById('chick_image');
-    const batchSelect = document.getElementById('batch_id');
-    const preview = document.getElementById('preview');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const resultImage = document.querySelector('#resultImage');
+    const resultImageEl = document.querySelector('#resultImage img');
+    const resultContent = document.getElementById('resultContent');
 
-    function updateAnalyzeButton() {
-        // Enable button only if both image and batch are selected
-        const hasFile = fileInput.files.length > 0;
-        const hasBatch = batchSelect.value !== '';
-        analyzeBtn.disabled = !(hasFile && hasBatch);
-    }
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        analyzeButton.disabled = true;
+        analyzeButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
 
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Show image preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        const formData = new FormData(this);
+
+        fetch('{% url "chick_health_recognition" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
             }
-            reader.readAsDataURL(file);
-        } else {
-            preview.innerHTML = '';
-        }
-        updateAnalyzeButton();
-    });
-
-    batchSelect.addEventListener('change', updateAnalyzeButton);
-
-    form.addEventListener('submit', function() {
-        analyzeBtn.disabled = true;
-        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultImageEl.src = data.image_url;
+                resultImage.style.display = 'block';
+                
+                resultContent.innerHTML = `
+                    <h6 class="mb-3">Analysis Results</h6>
+                    <div class="card border-${data.disease === 'Healthy' ? 'success' : 'warning'}">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">${data.disease}</h5>
+                            <p class="mb-2">Confidence: ${data.confidence.toFixed(1)}%</p>
+                            <hr>
+                            <h6>Probability Distribution:</h6>
+                            ${Object.entries(data.all_probabilities)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([disease, prob]) => `
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>${disease}</span>
+                                            <span>${prob.toFixed(1)}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-${disease === 'Healthy' ? 'success' : 'primary'}" 
+                                                 role="progressbar" 
+                                                 style="width: ${prob}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                `;
+                resultContent.style.display = 'block';
+                
+                // Reload page after showing results
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            } else {
+                alert('Analysis failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error performing analysis. Please try again.');
+        })
+        .finally(() => {
+            analyzeButton.disabled = false;
+            analyzeButton.innerHTML = '<i class="fas fa-microscope me-2"></i>Analyze';
+        });
     });
 });
 
-function toggleHistory() {
-    const historySection = document.getElementById('analysisHistory');
-    const arrow = document.getElementById('historyArrow');
-    const button = document.querySelector('.history-toggle-btn');
-    
-    if (historySection.style.display === 'none') {
-        historySection.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-        button.classList.add('active');
-    } else {
-        historySection.style.display = 'none';
-        arrow.style.transform = 'rotate(0)';
-        button.classList.remove('active');
-    }
+function showImageModal(imageSrc) {
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    document.querySelector('#imageModal img').src = imageSrc;
+    modal.show();
 }
 </script>
-
-<style>
-.health-scanner-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.scanner-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.scanner-header h2 {
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-}
-
-.subtitle {
-    color: #64748b;
-}
-
-.upload-section {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.file-upload-wrapper {
-    border: 2px dashed #e2e8f0;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-.upload-label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    cursor: pointer;
-}
-
-.upload-label i {
-    font-size: 2rem;
-    color: #64748b;
-}
-
-input[type="file"] {
-    display: none;
-}
-
-.image-preview {
-    margin-top: 1rem;
-    max-width: 300px;
-    margin: 1rem auto;
-}
-
-.image-preview img {
-    max-width: 100%;
-    border-radius: 8px;
-}
-
-.analyze-btn {
-    width: 100%;
-    padding: 1rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.analyze-btn:hover {
-    background: #2563eb;
-}
-
-.result-section {
-    margin-top: 2rem;
-}
-
-.result-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.result-card.healthy {
-    border-left: 4px solid #22c55e;
-}
-
-.result-card.unhealthy {
-    border-left: 4px solid #ef4444;
-}
-
-.result-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.result-header i {
-    font-size: 1.5rem;
-}
-
-.healthy .result-header i {
-    color: #22c55e;
-}
-
-.unhealthy .result-header i {
-    color: #ef4444;
-}
-
-.result-details p {
-    margin-bottom: 0.5rem;
-}
-
-.result-details span {
-    font-weight: 500;
-}
-
-.recommendations {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e2e8f0;
-}
-
-.recommendations ul {
-    margin-top: 0.5rem;
-    padding-left: 1.5rem;
-}
-
-.recommendations li {
-    margin-bottom: 0.5rem;
-    color: #475569;
-}
-
-.metrics-grid {
-    display: grid;
-    gap: 1rem;
-    margin: 1.5rem 0;
-}
-
-.metric-item {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.metric-item label {
-    font-size: 0.875rem;
-    color: #64748b;
-}
-
-.progress-bar {
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.progress {
-    height: 100%;
-    background: #3b82f6;
-    transition: width 0.3s ease;
-}
-
-.metric-item span {
-    font-size: 0.875rem;
-    color: #475569;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .health-scanner-container {
-        padding: 1rem;
-    }
-}
-
-.history-grid {
-    display: grid;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.history-card {
-    display: flex;
-    gap: 1rem;
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.history-card img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.history-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.date {
-    color: #64748b;
-    font-size: 0.875rem;
-}
-
-.status {
-    font-weight: 500;
-}
-
-.messages {
-    margin-bottom: 1rem;
-}
-
-.alert {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.alert-success {
-    background-color: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
-}
-
-.alert-error {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-select.form-control {
-    background-color: white;
-}
-
-.disease-info {
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-}
-
-.disease-name {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #ef4444;
-    margin-bottom: 0.5rem;
-}
-
-.disease-description {
-    color: #64748b;
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-
-.recommendations {
-    background: #f0fdf4;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-}
-
-.recommendations h4 {
-    color: #166534;
-    margin-bottom: 0.75rem;
-}
-
-.recommendations ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-.recommendations li {
-    color: #166534;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #dcfce7;
-    display: flex;
-    align-items: center;
-}
-
-.recommendations li:before {
-    content: "•";
-    color: #22c55e;
-    font-weight: bold;
-    margin-right: 0.5rem;
-}
-
-.history-card {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
-}
-
-.history-card:hover {
-    transform: translateY(-2px);
-}
-
-.history-section {
-    margin-top: 2rem;
-}
-
-.history-toggle-btn {
-    width: 100%;
-    padding: 1rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    color: #1e293b;
-}
-
-.history-toggle-btn:hover {
-    background: #f1f5f9;
-}
-
-.history-toggle-btn.active {
-    background: #e2e8f0;
-}
-
-.history-toggle-btn i {
-    transition: transform 0.3s ease;
-}
-
-.history-toggle-btn .fa-chevron-down {
-    font-size: 0.8rem;
-}
-
-.analysis-history {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Animation for showing/hiding history */
-.analysis-history {
-    transition: all 0.3s ease-in-out;
-}
-</style>
 {% endblock %}

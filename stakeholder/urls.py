@@ -171,7 +171,7 @@ urlpatterns = [
    
     path('api/chat/', views.chat_api, name='chat_api'),
     
-    path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
+    # path("chick-health-recognition/", views.chick_health_recognition, name="chick_health_recognition"),
     # path('chat/handle/', views.handle_chat, name='handle_chat'),
     path('manage-vaccines/', views.manage_vaccines, name='manage_vaccines'),
     # path('schedule-vaccination/', views.schedule_vaccination, name='schedule_vaccination'),
@@ -181,9 +181,9 @@ urlpatterns = [
     path('delete-vaccine/<int:vaccine_id>/', delete_vaccine, name='delete_vaccine'),
     path('get-vaccine/<int:vaccine_id>/', get_vaccine, name='get_vaccine'),
     path('vaccine-stock-level/', vaccine_stock_level, name='vaccine_stock_level'),
-    path('disease-analysis/', views.disease_analysis_list, name='disease_analysis_list'),
-    path('disease-analysis/<int:analysis_id>/', views.disease_analysis_detail, name='disease_analysis_detail'),
-    path('analysis/<int:analysis_id>/feedback/', views.provide_feedback, name='provide_feedback'),
+    # path('disease-analysis/', views.disease_analysis_list, name='disease_analysis_list'),
+    # path('disease-analysis/<int:analysis_id>/', views.disease_analysis_detail, name='disease_analysis_detail'),
+    # path('analysis/<int:analysis_id>/feedback/', views.provide_feedback, name='provide_feedback'),
     path('batch/<uuid:batch_uuid>/detail/', views.batch_detail_qr, name='batch_detail_qr'),
     path('batches/qrcodes/', views.view_batch_qrcodes, name='view_batch_qrcodes'),
     # path('test-media/<str:filename>/', views.test_media, name='test_media'),
@@ -310,9 +310,18 @@ urlpatterns = [
     path('payment/callback/', views.razorpay_callback, name='razorpay_callback'),  # Add this line
 
 
+    path('download-bill/<int:payment_id>/', views.download_bill, name='download_bill'),
+    # Check your urlpatterns = [
+    path('stakeholder/', views.stakeholderdash, name='stakeholder_dashboard'),  # Verify this pattern
+    path('generate-bill/<int:batch_id>/', views.generate_bill, name='generate_bill'),
+    path('export-fcr-data/<str:format>/', views.export_fcr_data, name='export_fcr_data'),
+    
+    path('chick-health-recognition/', views.chick_health_recognition, name='chick_health_recognition'),
+    #path('provide-feedback/<int:analysis_id>/', views.provide_feedback, name='provide_feedback'),
+    
 
-    # Not payments/complete/<int:payment_id>/ as shown in your logs
-    # Other patterns...
+
+    
 ]
 
     

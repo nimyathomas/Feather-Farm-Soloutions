@@ -236,8 +236,8 @@ AUTH_USER_MODEL = "user.User"
 # Path to the model in stakeholder app
 MODEL_PATH = os.path.join(BASE_DIR, 'stakeholder', 'models', 'disease_model.h5')
 
-RAZORPAY_KEY_ID = 'rzp_test_i1eV0ftB0HVfyt'
-RAZORPAY_KEY_SECRET = 'QhoN8KaIJqnCGV7Vc74p0iaK'  # Keep this secret and secure
+RAZORPAY_KEY_ID =  'rzp_test_HvfDTnynQgq7lg'
+RAZORPAY_KEY_SECRET = '8neoukvKqUSfNB7Ik8DbZlfr'  # Keep this secret and secure
 
 # Tesseract path configuration
 TESSERACT_CMD = r'D:\selenium workshop\Tesseract-OCR\tesseract.exe'

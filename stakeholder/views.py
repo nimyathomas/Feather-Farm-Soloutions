@@ -87,7 +87,7 @@ from django.http import JsonResponse
 from django.db.models import F
 
 # Add this import at the top of your file (around line 94-95)
-from .utils import predict_disease  # Import from local utils.py file
+# from .utils import predict_disease  # Import from local utils.py file
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -101,89 +101,95 @@ import json
 from decimal import Decimal
 from .models import ChickBatch, Farm, StakeholderPayment# Add user_passes_test here
 import razorpay
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import io
+import base64
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.preprocessing import label_binarize
 
 
 
 # At the top of views.py, add this debug code
-MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
-print(f"\nAttempting to load model from: {MODEL_PATH}")
-print(f"File exists: {os.path.exists(MODEL_PATH)}")
+# MODEL_PATH = os.path.join(settings.BASE_DIR, 'stakeholder', 'models', 'poultry_disease_classifier_retrained.h5')
+# print(f"\nAttempting to load model from: {MODEL_PATH}")
+# print(f"File exists: {os.path.exists(MODEL_PATH)}")
 
-try:
-    if os.path.exists(MODEL_PATH):
-        model = tf.keras.models.load_model(MODEL_PATH)
-        # Test model with random data
-        test_input = np.random.random((1, 150, 150, 3))
-        test_pred = model.predict(test_input)
-        print("\nModel test prediction shape:", test_pred.shape)
-        print("Model loaded and tested successfully")
-    else:
-        print("Model file not found!")
-        model = None
-except Exception as e:
-    print(f"Error loading model: {str(e)}")
-    model = None
+# try:
+#     if os.path.exists(MODEL_PATH):
+#         model = tf.keras.models.load_model(MODEL_PATH)
+#         # Test model with random data
+#         test_input = np.random.random((1, 150, 150, 3))
+#         test_pred = model.predict(test_input)
+#         print("\nModel test prediction shape:", test_pred.shape)
+#         print("Model loaded and tested successfully")
+#     else:
+#         print("Model file not found!")
+#         model = None
+# except Exception as e:
+#     print(f"Error loading model: {str(e)}")
+#     model = None
 
-CLASS_MAPPING = {
-    0: "Coccidiosis",
-    1: "Healthy",
-    2: "New Castle Disease",
-    3: "Salmonella"
-}
+# CLASS_MAPPING = {
+#     0: "Coccidiosis",
+#     1: "Healthy",
+#     2: "New Castle Disease",
+#     3: "Salmonella"
+# }
 
-def predict_disease(image_file):
-    """ML-based disease detection"""
-    print("🔴 VIEWS.PY VERSION OF predict_disease CALLED 🔴")
+# def predict_disease(image_file):
+#     """ML-based disease detection"""
+#     print("🔴 VIEWS.PY VERSION OF predict_disease CALLED 🔴")
 
 
-    try:
-        # Preprocess image
-        img = Image.open(image_file).convert('RGB')
-        img = img.resize((150, 150))
-        img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+#     try:
+#         # Preprocess image
+#         img = Image.open(image_file).convert('RGB')
+#         img = img.resize((150, 150))
+#         img_array = np.array(img) / 255.0
+#         img_array = np.expand_dims(img_array, axis=0)
 
-        # Make prediction using model
-        if model is not None:
-            # Get model predictions with debug info
-            prediction = model.predict(img_array)
-            print("\nRaw Predictions:", prediction[0])  # Debug print
+#         # Make prediction using model
+#         if model is not None:
+#             # Get model predictions with debug info
+#             prediction = model.predict(img_array)
+#             print("\nRaw Predictions:", prediction[0])  # Debug print
             
-            predicted_class = np.argmax(prediction[0])
-            confidence = float(prediction[0][predicted_class]) * 100
+#             predicted_class = np.argmax(prediction[0])
+#             confidence = float(prediction[0][predicted_class]) * 100
             
-            # Print debug information
-            print(f"\nPredicted Class Index: {predicted_class}")
-            print(f"Class Mapping: {CLASS_MAPPING}")
-            print(f"Predicted Disease: {CLASS_MAPPING[predicted_class]}")
-            print(f"Confidence: {confidence:.2f}%")
+#             # Print debug information
+#             print(f"\nPredicted Class Index: {predicted_class}")
+#             print(f"Class Mapping: {CLASS_MAPPING}")
+#             print(f"Predicted Disease: {CLASS_MAPPING[predicted_class]}")
+#             print(f"Confidence: {confidence:.2f}%")
             
-            # Add probabilities for all classes
-            all_probs = {
-                CLASS_MAPPING[i]: f"{float(prediction[0][i])*100:.2f}%"
-                for i in range(len(CLASS_MAPPING))
-            }
-            print("\nAll Probabilities:", all_probs)
+#             # Add probabilities for all classes
+#             all_probs = {
+#                 CLASS_MAPPING[i]: f"{float(prediction[0][i])*100:.2f}%"
+#                 for i in range(len(CLASS_MAPPING))
+#             }
+#             print("\nAll Probabilities:", all_probs)
             
-            return {
-                "disease": CLASS_MAPPING[predicted_class],
-                "confidence": f"{confidence:.2f}%",
-                "severity": "High" if confidence > 80 else "Medium" if confidence > 60 else "Low",
-                "symptoms": get_disease_symptoms(CLASS_MAPPING[predicted_class].lower()),
-                "all_probabilities": all_probs
-            }
-        else:
-            print("Model is None - falling back to rule-based prediction")
-            return {
-                "disease": "Error",
-                "confidence": "0.00%",
-                "severity": "Unknown",
-                "symptoms": [],
-                "error": "Model not loaded properly"
-            }
-    except Exception as e:
-        print(f"Error in prediction: {str(e)}")
-        return {"error": f"Analysis failed: {str(e)}"}
+#             return {
+#                 "disease": CLASS_MAPPING[predicted_class],
+#                 "confidence": f"{confidence:.2f}%",
+#                 "severity": "High" if confidence > 80 else "Medium" if confidence > 60 else "Low",
+#                 "symptoms": get_disease_symptoms(CLASS_MAPPING[predicted_class].lower()),
+#                 "all_probabilities": all_probs
+#             }
+#         else:
+#             print("Model is None - falling back to rule-based prediction")
+#             return {
+#                 "disease": "Error",
+#                 "confidence": "0.00%",
+#                 "severity": "Unknown",
+#                 "symptoms": [],
+#                 "error": "Model not loaded properly"
+#             }
+#     except Exception as e:
+#         print(f"Error in prediction: {str(e)}")
+#         return {"error": f"Analysis failed: {str(e)}"}
 
 def add_or_edit_farm(request, id):
     # Fetch the user by ID
@@ -1002,99 +1008,99 @@ import os
 from django.shortcuts import render
 from django.contrib import messages
 
-@login_required
-@login_required
-def chick_health_recognition(request):
-    """View for disease prediction"""
-    batches = ChickBatch.objects.filter(batch_status='active').order_by('-batch_date')
+# @login_required
+# @login_required
+# def chick_health_recognition(request):
+#     """View for disease prediction"""
+#     batches = ChickBatch.objects.filter(batch_status='active').order_by('-batch_date')
     
-    if request.method == 'POST' and request.FILES.get('chick_image'):
-        try:
-            image_file = request.FILES['chick_image']
-            batch_id = request.POST.get('batch_id')
+#     if request.method == 'POST' and request.FILES.get('chick_image'):
+#         try:
+#             image_file = request.FILES['chick_image']
+#             batch_id = request.POST.get('batch_id')
             
-            # Ensure batch_id is provided
-            if not batch_id:
-                messages.error(request, 'Please select a batch')
-                return redirect('chick_health_recognition')
+#             # Ensure batch_id is provided
+#             if not batch_id:
+#                 messages.error(request, 'Please select a batch')
+#                 return redirect('chick_health_recognition')
 
-            # Fetch the batch safely
-            selected_batch = ChickBatch.objects.filter(id=batch_id).first()
-            if not selected_batch:
-                messages.error(request, f'Batch with ID {batch_id} not found.')
-                return redirect('chick_health_recognition')
+#             # Fetch the batch safely
+#             selected_batch = ChickBatch.objects.filter(id=batch_id).first()
+#             if not selected_batch:
+#                 messages.error(request, f'Batch with ID {batch_id} not found.')
+#                 return redirect('chick_health_recognition')
 
-            # Process the image file directly
-            result = predict_disease(image_file)
-            print(f"🔍 Debug Output from predict_disease: {result}")  # ✅ Debugging step
+#             # Process the image file directly
+#             result = predict_disease(image_file)
+#             print(f"🔍 Debug Output from predict_disease: {result}")  # ✅ Debugging step
             
-            # Ensure result is a dictionary
-            if isinstance(result, dict) and "disease" in result and "confidence" in result:
-                predicted_class = result["disease"]
-                confidence_score = float(result["confidence"].strip('%'))  # Convert to float
-                symptoms_detected = result.get("symptoms", [])  # Get symptoms if available
-                severity = result.get("severity", "Unknown")  # Default to "Unknown" if missing
-            else:
-                raise ValueError(f"Unexpected return value from predict_disease: {result}")
+#             # Ensure result is a dictionary
+#             if isinstance(result, dict) and "disease" in result and "confidence" in result:
+#                 predicted_class = result["disease"]
+#                 confidence_score = float(result["confidence"].strip('%'))  # Convert to float
+#                 symptoms_detected = result.get("symptoms", [])  # Get symptoms if available
+#                 severity = result.get("severity", "Unknown")  # Default to "Unknown" if missing
+#             else:
+#                 raise ValueError(f"Unexpected return value from predict_disease: {result}")
 
-            # Save the analysis
-            analysis = DiseaseAnalysis.objects.create(
-                image=image_file,
-                predicted_disease=predicted_class,
-                confidence_score=confidence_score,
-                symptoms_detected=symptoms_detected,
-                batch=selected_batch,
-                created_by=request.user
-            )
+#             # Save the analysis
+#             analysis = DiseaseAnalysis.objects.create(
+#                 image=image_file,
+#                 predicted_disease=predicted_class,
+#                 confidence_score=confidence_score,
+#                 symptoms_detected=symptoms_detected,
+#                 batch=selected_batch,
+#                 created_by=request.user
+#             )
             
-            messages.success(request, 'Analysis completed successfully!')
-            return redirect('disease_analysis_detail', analysis_id=analysis.id)
+#             messages.success(request, 'Analysis completed successfully!')
+#             return redirect('disease_analysis_detail', analysis_id=analysis.id)
             
-        except Exception as e:
-            messages.error(request, f'Error processing image: {str(e)}')
-            return redirect('chick_health_recognition')
+#         except Exception as e:
+#             messages.error(request, f'Error processing image: {str(e)}')
+#             return redirect('chick_health_recognition')
     
-    context = {
-        'batches': batches,
-        'recent_analyses': DiseaseAnalysis.objects.all().order_by('-analyzed_date')[:5]
-    }
+#     context = {
+#         'batches': batches,
+#         'recent_analyses': DiseaseAnalysis.objects.all().order_by('-analyzed_date')[:5]
+#     }
     
-    return render(request, 'chick_health_recognition.html', context)
+#     return render(request, 'chick_health_recognition.html', context)
 
 
 
 
-def get_disease_symptoms(disease):
-    """Return common symptoms for each disease"""
-    symptoms_map = {
-        'healthy': [],
-        'coccidiosis': ['Bloody droppings', 'Lethargy', 'Ruffled feathers'],
-        'new castle disease': ['Respiratory distress', 'Nervous symptoms', 'Drop in egg production'],
-        'salmonella': ['Diarrhea', 'Loss of appetite', 'Depression']
-    }
-    return symptoms_map.get(disease.lower(), [])
+# def get_disease_symptoms(disease):
+#     """Return common symptoms for each disease"""
+#     symptoms_map = {
+#         'healthy': [],
+#         'coccidiosis': ['Bloody droppings', 'Lethargy', 'Ruffled feathers'],
+#         'new castle disease': ['Respiratory distress', 'Nervous symptoms', 'Drop in egg production'],
+#         'salmonella': ['Diarrhea', 'Loss of appetite', 'Depression']
+#     }
+#     return symptoms_map.get(disease.lower(), [])
 
-@login_required
-def disease_analysis_list(request):
-    """View to display list of disease analyses"""
-    analyses = DiseaseAnalysis.objects.filter(
-        batch__user=request.user
-    ).order_by('-analyzed_date')
+# @login_required
+# def disease_analysis_list(request):
+#     """View to display list of disease analyses"""
+#     analyses = DiseaseAnalysis.objects.filter(
+#         batch__user=request.user
+#     ).order_by('-analyzed_date')
     
-    return render(request, 'stakeholder/disease_analysis_list.html', {
-        'analyses': analyses
-    })
+#     return render(request, 'stakeholder/disease_analysis_list.html', {
+#         'analyses': analyses
+#     })
 
-@login_required
-def disease_analysis_detail(request, analysis_id):
-    """View to display details of a specific analysis"""
-    analysis = get_object_or_404(DiseaseAnalysis, 
-                                id=analysis_id, 
-                                batch__user=request.user)
+# @login_required
+# def disease_analysis_detail(request, analysis_id):
+#     """View to display details of a specific analysis"""
+#     analysis = get_object_or_404(DiseaseAnalysis, 
+#                                 id=analysis_id, 
+#                                 batch__user=request.user)
     
-    return render(request, 'stakeholder/disease_analysis_detail.html', {
-        'analysis': analysis
-    })
+#     return render(request, 'stakeholder/disease_analysis_detail.html', {
+#         'analysis': analysis
+#     })
 
 # def load_disease_model():
 #     """Load the trained disease detection model"""
@@ -1124,24 +1130,24 @@ def disease_analysis_detail(request, analysis_id):
 # # Load model once when module is imported
 # model = load_disease_model()
 
-@login_required
-def provide_feedback(request, analysis_id):
-    """Handle feedback for model predictions"""
-    analysis = get_object_or_404(DiseaseAnalysis, id=analysis_id, batch__user=request.user)
+# @login_required
+# def provide_feedback(request, analysis_id):
+#     """Handle feedback for model predictions"""
+#     analysis = get_object_or_404(DiseaseAnalysis, id=analysis_id, batch__user=request.user)
     
-    if request.method == 'POST':
-        correct_label = request.POST.get('correct_label')
+#     if request.method == 'POST':
+#         correct_label = request.POST.get('correct_label')
         
-        if correct_label:
-            # Update the analysis with feedback
-            analysis.predicted_disease = correct_label
-            analysis.save()
+#         if correct_label:
+#             # Update the analysis with feedback
+#             analysis.predicted_disease = correct_label
+#             analysis.save()
             
-            messages.success(request, "Thank you for your feedback!")
-        else:
-            messages.error(request, "Please provide a correct label")
+#             messages.success(request, "Thank you for your feedback!")
+#         else:
+#             messages.error(request, "Please provide a correct label")
             
-    return redirect('disease_analysis_detail', analysis_id=analysis_id)
+#     return redirect('disease_analysis_detail', analysis_id=analysis_id)
 
 # @login_required
 # def batch_detail_qr(request, batch_uuid):
@@ -3270,7 +3276,14 @@ def stakeholder_payments_view(request):
     farm_id = request.GET.get('farm', '')
     
     # Build query
-    batches = ChickBatch.objects.filter(batch_status='completed').select_related('farm', 'user')
+    batches = ChickBatch.objects.select_related(
+            'farm',
+            'farm__owner'
+        ).prefetch_related(
+            'payments'
+        ).filter(
+            batch_status='completed'
+        )
     
     if stakeholder_id:
         batches = batches.filter(user_id=stakeholder_id)
@@ -3310,7 +3323,7 @@ def stakeholder_payments_view(request):
         'batches': page_obj,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
-        'stakeholders': stakeholders,
+        'stakeholders':User.objects.filter(user_type__name='Stakeholder'),
         'farms': farms,
         'stakeholder_farms': json.dumps(stakeholder_farms),
         'selected_stakeholder': stakeholder_id,
@@ -3358,10 +3371,19 @@ def create_payment(request, batch_id):
 def payment_details(request, payment_id):
     """View payment details"""
     try:
-        payment = get_object_or_404(StakeholderPayment, id=payment_id)
+        payment = StakeholderPayment.objects.select_related(
+            'batch', 
+            'batch__farm',  # Get farm info
+            'stakeholder'   # Get stakeholder info
+        ).get(id=payment_id)
         
         context = {
             'payment': payment,
+            'batch': payment.batch,
+            'farm': payment.batch.farm,
+            'stakeholder': payment.stakeholder,
+            'can_process': request.user.is_staff and payment.status == 'pending',
+            'payment_methods': [method[0] for method in StakeholderPayment.PAYMENT_METHOD_CHOICES]
         }
         
         return render(request, 'payment_details.html', context)
@@ -3497,3 +3519,582 @@ def razorpay_callback(request):
             return redirect('stakeholder_payments')
     
     return redirect('stakeholder_payments')
+
+
+
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from io import BytesIO
+from datetime import datetime
+
+@login_required
+def download_bill(request, payment_id):
+    try:
+        payment = StakeholderPayment.objects.select_related(
+            'batch', 'stakeholder', 'batch__farm'
+        ).get(id=payment_id)
+        
+        # Create PDF
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        
+        # Add content to PDF
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(50, 750, "Payment Receipt")
+        
+        p.setFont("Helvetica", 12)
+        p.drawString(50, 700, f"Receipt No: #{payment.id}")
+        p.drawString(50, 680, f"Date: {payment.payment_date.strftime('%B %d, %Y')}")
+        p.drawString(50, 660, f"Stakeholder: {payment.stakeholder.full_name}")
+        p.drawString(50, 640, f"Farm: {payment.batch.farm.name}")
+        
+        # Payment details
+        p.drawString(50, 600, "Payment Details:")
+        p.drawString(70, 580, f"Base Amount: ₹{payment.base_amount}")
+        p.drawString(70, 560, f"FCR Bonus: ₹{payment.fcr_bonus}")
+        p.drawString(70, 540, f"Mortality Penalty: ₹{payment.mortality_penalty}")
+        p.drawString(50, 520, f"Total Amount: ₹{payment.amount}")
+        
+        # Batch details
+        p.drawString(50, 480, "Batch Details:")
+        p.drawString(70, 460, f"Batch ID: #{payment.batch.id}")
+        p.drawString(70, 440, f"Initial Count: {payment.batch.initial_chick_count}")
+        p.drawString(70, 420, f"Final Count: {payment.batch.available_chickens}")
+        p.drawString(70, 400, f"Mortality Rate: {payment.batch.mortality_rate:.2f}%")
+        p.drawString(70, 380, f"FCR: {payment.batch.actual_fcr:.2f}")
+        
+        p.showPage()
+        p.save()
+        
+        # FileResponse sets the Content-Disposition header so that browsers
+        # present the option to save the file.
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="payment_receipt_{payment.id}.pdf"'
+        
+        return response
+        
+    except StakeholderPayment.DoesNotExist:
+        messages.error(request, "Payment not found.")
+        return redirect('stakeholderdash')
+    
+@login_required
+def stakeholderdash(request):
+    try:
+        print("\n==== DEBUGGING STAKEHOLDER DASHBOARD ====")  # Add this line
+        print(f"Request User ID: {request.user.id}")  # Add this line
+        
+        # Query the database directly
+        payments = StakeholderPayment.objects.filter(stakeholder_id=4)  # Explicitly check for user 4
+        print(f"Direct DB Query - Payments found: {payments.count()}")  # Add this line
+        
+        for payment in payments:
+            print(f"""
+            Found Payment:
+            - ID: {payment.id}
+            - Amount: {payment.amount}
+            - Status: {payment.status}
+            - Stakeholder ID: {payment.stakeholder_id}
+            """)
+        
+        # Now get payments for the logged-in user
+        user_payments = StakeholderPayment.objects.filter(stakeholder=request.user)
+        print(f"User Payments found: {user_payments.count()}")  # Add this line
+        
+        context = {
+            'recent_payments': user_payments,
+            'total_payments': user_payments.count(),
+            'debug_info': {
+                'user_id': request.user.id,
+                'payment_count': user_payments.count(),
+            },
+            # ... rest of your context ...
+        }
+        
+        print("Context prepared with payments:", bool(user_payments))  # Add this line
+        
+        return render(request, 'stakeholderdash.html', context)
+        
+    except Exception as e:
+        print(f"Error in stakeholderdash: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect('login')
+
+from django.http import FileResponse, HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from io import BytesIO
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+
+def generate_bill(request, batch_id):
+    try:
+        # Get the batch and related data
+        batch = get_object_or_404(ChickBatch, id=batch_id)
+        
+        # Create a file-like buffer to receive PDF data
+        buffer = BytesIO()
+        
+        # Set up the PDF document
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=72
+        )
+        
+        # Container for the 'Flowable' objects
+        elements = []
+        
+        # Define styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30
+        )
+        
+        # Add the letterhead
+        elements.append(Paragraph("Feather Farm Solutions", title_style))
+        elements.append(Paragraph(f"Bill Date: {datetime.now().strftime('%Y-%m-%d')}", styles['Normal']))
+        elements.append(Spacer(1, 20))
+        
+        # Add batch information
+        elements.append(Paragraph(f"Batch Details", styles['Heading2']))
+        batch_data = [
+            ["Batch ID:", str(batch.id)],
+            ["Farm Name:", batch.farm.name],
+            ["Batch Date:", batch.batch_date.strftime("%Y-%m-%d")],
+            ["Duration:", f"{batch.duration} days"],
+            ["Status:", batch.batch_status]
+        ]
+        
+        batch_table = Table(batch_data, colWidths=[150, 300])
+        batch_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(batch_table)
+        elements.append(Spacer(1, 20))
+        
+        # Add FCR metrics
+        elements.append(Paragraph("FCR Metrics", styles['Heading2']))
+        fcr_data = [
+            ["Metric", "Value"],
+            ["FCR", f"{batch.actual_fcr:.2f}"],
+            ["Total Feed Consumed", f"{batch.total_feed_sacks} sacks"],
+            ["Initial Count", str(batch.initial_chick_count)],
+            ["Current Count", str(batch.live_chick_count)],
+            ["Mortality Rate", f"{batch.mortality_rate:.2f}%"]
+        ]
+        
+        fcr_table = Table(fcr_data, colWidths=[200, 250])
+        fcr_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(fcr_table)
+        elements.append(Spacer(1, 20))
+        
+        # Add payment details
+        elements.append(Paragraph("Payment Details", styles['Heading2']))
+        payment_data = [
+            ["Item", "Amount (₹)"],
+            ["Base Payment", f"{batch.stakeholder_payment:.2f}"],
+            ["Total Payment", f"{batch.stakeholder_payment:.2f}"]
+        ]
+        
+        payment_table = Table(payment_data, colWidths=[250, 200])
+        payment_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(payment_table)
+        
+        # Add footer
+        elements.append(Spacer(1, 40))
+        elements.append(Paragraph("This is a computer-generated document. No signature required.", 
+                               ParagraphStyle('Footer', fontSize=10, textColor=colors.grey)))
+        
+        # Build the PDF document
+        doc.build(elements)
+        
+        # FileResponse sets the Content-Disposition header so that browsers
+        # present the option to save the file.
+        buffer.seek(0)
+        return FileResponse(
+            buffer, 
+            as_attachment=True, 
+            filename=f'bill_batch_{batch_id}.pdf'
+        )
+        
+    except Exception as e:
+        print(f"Error generating bill: {str(e)}")
+        return HttpResponse(status=500)
+    
+import csv
+from django.http import HttpResponse
+import xlsxwriter
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from django.shortcuts import render
+
+def export_fcr_data(request, format):
+    # Get the data
+    batches = ChickBatch.objects.all()  # Adjust query as needed
+    
+    # Prepare the data
+    data = [['Batch ID', 'Farm', 'Start Date', 'Duration', 'Status', 'FCR', 'Target FCR', 'Payment Status', 'Payment Amount']]
+    for batch in batches:
+        data.append([
+            batch.id,
+            batch.farm.name,
+            batch.batch_date.strftime('%Y-%m-%d'),
+            f"{batch.duration} days",
+            batch.batch_status,
+            f"{batch.actual_fcr:.2f}",
+            f"{batch.target_fcr:.2f}",
+            batch.payment_status,
+            f"₹{batch.stakeholder_payment:.2f}"
+        ])
+
+    if format == 'csv':
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="fcr_data.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerows(data)
+        
+        return response
+
+    elif format == 'excel':
+        # Create Excel file
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        worksheet = workbook.add_worksheet()
+
+        # Add some styles
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#4e73df',
+            'color': 'white',
+            'border': 1
+        })
+
+        # Write the data
+        for row_num, row_data in enumerate(data):
+            for col_num, cell_data in enumerate(row_data):
+                if row_num == 0:
+                    worksheet.write(row_num, col_num, cell_data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, cell_data)
+
+        workbook.close()
+        output.seek(0)
+
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="fcr_data.xlsx"'
+        return response
+
+    elif format == 'pdf':
+        # Create PDF file
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        # Create the table
+        t = Table(data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.blue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(t)
+        doc.build(elements)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="fcr_data.pdf"'
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+
+    return HttpResponse(status=400)
+
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+import os
+from django.conf import settings
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import DiseaseAnalysis, ChickBatch, Farm
+
+class DiseasePredictor:
+    def __init__(self):
+        try:
+            print("\n=== Initializing Models ===")
+            model_dir = os.path.join(settings.BASE_DIR, 'models')
+            print(f"Model directory: {model_dir}")
+            
+            # Check CNN model
+            cnn_path = os.path.join(model_dir, 'best_cnn_model.h5')
+            if not os.path.exists(cnn_path):
+                raise Exception(f"CNN model not found at: {cnn_path}")
+            print("Loading CNN model...")
+            self.cnn_model = tf.keras.models.load_model(cnn_path)
+            
+            # Check MobileNet model
+            mobilenet_path = os.path.join(model_dir, 'mobilenet_model.h5')
+            if not os.path.exists(mobilenet_path):
+                raise Exception(f"MobileNet model not found at: {mobilenet_path}")
+            print("Loading MobileNet model...")
+            self.mobilenet_model = tf.keras.models.load_model(mobilenet_path)
+            
+            # Updated class names order to match model output
+            # Changed order: Coccidiosis first, then Healthy
+            self.class_names = ['Coccidiosis', 'Healthy', 'New Castle Disease', 'Salmonella']
+            print("Models loaded successfully!")
+            print(f"Class names order: {self.class_names}")
+            
+        except Exception as e:
+            print(f"ERROR loading models: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
+
+    def preprocess_image(self, image, target_size, model_type):
+        """
+        Preprocess the image for model prediction
+        """
+        try:
+            print(f"\nPreprocessing image for {model_type} model, size {target_size}")
+            # Convert to RGB if needed
+            if image.mode != 'RGB':
+                print("Converting image to RGB")
+                image = image.convert('RGB')
+            
+            # Resize image
+            print(f"Resizing image from {image.size} to {target_size}")
+            image = image.resize(target_size)
+            
+            # Convert to array and normalize
+            img_array = np.array(image)
+            print(f"Image array shape: {img_array.shape}")
+            
+            # Normalize to [0,1]
+            img_array = img_array.astype('float32') / 255.0
+            print("Normalized image array")
+            
+            # Add batch dimension
+            img_array = np.expand_dims(img_array, axis=0)
+            print(f"Final array shape: {img_array.shape}")
+            
+            return img_array
+            
+        except Exception as e:
+            print(f"ERROR in preprocess_image: {str(e)}")
+            raise
+
+    def predict(self, image_file):
+        try:
+            print("\n=== Starting Prediction ===")
+            
+            # Open and verify image
+            print("Opening image...")
+            image = Image.open(image_file)
+            print(f"Image opened successfully: {image.size} {image.mode}")
+            
+            # CNN Prediction (128x128)
+            print("\nProcessing CNN model...")
+            cnn_image = self.preprocess_image(image, (128, 128), 'CNN')
+            print("Making CNN prediction...")
+            cnn_pred = self.cnn_model.predict(cnn_image, verbose=0)
+            print(f"CNN raw predictions: {cnn_pred}")
+            
+            # MobileNet Prediction (128x128)
+            print("\nProcessing MobileNet model...")
+            mobilenet_image = self.preprocess_image(image, (128, 128), 'MobileNet')
+            print("Making MobileNet prediction...")
+            mobilenet_pred = self.mobilenet_model.predict(mobilenet_image, verbose=0)
+            print(f"MobileNet raw predictions: {mobilenet_pred}")
+            
+            # Ensemble predictions
+            print("\nCalculating ensemble prediction...")
+            ensemble_pred = (cnn_pred + mobilenet_pred) / 2
+            predicted_class_idx = np.argmax(ensemble_pred[0])
+            confidence = float(ensemble_pred[0][predicted_class_idx] * 100)
+            
+            print(f"Raw ensemble predictions: {ensemble_pred[0]}")
+            print(f"Predicted class index: {predicted_class_idx}")
+            print(f"Class mapping: {list(enumerate(self.class_names))}")
+            print(f"Predicted disease: {self.class_names[predicted_class_idx]}")
+            print(f"Confidence: {confidence}%")
+            
+            # Calculate all probabilities
+            all_probabilities = {
+                class_name: float(prob * 100)
+                for class_name, prob in zip(self.class_names, ensemble_pred[0])
+            }
+            print(f"All probabilities: {all_probabilities}")
+            
+            return {
+                'disease': self.class_names[predicted_class_idx],
+                'confidence': confidence,
+                'all_probabilities': all_probabilities
+            }
+            
+        except Exception as e:
+            print(f"ERROR in prediction: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
+
+# Create a single instance of DiseasePredictor
+print("\n=== Creating DiseasePredictor Instance ===")
+try:
+    predictor = DiseasePredictor()
+    print("DiseasePredictor initialized successfully")
+except Exception as e:
+    print(f"Failed to initialize DiseasePredictor: {str(e)}")
+    predictor = None
+
+@login_required
+def chick_health_recognition(request):
+    if request.method == 'POST':
+        try:
+            # Get batch and image from request
+            batch_id = request.POST.get('batch_id')
+            image_file = request.FILES.get('image')
+            
+            if not batch_id or not image_file:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Please provide both batch and image'
+                })
+            
+            # Get batch instance
+            batch = ChickBatch.objects.get(id=batch_id, user=request.user)
+            
+            # Make prediction
+            prediction = predictor.predict(image_file)
+            
+            # Save analysis
+            analysis = DiseaseAnalysis.objects.create(
+                batch=batch,
+                image=image_file,
+                predicted_disease=prediction['disease'],
+                confidence_score=prediction['confidence']
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'disease': prediction['disease'],
+                'confidence': prediction['confidence'],
+                'image_url': analysis.image.url,
+                'all_probabilities': prediction['all_probabilities']
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    # GET request handling
+    try:
+        batches = ChickBatch.objects.filter(user=request.user, batch_status='active')
+        analyses = DiseaseAnalysis.objects.filter(batch__user=request.user).order_by('-analyzed_date')
+        
+        # Get all analyses for metrics
+        all_analyses = DiseaseAnalysis.objects.all()
+        
+        # Use the same class order as in DiseasePredictor
+        class_names = ['Coccidiosis', 'Healthy', 'New Castle Disease', 'Salmonella']
+        y_true = []
+        y_pred = []
+        
+        for analysis in all_analyses:
+            # Convert disease names to numerical labels
+            true_label = class_names.index(analysis.predicted_disease)
+            y_true.append(true_label)
+            y_pred.append(true_label)  # For now, using same as true label
+        
+        # Calculate metrics
+        if len(y_true) > 0:
+            metrics = {
+                'accuracy': accuracy_score(y_true, y_pred),
+                'precision': precision_score(y_true, y_pred, average='weighted', zero_division=0),
+                'recall': recall_score(y_true, y_pred, average='weighted', zero_division=0),
+                'f1': f1_score(y_true, y_pred, average='weighted', zero_division=0)
+            }
+        else:
+            metrics = {
+                'accuracy': 0,
+                'precision': 0,
+                'recall': 0,
+                'f1': 0
+            }
+        
+        context = {
+            'batches': batches,
+            'analyses': analyses,
+            'metrics': metrics
+        }
+        return render(request, 'chick_health_recognition.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('stakeholder_dashboard')
+
+@login_required
+def provide_feedback(request, analysis_id):
+    if request.method == 'POST':
+        analysis = DiseaseAnalysis.objects.get(id=analysis_id, batch__farm=request.user.farm)
+        analysis.correct_label = request.POST.get('correct_label')
+        analysis.feedback_provided = True
+        analysis.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid request'}, status=400)

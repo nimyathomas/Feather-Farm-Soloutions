@@ -179,6 +179,13 @@ class ChickBatch(models.Model):
         default='pending'
     )
     
+    @property
+    def mortality_rate(self):
+        """Calculate mortality rate as a percentage"""
+        if self.initial_chick_count > 0:
+            dead_count = self.initial_chick_count - self.available_chickens
+            return (dead_count / self.initial_chick_count) * 100
+        return 0.0
     
     
     
@@ -906,173 +913,34 @@ class SuccessStory(models.Model):
 
 
 
+from django.db import models
+from django.utils import timezone
+from stakeholder.models import ChickBatch  # Import the correct model
+
+
 class DiseaseAnalysis(models.Model):
     DISEASE_CHOICES = [
-        ('healthy', 'Healthy'),
-        ('coccidiosis', 'Coccidiosis'),
-        ('salmonella', 'Salmonella'),
-        ('aspergillosis', 'Aspergillosis'),
-        ('colibacillosis', 'Colibacillosis'),
-        ('marek', "Marek's Disease"),
-        ('newcastle', 'Newcastle Disease'),
-        ('infectious_bronchitis', 'Infectious Bronchitis'),
-    ]
-    CONFIDENCE_LEVELS = [
-        ('High', 'High'),
-        ('Medium', 'Medium'),
-        ('Low', 'Low'),
-        ('Error', 'Error'),
+        ('Healthy', 'Healthy'),
+        ('Coccidiosis', 'Coccidiosis'),
+        ('New Castle Disease', 'New Castle Disease'),
+        ('Salmonella', 'Salmonella'),
     ]
 
-    batch = models.ForeignKey(
-        ChickBatch, 
-        on_delete=models.CASCADE, 
-        related_name='disease_analyses'
-    )
-    image = models.ImageField(
-        upload_to='disease_analysis/',
-        help_text="Upload image of the chicken for analysis"
-    )
-    analyzed_date = models.DateTimeField(auto_now_add=True)
-    
-    # Analysis Results
-    predicted_disease = models.CharField(
-        max_length=50,
-        choices=DISEASE_CHOICES,
-        help_text="Predicted disease based on image analysis"
-    )
-    confidence_score = models.FloatField(
-        help_text="Confidence score of the prediction (0-1)"
-    )
-    confidence_level = models.CharField(max_length=20, choices=CONFIDENCE_LEVELS)
-    needs_review = models.BooleanField(default=False)
-
-    symptoms_detected = models.JSONField(
-        default=list,
-        help_text="List of symptoms detected in the analysis"
-    )
-    warning_message = models.TextField(null=True, blank=True)
-
-    # Additional Analysis Data
-    temperature = models.FloatField(
-        null=True, 
-        blank=True,
-        help_text="Body temperature if measured"
-    )
-    behavior_notes = models.TextField(
-        blank=True,
-        help_text="Notes about chicken behavior"
-    )
-    
-    # Treatment and Recommendations
-    recommendations = models.JSONField(
-        default=dict,
-        help_text="Treatment recommendations and precautions"
-    )
-    veterinary_referral = models.BooleanField(
-        default=False,
-        help_text="Whether veterinary consultation is recommended"
-    )
-    
-    # Tracking
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='disease_analyses'
-    )
-    is_critical = models.BooleanField(
-        default=False,
-        help_text="Indicates if immediate attention is required"
-    )
-    follow_up_date = models.DateField(
-        null=True, 
-        blank=True,
-        help_text="Recommended date for follow-up analysis"
-    )
+    batch = models.ForeignKey('stakeholder.ChickBatch', on_delete=models.CASCADE, related_name='disease_analyses')
+    image = models.ImageField(upload_to='disease_analysis/')
+    predicted_disease = models.CharField(max_length=100, choices=DISEASE_CHOICES)
+    confidence_score = models.FloatField()
+    analyzed_date = models.DateTimeField(default=timezone.now)
+    symptoms_detected = models.JSONField(null=True, blank=True)
+    all_probabilities = models.JSONField(null=True, blank=True)
+    feedback_provided = models.BooleanField(default=False)
+    correct_label = models.CharField(max_length=100, choices=DISEASE_CHOICES, null=True, blank=True)
 
     class Meta:
-        db_table = 'stakeholder_diseaseanalysis'
         ordering = ['-analyzed_date']
-        verbose_name = 'Disease Analysis'
-        verbose_name_plural = 'Disease Analyses'
 
     def __str__(self):
-        return f"Disease Analysis for Batch {self.batch.id} on {self.analyzed_date.date()}"
-
-    def save(self, *args, **kwargs):
-    # Set critical flag based on disease and confidence
-        if self.predicted_disease != 'healthy' and self.confidence_score > 0.8:
-            self.is_critical = True
-
-        # Generate recommendations based on disease
-        self.generate_recommendations()
-
-        # First, save the object so that auto_now_add fields (like analyzed_date) are set.
-        super().save(*args, **kwargs)
-
-        # Then, set follow-up date for critical cases if it's not already set.
-        if self.is_critical and not self.follow_up_date:
-            # Use analyzed_date if available, or fallback to timezone.now()
-            analysis_date = self.analyzed_date if self.analyzed_date else timezone.now()
-            self.follow_up_date = analysis_date.date() + timezone.timedelta(days=2)
-            # Save the update
-            super().save(update_fields=["follow_up_date"])  
-
-
-    def generate_recommendations(self):
-        """Generate disease-specific recommendations"""
-        recommendations = {
-            'treatment_steps': [],
-            'preventive_measures': [],
-            'isolation_required': False,
-            'medication_suggestions': [],
-        }
-        
-        if self.predicted_disease == 'coccidiosis':
-            recommendations.update({
-                'treatment_steps': [
-                    'Administer anticoccidial medication',
-                    'Maintain clean and dry litter',
-                    'Increase ventilation'
-                ],
-                'preventive_measures': [
-                    'Regular cleaning and disinfection',
-                    'Proper litter management',
-                    'Avoid overcrowding'
-                ],
-                'isolation_required': True,
-                'medication_suggestions': ['Amprolium', 'Sulfadimethoxine']
-            })
-        # Add more disease-specific recommendations
-        
-        self.recommendations = recommendations
-
-    @property
-    def severity_level(self):
-        """Calculate severity level based on confidence score and disease type"""
-        if self.predicted_disease == 'healthy':
-            return 'Normal'
-        elif self.confidence_score > 0.8:
-            return 'High'
-        elif self.confidence_score > 0.6:
-            return 'Medium'
-        else:
-            return 'Low'
-
-    def get_similar_cases(self):
-        """Find similar disease cases in the same batch"""
-        return DiseaseAnalysis.objects.filter(
-            batch=self.batch,
-            predicted_disease=self.predicted_disease
-        ).exclude(id=self.id)
-
-    def should_notify_veterinary(self):
-        """Determine if veterinary notification is needed"""
-        return (
-            self.is_critical or 
-            self.confidence_score > 0.9 or 
-            self.predicted_disease in ['newcastle', 'marek']
-        )
+        return f"{self.batch} - {self.predicted_disease} ({self.analyzed_date.date()})"
         
 
 class FeedCalculator(models.Model):
@@ -1351,5 +1219,18 @@ class StakeholderPayment(models.Model):
     
     class Meta:
         ordering = ['-payment_date']
+        
+        
+        
+        
+    @classmethod
+    def debug_payments(cls, user_id):
+        payments = cls.objects.filter(stakeholder_id=user_id)
+        print(f"""
+        Debug Payment Info for User {user_id}:
+        Total Payments: {payments.count()}
+        Payment Status Counts: {dict(payments.values_list('status').annotate(count=models.Count('id')))}
+        """)
+        return payments
         
         

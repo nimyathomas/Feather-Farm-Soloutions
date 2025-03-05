@@ -72,7 +72,7 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-4">
-              <p><strong>Stakeholder:</strong> {{ batch.user.get_full_name }}</p>
+              <p><strong>Farm Owner:</strong> {{ batch.farm.owner.full_name }}</p>
               <p><strong>Farm:</strong> {{ batch.farm.name }}</p>
               <p><strong>Batch Date:</strong> {{ batch.batch_date }}</p>
               <p><strong>Completion Date:</strong> {{ batch.completion_date }}</p>
@@ -80,7 +80,12 @@
             <div class="col-md-4">
               <p><strong>Initial Count:</strong> {{ batch.initial_chick_count }}</p>
               <p><strong>Live Count:</strong> {{ batch.live_chick_count }}</p>
-              <p><strong>Mortality Rate:</strong> {{ batch.mortality_rate|floatformat:2 }}%</p>
+              <p><strong>Mortality Rate:</strong> {% with mortality_rate=batch.mortality_rate %}
+                <span class="{% if mortality_rate > 5 %}text-danger{% elif mortality_rate > 3 %}text-warning{% else %}text-success{% endif %}">
+                    {{ mortality_rate|floatformat:2 }}%
+                </span>
+
+            {% endwith %}</p>
             </div>
             <div class="col-md-4">
               <p><strong>Target FCR:</strong> {{ batch.target_fcr|floatformat:2 }}</p>
@@ -205,3 +210,19 @@
   });
 </script>
 {% endblock %}
+
+
+<style>
+  .text-danger {
+      color: #dc3545 !important;
+      font-weight: bold;
+  }
+  .text-warning {
+      color: #ffc107 !important;
+      font-weight: bold;
+  }
+  .text-success {
+      color: #28a745 !important;
+      font-weight: bold;
+  }
+</style>

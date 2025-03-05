@@ -2,154 +2,212 @@
 {% load static %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Prediction Input Card -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-calculator"></i> Growth Prediction Input</h5>
-                </div>
-                <div class="card-body">
-                    <form id="prediction-form">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label>Select Batch</label>
-                            <select class="form-select" id="batch-select" required>
-                                <option value="">Choose batch...</option>
-                                {% for batch in active_batches %}
-                                <option value="{{ batch.id }}" 
-                                        data-start-date="{{ batch.batch_date|date:'Y-m-d' }}">
-                                    Batch #{{ batch.id }} - {{ batch.batch_date|date:"F j, Y" }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Day Number</label>
-                            <input type="number" class="form-control" id="day-number" readonly>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Feed Consumed (kg)</label>
-                            <input type="number" class="form-control" id="feed-taken" required step="0.01">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Water Consumed (L)</label>
-                            <input type="number" class="form-control" id="water-taken" required step="0.01">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Temperature (°C)</label>
-                            <input type="number" class="form-control" id="temperature" required step="0.1">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Alive Count</label>
-                            <input type="number" class="form-control" id="alive-count" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label>Actual Weight (g) (Optional)</label>
-                            <input type="number" class="form-control" id="actual-weight" step="0.01">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-chart-line"></i> Predict Growth
+<!-- Remove container-fluid and padding to allow full width -->
+<div class="dashboard-wrapper">
+    <!-- Growth Prediction Input Section -->
+    <div class="card mb-4 w-100">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Growth Prediction Input</h5>
+        </div>
+        <div class="card-body px-4">
+            <form id="prediction-form">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Select Batch</label>
+                        <select class="form-select" id="batch-select" required>
+                            <option value="">Choose batch...</option>
+                            {% for batch in active_batches %}
+                            <option value="{{ batch.id }}" 
+                                    data-start-date="{{ batch.batch_date|date:'Y-m-d' }}">
+                                Batch #{{ batch.id }} - {{ batch.batch_date|date:"F j, Y" }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Day Number</label>
+                        <input type="number" class="form-control" id="day-number" readonly>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Feed (kg)</label>
+                        <input type="number" class="form-control" id="feed-taken" required step="0.01">
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Water (L)</label>
+                        <input type="number" class="form-control" id="water-taken" required step="0.01">
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Temperature (°C)</label>
+                        <input type="number" class="form-control" id="temperature" required step="0.1">
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Alive Count</label>
+                        <input type="number" class="form-control" id="alive-count" required>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Weight (g)</label>
+                        <input type="number" class="form-control" id="actual-weight" step="0.01">
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-chart-line me-2"></i>Predict
                         </button>
-                    </form>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Prediction Results Section -->
+    <div class="card w-100">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Prediction Results</h5>
+        </div>
+        <div class="card-body px-4">
+            <!-- Metrics Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <div class="result-box p-4 rounded h-100">
+                        <h6 class="text-primary mb-3">Predicted Weight</h6>
+                        <div id="predicted-weight" class="h2 mb-2">-</div>
+                        <small class="text-muted">grams</small>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="result-box p-4 rounded h-100">
+                        <h6 class="text-primary mb-3">Weight Difference</h6>
+                        <div id="weight-difference" class="h2 mb-2">-</div>
+                        <small class="text-muted">grams</small>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="result-box p-4 rounded h-100">
+                        <h6 class="text-primary mb-3">Growth Status</h6>
+                        <div id="growth-status" class="h2 mb-2">-</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Prediction Results Card -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-chart-bar"></i> Prediction Results</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="prediction-metric">
-                                <h6>Predicted Weight</h6>
-                                <span id="predicted-weight" class="metric-value">-</span>
-                                <span class="metric-unit">grams</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="prediction-metric">
-                                <h6>Weight Difference</h6>
-                                <span id="weight-difference" class="metric-value">-</span>
-                                <span class="metric-unit">grams</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="prediction-metric">
-                                <h6>Growth Status</h6>
-                                <span id="growth-status" class="metric-value">-</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Growth Chart -->
-                    <div class="mt-4">
-                        <canvas id="growthChart"></canvas>
-                    </div>
-                    
-                    <!-- Previous Predictions Table -->
-                    <div class="mt-4">
-                        <h6>Previous Predictions</h6>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Day</th>
-                                        <th>Predicted</th>
-                                        <th>Actual</th>
-                                        <th>Difference</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="predictions-history">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Growth Chart -->
+            <div class="mb-4">
+                <canvas id="growthChart" height="300"></canvas>
+            </div>
+
+            <!-- Previous Predictions Table -->
+            <div class="table-responsive">
+                <h6 class="fw-bold mb-3">Previous Predictions</h6>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Predicted</th>
+                            <th>Actual</th>
+                            <th>Difference</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictions-history">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.prediction-metric {
-    text-align: center;
-    padding: 1rem;
-    background: #f8f9fa;
+/* Reset any conflicting styles */
+.dashboard-wrapper {
+    width: 100%;
+    padding: 20px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure cards take full width */
+.card {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border: 1px solid #e3e6f0;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    box-shadow: 0 0.15rem 1.75rem rgba(0, 0, 0, 0.05);
 }
 
-.metric-value {
-    display: block;
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 0.5rem 0;
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.5rem;
+    width: 100%;
 }
 
-.metric-unit {
-    color: #6c757d;
-    font-size: 0.875rem;
+.card-body {
+    width: 100%;
+    padding: 1.5rem;
 }
 
-.text-success { color: #28a745 !important; }
-.text-warning { color: #ffc107 !important; }
-.text-danger { color: #dc3545 !important; }
+/* Form styling */
+.form-label {
+    font-weight: 600;
+    color: #4e73df;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d3e2;
+    border-radius: 6px;
+}
+
+/* Results section styling */
+.result-box {
+    background-color: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.table-responsive {
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* Override any Bootstrap container widths */
+.container, 
+.container-fluid {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Ensure proper spacing between elements */
+.row {
+    margin: 0;
+    width: 100%;
+}
+
+.col-lg-3, .col-md-6 {
+    padding: 10px;
+}
+
+/* Status colors */
+.text-success { color: #1cc88a !important; }
+.text-warning { color: #f6c23e !important; }
+.text-danger { color: #e74a3b !important; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

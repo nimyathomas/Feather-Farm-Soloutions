@@ -142,6 +142,57 @@
       </div>
       <div id="vaccination-calendar"></div>
     </div>
+
+    <!-- At the top of your payment section -->
+    <div class="dashboard-card payment-card">
+        <div class="card-header">
+            <i class="fas fa-file-invoice"></i>
+            <h2>Recent Payments</h2>
+        </div>
+        <div class="card-body">
+            <!-- Debug Information -->
+            <div style="background: #f8f9fa; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+                <h4>Debug Information:</h4>
+                <p>Current User ID: {{ request.user.id }}</p>
+                <p>Payment Count: {{ total_payments }}</p>
+                {% if recent_payments %}
+                    <p>Payments Available: Yes</p>
+                    <ul>
+                    {% for payment in recent_payments %}
+                        <li>Payment ID: {{ payment.id }} - Amount: {{ payment.amount }} - Status: {{ payment.status }}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Payments Available: No</p>
+                {% endif %}
+            </div>
+
+            <!-- Rest of your payment display code -->
+            {% if recent_payments %}
+                {% for payment in recent_payments %}
+                    <div class="payment-item {% if payment.status == 'completed' %}paid{% endif %}">
+                        <div class="payment-header">
+                            <h4>Batch #{{ payment.batch.id }}</h4>
+                            <span class="badge {% if payment.status == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="payment-details">
+                            <p><strong>Amount:</strong> ₹{{ payment.amount|floatformat:2 }}</p>
+                            <p><strong>Date:</strong> {{ payment.payment_date|date:"M d, Y" }}</p>
+                            <p><strong>Status:</strong> {{ payment.get_status_display }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-receipt fa-2x mb-2"></i>
+                    <p>No recent payments found</p>
+                    <small class="text-muted">Debug: User ID {{ request.user.id }}</small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
   {% endif %}
   {% endif %}
 </div>

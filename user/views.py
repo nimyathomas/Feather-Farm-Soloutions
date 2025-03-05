@@ -39,6 +39,12 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import ChatRoom, ChatMessage
+from django.db.models import (
+    F, Count, Avg, Sum, Q, 
+    ExpressionWrapper, DurationField,
+    IntegerField
+)
+from django.db.models.functions import Coalesce, ExtractDay
 
 def register(request):
     user_type_param = request.GET.get('user_type')
@@ -957,88 +963,26 @@ def order_analytics(request):
         print(f"Error in order_analytics: {str(e)}")  # Debug print
         messages.error(request, f"Error generating analytics: {str(e)}")
         return redirect('admindash')
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db.models import Count, Q
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def farm_analytics_dashboard(request):
     try:
-        # Get all farms with batch information
+        # Get all farms with basic batch counts
         farms = Farm.objects.annotate(
-            active_batches_count=Count(
-                'chickbatch',
-                filter=Q(chickbatch__batch_status='active')
-            ),
-            completed_batches_count=Count(
-                'chickbatch',
-                filter=Q(chickbatch__batch_status='completed')
-            )
+            total_batches=Count('chick_batches'),
+            active_batches=Count('chick_batches', 
+                filter=Q(chick_batches__batch_status='active')),
+            completed_batches=Count('chick_batches', 
+                filter=Q(chick_batches__batch_status='completed'))
         )
-
-        for farm in farms:
-            # Get active batches with current day calculation
-            farm.active_batches = ChickBatch.objects.filter(
-                farm=farm,
-                batch_status='active'
-            ).annotate(
-                current_day=(timezone.now().date() - F('batch_date')).days,
-                mortality_rate=100 * (F('initial_chick_count') - F('available_chickens')) / F('initial_chick_count')
-            )
-
-            # Get completed batches with distribution details
-            farm.completed_batches = ChickBatch.objects.filter(
-                farm=farm,
-                batch_status='completed'
-            ).annotate(
-                total_distributed=F('one_kg_count') + F('two_kg_count') + F('three_kg_count')
-            ).order_by('-batch_date')[:5]
-
-        # Farm with most chickens
-        top_farms_by_chickens = Farm.objects.annotate(
-            total_chickens=Coalesce(Sum('chickbatch__available_chickens'), 0)
-        ).order_by('-total_chickens')[:5]
-
-        # Farms with lowest mortality rate
-        low_mortality_farms = Farm.objects.annotate(
-            avg_mortality_rate=Avg('chickbatch__mortality_rate')
-        ).filter(
-            avg_mortality_rate__isnull=False
-        ).order_by('avg_mortality_rate')[:5]
-
-        # FCR Analysis
-        fcr_analysis = Farm.objects.annotate(
-            avg_fcr=Avg('chickbatch__fcr')
-        )
-
-        # High FCR Farms (Warning)
-        high_fcr_farms = fcr_analysis.filter(
-            avg_fcr__gt=2.0
-        ).order_by('-avg_fcr')[:5]
-
-        # Low FCR Farms
-        low_fcr_farms = fcr_analysis.filter(
-            avg_fcr__lt=1.8
-        ).order_by('avg_fcr')[:5]
-
-        # FCR Alerts
-        fcr_alerts = []
-        for farm in farms:
-            recent_batches = ChickBatch.objects.filter(
-                farm=farm
-            ).order_by('-created_at')[:3]
-            
-            if recent_batches.count() >= 3:
-                high_fcr_count = sum(1 for batch in recent_batches if batch.fcr and batch.fcr > 2.0)
-                if high_fcr_count >= 2:
-                    fcr_alerts.append({
-                        'farm': farm,
-                        'message': f"Warning: {farm.name} has shown high FCR in {high_fcr_count} of last 3 batches"
-                    })
 
         context = {
             'farms': farms,
-            'top_farms_by_chickens': top_farms_by_chickens,
-            'low_mortality_farms': low_mortality_farms,
-            'high_fcr_farms': high_fcr_farms,
-            'low_fcr_farms': low_fcr_farms,
-            'fcr_alerts': fcr_alerts,
+            'total_farms': farms.count(),
         }
 
         return render(request, 'farm_analytics_dashboard.html', context)
@@ -1047,9 +991,6 @@ def farm_analytics_dashboard(request):
         print(f"Error in farm analytics: {str(e)}")
         messages.error(request, f"Error generating farm analytics: {str(e)}")
         return redirect('admindash')
-    
-    
-    
 # views.py
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -1177,28 +1118,24 @@ from django.db.models import Q
 
 @login_required
 def admin_chat_view(request):
-    stakeholders = User.objects.filter(user_type__name='Stakeholder')
-    chat_rooms = ChatRoom.objects.filter(stakeholder__in=stakeholders)
+    # Get all stakeholders with their chat rooms
+    stakeholders = User.objects.filter(
+        user_type__name='Stakeholder'
+    ).prefetch_related('chat_rooms')
     
-    # Handle message sending
-    if request.method == 'POST':
-        room_id = request.POST.get('room_id')
-        message_text = request.POST.get('message')
-        
-        if room_id and message_text:
-            chat_room = get_object_or_404(ChatRoom, id=room_id)
-            ChatMessage.objects.create(
-                room=chat_room,
-                sender=request.user,
-                message=message_text
+    # Create chat rooms for stakeholders who don't have one
+    for stakeholder in stakeholders:
+        if not stakeholder.chat_rooms.exists():
+            ChatRoom.objects.create(
+                stakeholder=stakeholder,
+                farm_name=f"{stakeholder.full_name}'s Farm"
             )
-            messages.success(request, 'Message sent successfully')
-            return redirect('admin_chat_view')
     
-    return render(request, 'admin_chat.html', {
+    context = {
         'stakeholders': stakeholders,
-        'chat_rooms': chat_rooms
-    })
+    }
+    
+    return render(request, 'admin_chat.html', context)
 
 @login_required
 def stakeholder_chat_view(request):

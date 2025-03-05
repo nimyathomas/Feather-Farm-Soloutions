@@ -16,6 +16,13 @@
                             <h5>Payment Information</h5>
                             <p><strong>Payment ID:</strong> #{{ payment.id }}</p>
                             <p><strong>Amount:</strong> ₹{{ payment.amount|floatformat:2 }}</p>
+                            <p><strong>Base Amount:</strong> ₹{{ payment.base_amount|floatformat:2 }}</p>
+                            {% if payment.fcr_bonus > 0 %}
+                            <p><strong>FCR Bonus:</strong> ₹{{ payment.fcr_bonus|floatformat:2 }}</p>
+                            {% endif %}
+                            {% if payment.mortality_penalty > 0 %}
+                            <p><strong>Mortality Penalty:</strong> ₹{{ payment.mortality_penalty|floatformat:2 }}</p>
+                            {% endif %}
                             <p><strong>Status:</strong> 
                                 <span class="badge {% if payment.status == 'completed' %}bg-success{% elif payment.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
                                     {{ payment.status|title }}
@@ -31,9 +38,16 @@
                         <div class="col-md-6">
                             <h5>Batch Information</h5>
                             <p><strong>Batch ID:</strong> #{{ batch.id }}</p>
-                            <p><strong>Farm:</strong> {{ batch.farm.name }}</p>
-                            <p><strong>Stakeholder:</strong> {{ batch.user.get_full_name }}</p>
+                            <p><strong>Farm Name:</strong> {{ farm.name }}</p>
+                            <p><strong>Farm Owner:</strong> {{ stakeholder.full_name }}</p>
+                            {% if batch.completion_date %}
                             <p><strong>Completion Date:</strong> {{ batch.completion_date|date:"M d, Y" }}</p>
+                            {% endif %}
+                            <p><strong>Batch Type:</strong> {{ batch.batch_type|title }}</p>
+                            <p><strong>Initial Count:</strong> {{ batch.initial_chick_count }}</p>
+                            {% if batch.actual_fcr %}
+                            <p><strong>FCR:</strong> {{ batch.actual_fcr|floatformat:2 }}</p>
+                            {% endif %}
                         </div>
                     </div>
 

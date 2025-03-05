@@ -12,12 +12,16 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for stakeholder in stakeholders %}
-                        <button class="list-group-item list-group-item-action select-chat" 
-                                data-room-id="{{ stakeholder.chat_rooms.first.id }}"
-                                data-name="{{ stakeholder.full_name }}">
-                            <h6 class="mb-1">{{ stakeholder.full_name }}</h6>
-                            <small>{{ stakeholder.email }}</small>
-                        </button>
+                            {% with chat_room=stakeholder.chat_rooms.first %}
+                            <button class="list-group-item list-group-item-action select-chat" id="chat-button"
+                                    data-room-id="{{ chat_room.id }}"
+                                    data-name="{{ stakeholder.full_name }}">
+                                <h6 class="mb-1">{{ stakeholder.full_name }}</h6>
+                                <small>{{ stakeholder.email }}</small>
+                                <span class="badge bg-primary rounded-pill float-end message-count" 
+                                      id="unread-count-{{ chat_room.id }}">0</span>
+                            </button>
+                            {% endwith %}
                         {% endfor %}
                     </div>
                 </div>
@@ -40,7 +44,7 @@
                         <div class="input-group">
                             <input type="text" class="form-control" id="message-input"
                                    placeholder="Type your message..." required>
-                            <button type="submit" class="btn btn-primary">Send</button>
+                            <button type="submit" class="btn btn-primary" id="send-button">Send</button>
                         </div>
                     </form>
                 </div>
@@ -144,6 +148,46 @@ setInterval(() => {
         loadMessages(currentRoomId);
     }
 }, 5000);
+
+// Function to update unread message counts
+function updateUnreadCounts() {
+    document.querySelectorAll('.select-chat').forEach(button => {
+        const roomId = button.dataset.roomId;
+        fetch(`/chat/${roomId}/unread-count/`)
+            .then(response => response.json())
+            .then(data => {
+                const countElement = document.getElementById(`unread-count-${roomId}`);
+                if (countElement) {
+                    countElement.textContent = data.unread_count;
+                    countElement.style.display = data.unread_count > 0 ? 'inline' : 'none';
+                }
+            });
+    });
+}
+
+// Update unread counts every 30 seconds
+setInterval(updateUnreadCounts, 30000);
+updateUnreadCounts(); // Initial update
+
+// Mark messages as read when selecting a chat
+document.querySelectorAll('.select-chat').forEach(button => {
+    button.addEventListener('click', function() {
+        const roomId = this.dataset.roomId;
+        fetch(`/chat/${roomId}/mark-read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        });
+        
+        // Update the unread count badge
+        const countElement = document.getElementById(`unread-count-${roomId}`);
+        if (countElement) {
+            countElement.textContent = '0';
+            countElement.style.display = 'none';
+        }
+    });
+});
 </script>
 
 <style>
@@ -211,6 +255,10 @@ setInterval(() => {
 .chat-container::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 3px;
+}
+
+.message-count {
+    display: none;
 }
 </style>
 {% endblock %}
