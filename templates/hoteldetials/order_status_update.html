@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { padding: 20px; font-family: Arial, sans-serif; }
+        .status { font-weight: bold; color: #2563eb; }
+        .details { margin: 20px 0; }
+        .delivery-info { background: #f3f4f6; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Order Status Update</h2>
+        <p>Your order #{{ order.id }} status has been updated to: <span class="status">{{ status }}</span></p>
+        
+        <div class="details">
+            <h3>Order Details:</h3>
+            <p>Farm: {{ order.batch.farm.name }}</p>
+            <p>Total Amount: ₹{{ order.price }}</p>
+            <p>Delivery Date: {{ order.delivery_date }}</p>
+            
+            {% if order.status == 'out_for_delivery' %}
+            <div class="delivery-info">
+                <h4>Delivery Information:</h4>
+                <p>Farm Contact: {{ order.batch.farm.owner.full_name }}</p>
+                <p>Phone: {{ order.batch.farm.owner.phone_number }}</p>
+            </div>
+            {% endif %}
+
+            {% if order.admin_notes %}
+            <p>Notes: {{ order.admin_notes }}</p>
+            {% endif %}
+        </div>
+        
+        <p>Thank you for choosing our service!</p>
+    </div>
+</body>
+</html> 

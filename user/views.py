@@ -967,30 +967,165 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch
+
+# @login_required
+# def farm_analytics_dashboard(request):
+#     try:
+#         # Get all farms with related batch information
+#         farms = Farm.objects.annotate(
+#             total_batches=Count('chick_batches'),
+#             active_batches_count=Count('chick_batches', 
+#                 filter=Q(chick_batches__batch_status='active')),
+#             completed_batches_count=Count('chick_batches', 
+#                 filter=Q(chick_batches__batch_status='completed'))
+#         ).prefetch_related(
+#             Prefetch(
+#                 'chick_batches',
+#                 queryset=ChickBatch.objects.filter(batch_status='active'),
+#                 to_attr='active_batches'
+#             ),
+#             Prefetch(
+#                 'chick_batches',
+#                 queryset=ChickBatch.objects.filter(batch_status='completed').order_by('-batch_date')[:5],
+#                 to_attr='completed_batches'
+#             )
+#         )
+
+#         # Process batch data
+#         for farm in farms:
+#             # Process active batches
+#             processed_active_batches = []
+#             for batch in farm.active_batches:
+#                 batch_data = {
+#                     'id': batch.id,
+#                     'batch_type': batch.batch_type,
+#                     'batch_date': batch.batch_date,
+#                     'duration': batch.duration,
+#                     'initial_chick_count': batch.initial_chick_count,
+#                     'available_chickens': batch.available_chickens,
+#                 }
+
+#                 # Calculate current day
+#                 if batch.batch_date:
+#                     days_passed = (timezone.now().date() - batch.batch_date).days
+#                     batch_data['current_day'] = max(1, min(days_passed, batch.duration or 0))
+#                 else:
+#                     batch_data['current_day'] = 0
+
+#                 # Calculate mortality rate
+#                 if batch.initial_chick_count and batch.initial_chick_count > 0:
+#                     mortality_rate = ((batch.initial_chick_count - batch.available_chickens) 
+#                                    / batch.initial_chick_count * 100)
+#                     batch_data['mortality_rate'] = round(mortality_rate, 2)
+#                 else:
+#                     batch_data['mortality_rate'] = 0
+
+#                 processed_active_batches.append(batch_data)
+
+#             # Process completed batches
+#             processed_completed_batches = []
+#             for batch in farm.completed_batches:
+#                 batch_data = {
+#                     'id': batch.id,
+#                     'batch_type': batch.batch_type,
+#                     'batch_date': batch.batch_date,
+#                     'one_kg_count': batch.one_kg_count or 0,
+#                     'two_kg_count': batch.two_kg_count or 0,
+#                     'three_kg_count': batch.three_kg_count or 0,
+#                 }
+                
+#                 # Calculate total distributed
+#                 batch_data['total_distributed'] = (
+#                     batch_data['one_kg_count'] + 
+#                     batch_data['two_kg_count'] + 
+#                     batch_data['three_kg_count']
+#                 )
+                
+#                 processed_completed_batches.append(batch_data)
+
+#             # Replace the original batch lists with processed data
+#             farm.processed_active_batches = processed_active_batches
+#             farm.processed_completed_batches = processed_completed_batches
+
+#         context = {
+#             'farms': farms,
+#             'total_farms': farms.count(),
+#             'has_error': False
+#         }
+
+#         return render(request, 'farm_analytics_dashboard.html', context)
+
+#     except Exception as e:
+#         error_message = f"Error in farm analytics: {str(e)}"
+#         print(error_message)
+        
+#         context = {
+#             'farms': [],
+#             'total_farms': 0,
+#             'has_error': True,
+#             'error_message': error_message
+#         }
+        
+#         return render(request, 'farm_analytics_dashboard.html', context)
 
 @login_required
 def farm_analytics_dashboard(request):
     try:
-        # Get all farms with basic batch counts
-        farms = Farm.objects.annotate(
-            total_batches=Count('chick_batches'),
-            active_batches=Count('chick_batches', 
-                filter=Q(chick_batches__batch_status='active')),
-            completed_batches=Count('chick_batches', 
-                filter=Q(chick_batches__batch_status='completed'))
-        )
+        # Static farm analytics data for demonstration
+        farm_analytics = {
+            'mortality_rates': [
+                {'farm_name': 'Walnut farm', 'rate': 4.5, 'status': 'Good'},
+                {'farm_name': 'Bethel farm', 'rate': 8.2, 'status': 'Warning'},
+                {'farm_name': 'Cummins farm', 'rate': 2.1, 'status': 'Excellent'},
+                {'farm_name': 'Heavenly farm', 'rate': 12.5, 'status': 'Critical'},
+            ],
+            'fcr_rates': [
+                {'farm_name': 'Walnut farm', 'fcr': 1.65, 'status': 'Good'},
+                {'farm_name':'Bethel farm', 'fcr': 1.82, 'status': 'Warning'},
+                {'farm_name': 'Cummins farm', 'fcr': 1.55, 'status': 'Excellent'},
+                {'farm_name': 'Heavenly farm', 'fcr': 1.95, 'status': 'Critical'},
+            ],
+            'disease_occurrences': [
+                {'farm_name': 'Walnut farm', 'disease_count': 3, 'most_common': 'Coccidiosis'},
+                {'farm_name': 'Bethel farm', 'disease_count': 5, 'most_common': 'New Castle'},
+                {'farm_name': 'Cummins farm', 'disease_count': 1, 'most_common': 'Salmonella'},
+                {'farm_name': 'Heavenly farm', 'disease_count': 7, 'most_common': 'Coccidiosis'},
+            ],
+            'production_efficiency': [
+                {'farm_name': 'Walnut farm', 'efficiency': 85, 'status': 'Good'},
+                {'farm_name': 'Farm B', 'efficiency': 72, 'status': 'Warning'},
+                {'farm_name': 'Cummins farm', 'efficiency': 92, 'status': 'Excellent'},
+                {'farm_name': 'Heavenly farm', 'efficiency': 65, 'status': 'Critical'},
+            ],
+            'monthly_stats': {
+                'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                'mortality': [3.2, 4.1, 3.8, 4.5, 3.9, 4.2],
+                'production': [82, 85, 80, 88, 86, 89],
+                'disease_cases': [2, 4, 3, 5, 2, 3],
+            }
+        }
 
         context = {
-            'farms': farms,
-            'total_farms': farms.count(),
+            'farms': Farm.objects.all(),  # Keep existing farm data
+            'total_farms': Farm.objects.count(),
+            'analytics': farm_analytics,
+            'has_error': False
         }
 
         return render(request, 'farm_analytics_dashboard.html', context)
 
     except Exception as e:
-        print(f"Error in farm analytics: {str(e)}")
-        messages.error(request, f"Error generating farm analytics: {str(e)}")
-        return redirect('admindash')
+        error_message = f"Error in farm analytics: {str(e)}"
+        print(error_message)
+        context = {
+            'farms': [],
+            'total_farms': 0,
+            'has_error': True,
+            'error_message': error_message
+        }
+        return render(request, 'farm_analytics_dashboard.html', context)
+
 # views.py
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required

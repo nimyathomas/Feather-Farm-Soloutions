@@ -925,6 +925,11 @@ class DiseaseAnalysis(models.Model):
         ('New Castle Disease', 'New Castle Disease'),
         ('Salmonella', 'Salmonella'),
     ]
+    SEVERITY_CHOICES = [
+        ('Low', 'Low'),
+        ('Medium', 'Medium'),
+        ('High', 'High'),
+    ]
 
     batch = models.ForeignKey('stakeholder.ChickBatch', on_delete=models.CASCADE, related_name='disease_analyses')
     image = models.ImageField(upload_to='disease_analysis/')
@@ -933,6 +938,9 @@ class DiseaseAnalysis(models.Model):
     analyzed_date = models.DateTimeField(default=timezone.now)
     symptoms_detected = models.JSONField(null=True, blank=True)
     all_probabilities = models.JSONField(null=True, blank=True)
+    
+    severity = models.CharField(max_length=50, default='Low')  # Add this field
+
     feedback_provided = models.BooleanField(default=False)
     correct_label = models.CharField(max_length=100, choices=DISEASE_CHOICES, null=True, blank=True)
 

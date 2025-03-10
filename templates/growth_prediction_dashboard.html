@@ -27,7 +27,9 @@
                     
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">Day Number</label>
-                        <input type="number" class="form-control" id="day-number" readonly>
+                        <select class="form-select" id="day-number" required>
+                            <option value="">Select day...</option>
+                        </select>
                     </div>
                     
                     <div class="col-lg-3 col-md-6">
@@ -57,7 +59,7 @@
                     
                     <div class="col-lg-3 col-md-6 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-chart-line me-2"></i>Predict
+                            <i class="fas fa-chart-line me-2" id = "predict-button"></i>Predict
                         </button>
                     </div>
                 </div>
@@ -96,8 +98,13 @@
             </div>
 
             <!-- Growth Chart -->
-            <div class="mb-4">
-                <canvas id="growthChart" height="300"></canvas>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Growth Progression Chart</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="growthChart"></canvas>
+                </div>
             </div>
 
             <!-- Previous Predictions Table -->
@@ -217,28 +224,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const dayNumber = document.getElementById('day-number');
     let growthChart = null;
 
-    // Update day number when batch is selected
-    batchSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        if (selectedOption.value) {
-            const startDate = new Date(selectedOption.dataset.startDate);
-            const today = new Date();
-            const diffTime = Math.abs(today - startDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            dayNumber.value = diffDays;
-        } else {
-            dayNumber.value = '';
-        }
+    // Remove readonly attribute from all input fields
+    const inputFields = document.querySelectorAll('input[type="number"]');
+    inputFields.forEach(field => {
+        field.removeAttribute('readonly');
     });
-
+    
+    // When batch is selected
+    batchSelect.addEventListener('change', function() {
+        const selectedBatch = this.value;
+        if (!selectedBatch) return;
+        
+        // Clear form first
+        clearForm();
+        
+        // Add day 1 only
+        dayNumber.innerHTML = '<option value="">Select day...</option>';
+        dayNumber.innerHTML += '<option value="1">Day 1</option>';
+    });
+    
+    // When day is selected
+    dayNumber.addEventListener('change', function() {
+        clearForm();
+        
+        // Make sure all fields are editable
+        const inputFields = document.querySelectorAll('input[type="number"]');
+        inputFields.forEach(field => {
+            field.removeAttribute('readonly');
+        });
+    });
+    
     // Handle form submission
     document.getElementById('prediction-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         // Get form values
         const formData = new FormData();
-        formData.append('batch_id', document.getElementById('batch-select').value);
-        formData.append('day_number', document.getElementById('day-number').value);
+        formData.append('batch_id', batchSelect.value);
+        formData.append('day_number', dayNumber.value);
         formData.append('feed_taken', document.getElementById('feed-taken').value);
         formData.append('water_taken', document.getElementById('water-taken').value);
         formData.append('temperature', document.getElementById('temperature').value);
@@ -258,8 +281,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                updatePredictionDisplay(data);
-                await loadPredictionHistory(document.getElementById('batch-select').value);
+                // Update prediction results
+                document.getElementById('predicted-weight').textContent = data.predicted_weight.toFixed(2);
+                
+                if (data.weight_difference) {
+                    document.getElementById('weight-difference').textContent = data.weight_difference.toFixed(2);
+                } else {
+                    document.getElementById('weight-difference').textContent = '-';
+                }
+                
+                document.getElementById('growth-status').textContent = data.growth_status || '-';
+                
+                // Update chart and history
+                updateGrowthChart(data);
+                loadPredictionHistory(batchSelect.value);
             } else {
                 throw new Error(data.error || 'Prediction failed');
             }
@@ -269,76 +304,38 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to get prediction: ' + error.message);
         }
     });
-
-    function updatePredictionDisplay(data) {
-        // Update metrics
-        document.getElementById('predicted-weight').textContent = 
-            data.predicted_weight.toFixed(2);
+    
+    // Clear form fields and results
+    function clearForm() {
+        const fields = [
+            'feed-taken',
+            'water-taken',
+            'temperature',
+            'alive-count',
+            'actual-weight'
+        ];
         
-        const actualWeight = document.getElementById('actual-weight').value;
-        if (actualWeight) {
-            const difference = (actualWeight - data.predicted_weight).toFixed(2);
-            document.getElementById('weight-difference').textContent = difference;
-            document.getElementById('weight-difference').className = 
-                'metric-value ' + getDifferenceClass(difference);
-        } else {
-            document.getElementById('weight-difference').textContent = '-';
-        }
+        // Clear input fields
+        fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = '';
+                field.removeAttribute('readonly');  // Make sure field is editable
+            }
+        });
         
-        const statusElement = document.getElementById('growth-status');
-        statusElement.textContent = data.growth_status;
-        statusElement.className = 'metric-value ' + getStatusClass(data.growth_status);
+        // Clear results
+        document.getElementById('predicted-weight').textContent = '-';
+        document.getElementById('weight-difference').textContent = '-';
+        document.getElementById('growth-status').textContent = '-';
         
-        // Update chart
-        updateGrowthChart(data);
-    }
-
-    function getDifferenceClass(difference) {
-        if (Math.abs(difference) <= 20) return 'text-success';
-        if (Math.abs(difference) <= 50) return 'text-warning';
-        return 'text-danger';
-    }
-
-    function getStatusClass(status) {
-        switch(status) {
-            case 'On Track': return 'text-success';
-            case 'Under-Growing': return 'text-danger';
-            case 'Over-Growing': return 'text-warning';
-            default: return '';
+        if (growthChart) {
+            growthChart.destroy();
+            growthChart = null;
         }
     }
-
-    async function loadPredictionHistory(batchId) {
-        try {
-            const response = await fetch(`/prediction-history/${batchId}/`);
-            if (!response.ok) throw new Error('Failed to load history');
-            
-            const data = await response.json();
-            updatePredictionHistory(data.history);
-            
-        } catch (error) {
-            console.error('Error loading history:', error);
-        }
-    }
-
-    function updatePredictionHistory(history) {
-        const tbody = document.getElementById('predictions-history');
-        tbody.innerHTML = history.map(entry => `
-            <tr>
-                <td>${entry.date}</td>
-                <td>${entry.day_number}</td>
-                <td>${entry.predicted_weight.toFixed(2)}g</td>
-                <td>${entry.actual_weight ? entry.actual_weight.toFixed(2) + 'g' : '-'}</td>
-                <td class="${getDifferenceClass(entry.weight_difference)}">
-                    ${entry.weight_difference ? entry.weight_difference.toFixed(2) + 'g' : '-'}
-                </td>
-                <td class="${getStatusClass(entry.growth_status)}">
-                    ${entry.growth_status}
-                </td>
-            </tr>
-        `).join('');
-    }
-
+    
+    // Function to update growth chart
     function updateGrowthChart(data) {
         const ctx = document.getElementById('growthChart').getContext('2d');
         
@@ -349,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
         growthChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.history_days,
+                labels: data.history_days.map(day => `Day ${day}`),
                 datasets: [{
                     label: 'Predicted Weight',
                     data: data.predicted_weights,
@@ -364,9 +361,18 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Growth Progression'
+                    }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true,
+                        beginAtZero: false,
                         title: {
                             display: true,
                             text: 'Weight (g)'
@@ -375,11 +381,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     x: {
                         title: {
                             display: true,
-                            text: 'Day Number'
+                            text: 'Day'
                         }
                     }
                 }
             }
+        });
+    }
+    
+    // Function to update prediction history table
+    function updatePredictionHistory(history) {
+        const tableBody = document.getElementById('predictions-history');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = '';
+        
+        if (!history || history.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No prediction history available</td></tr>';
+            return;
+        }
+        
+        history.forEach(entry => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${entry.date}</td>
+                    <td>${entry.day_number}</td>
+                    <td>${entry.predicted_weight.toFixed(2)}g</td>
+                    <td>${entry.actual_weight ? entry.actual_weight.toFixed(2) + 'g' : '-'}</td>
+                    <td>${entry.weight_difference ? entry.weight_difference.toFixed(2) + 'g' : '-'}</td>
+                    <td>${entry.growth_status}</td>
+                </tr>
+            `;
         });
     }
 });

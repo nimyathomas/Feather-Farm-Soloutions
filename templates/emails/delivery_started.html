@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Delivery Started</title>
+</head>
+<body>
+    <h1>Order Delivery Started</h1>
+    <p>Dear {{ hotel_name }},</p>
+    
+    <p>Your order #{{ order.id }} is in transit!</p>
+    
+    <h3>Order Details:</h3>
+    <ul>
+        {% if one_kg_count %}<li>{{ one_kg_count }}×1kg</li>{% endif %}
+        {% if two_kg_count %}<li>{{ two_kg_count }}×2kg</li>{% endif %}
+        {% if three_kg_count %}<li>{{ three_kg_count }}×3kg</li>{% endif %}
+    </ul>
+    
+    <p>Total Price: ₹{{ total_price }}</p>
+    <p>Delivery Date: {{ delivery_date }}</p>
+    
+    <p>Thank you for your business!</p>
+</body>
+</html> 

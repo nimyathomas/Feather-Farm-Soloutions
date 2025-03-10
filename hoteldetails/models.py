@@ -3,7 +3,10 @@ from django.db import models
 from stakeholder.models import ChickBatch
 from user.models import User
 from django.contrib.auth import get_user_model
-from decimal import Decimal
+from django.core.mail import send_mail, EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings  # Import settings here
+from .utils import send_order_confirmation_email  # Adjust the path as necessary
 
 
 
@@ -64,7 +67,11 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(
         max_length=20,
-        choices=[("pending", "Pending"), ("completed", "Completed")],
+        choices=[("pending", "Pending"), ("completed", "Completed"),
+                  ('out_for_delivery', 'Out for Delivery'),
+                  ('delivered', 'Delivered'),
+                  ('cancelled', 'Cancelled'),
+                  ('rejected', 'Rejected')],
         default="pending",
     )
 
@@ -81,6 +88,27 @@ class Order(models.Model):
         default=Decimal("0.00"),
         help_text="Fee based on delivery option",
     )
+    
+    admin_notes = models.TextField(blank=True, null=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    notification_sent = models.BooleanField(default=False)
+
+    def send_status_notification(self):
+        subject = f"Order #{self.id} Status Update"
+        message = render_to_string('hoteldetials/email/order_status_update.html', {
+            'order': self,
+            'status': self.get_status_display()
+        })
+        
+        # Send email to hotelier
+        send_mail(
+            subject=subject,
+            message='',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.user.email],
+            html_message=message
+        )
 
     def calculate_delivery_fee(self):
         if self.delivery_option == "express":
@@ -126,6 +154,7 @@ class Order(models.Model):
         batch.save()
         self.save()
         
+        # Send confirmation email
         send_order_confirmation_email(self.user.email, self)
 
     def total_weight(self):

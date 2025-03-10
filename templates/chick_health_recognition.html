@@ -52,11 +52,11 @@
     </div>
 
     <!-- Previous Analyses Section -->
-    <div class="card shadow w-100">
+    <div class="card shadow w-100 mt-4">
         <div class="card-header bg-primary text-white py-3">
             <h5 class="mb-0 text-center">Previous Analyses</h5>
         </div>
-        <div class="card-body p-4">
+        <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -66,6 +66,7 @@
                             <th>Disease</th>
                             <th>Confidence</th>
                             <th>Image</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,13 +93,18 @@
                             <td>
                                 <img src="{{ analysis.image.url }}" alt="Analysis Image" 
                                      style="height: 50px; cursor: pointer;"
-                                     onclick="showImageModal(this.src)"
-                                     class="rounded shadow-sm">
+                                     class="image-preview"
+                                     data-src="{{ analysis.image.url }}">
+                            </td>
+                            <td>
+                                <a href="{% url 'analysis_details' analysis.id %}" class="btn btn-info">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center py-4">No previous analyses found</td>
+                            <td colspan="6" class="text-center py-4">No previous analyses found</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -175,85 +181,107 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('analysisForm');
-    const analyzeButton = document.getElementById('analyzeButton');
-    const resultImage = document.querySelector('#resultImage');
-    const resultImageEl = document.querySelector('#resultImage img');
-    const resultContent = document.getElementById('resultContent');
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        analyzeButton.disabled = true;
-        analyzeButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
-
-        const formData = new FormData(this);
-
-        fetch('{% url "chick_health_recognition" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                resultImageEl.src = data.image_url;
-                resultImage.style.display = 'block';
-                
-                resultContent.innerHTML = `
-                    <h6 class="mb-3">Analysis Results</h6>
-                    <div class="card border-${data.disease === 'Healthy' ? 'success' : 'warning'}">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">${data.disease}</h5>
-                            <p class="mb-2">Confidence: ${data.confidence.toFixed(1)}%</p>
-                            <hr>
-                            <h6>Probability Distribution:</h6>
-                            ${Object.entries(data.all_probabilities)
-                                .sort((a, b) => b[1] - a[1])
-                                .map(([disease, prob]) => `
-                                    <div class="mb-2">
-                                        <div class="d-flex justify-content-between">
-                                            <span>${disease}</span>
-                                            <span>${prob.toFixed(1)}%</span>
+    console.log('DOM loaded, setting up event handlers');
+    
+    // Image preview handler
+    document.querySelectorAll('.image-preview').forEach(img => {
+        img.addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            document.querySelector('#imageModal img').src = this.getAttribute('data-src');
+            modal.show();
+        });
+    });
+    
+    // View details button handler
+    document.querySelectorAll('.view-details-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const analysisId = this.getAttribute('data-analysis-id');
+            console.log('Button clicked for analysis ID:', analysisId);
+            
+            fetch(`/analysis/${analysisId}/details/`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+                    if (data.success) {
+                        const modalHtml = `
+                            <div class="modal fade" id="analysisModal${analysisId}">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title">Analysis Details</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar bg-${disease === 'Healthy' ? 'success' : 'primary'}" 
-                                                 role="progressbar" 
-                                                 style="width: ${prob}%">
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <img src="${data.image_url}" class="img-fluid rounded shadow-sm">
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <h5>${data.disease}</h5>
+                                                    <div class="progress mb-3">
+                                                        <div class="progress-bar" style="width: ${data.confidence}%">
+                                                            ${data.confidence.toFixed(1)}%
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <h6>Disease Probabilities:</h6>
+                                                    ${Object.entries(data.all_probabilities)
+                                                        .map(([disease, prob]) => `
+                                                            <div class="mb-2">
+                                                                <small>${disease}: ${prob.toFixed(1)}%</small>
+                                                                <div class="progress" style="height: 5px;">
+                                                                    <div class="progress-bar" style="width: ${prob}%"></div>
+                                                                </div>
+                                                            </div>
+                                                        `).join('')}
+                                                    
+                                                    <h6 class="mt-3">Symptoms:</h6>
+                                                    <ul class="list-group">
+                                                        ${data.symptoms.map(symptom => `
+                                                            <li class="list-group-item">${symptom}</li>
+                                                        `).join('')}
+                                                    </ul>
+                                                    
+                                                    <div class="alert alert-info mt-3">
+                                                        <strong>Recommendation:</strong><br>
+                                                        ${data.recommendation}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                `).join('')}
-                        </div>
-                    </div>
-                `;
-                resultContent.style.display = 'block';
-                
-                // Reload page after showing results
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-            } else {
-                alert('Analysis failed: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error performing analysis. Please try again.');
-        })
-        .finally(() => {
-            analyzeButton.disabled = false;
-            analyzeButton.innerHTML = '<i class="fas fa-microscope me-2"></i>Analyze';
+                                </div>
+                            </div>
+                        `;
+
+                        // Remove existing modal if any
+                        const existingModal = document.getElementById(`analysisModal${analysisId}`);
+                        if (existingModal) {
+                            existingModal.remove();
+                        }
+
+                        // Add new modal to document
+                        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+                        // Show the modal
+                        const modal = new bootstrap.Modal(document.getElementById(`analysisModal${analysisId}`));
+                        modal.show();
+                    } else {
+                        alert('Error loading analysis details: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('Error loading analysis details. Please try again.');
+                });
         });
     });
 });
-
-function showImageModal(imageSrc) {
-    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
-    document.querySelector('#imageModal img').src = imageSrc;
-    modal.show();
-}
 </script>
 {% endblock %}

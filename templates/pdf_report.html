@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Disease Analysis Report</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+        .report-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table th, .info-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .info-table th {
+            background-color: #f5f5f5;
+            width: 30%;
+        }
+        .section-title {
+            background-color: #007bff;
+            color: white;
+            padding: 8px;
+            margin: 20px 0 10px 0;
+        }
+        .probability-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .probability-table th, .probability-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .probability-bar {
+            background-color: #007bff;
+            height: 20px;
+            margin: 2px 0;
+        }
+        .symptoms-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .symptoms-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .recommendation-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="path/to/your/logo.png" class="logo">
+        <h1 class="report-title">Poultry Disease Analysis Report</h1>
+    </div>
+
+    <div class="section-title">Analysis Information</div>
+    <table class="info-table">
+        <tr>
+            <th>Analysis Date</th>
+            <td>{{ analyzed_date }}</td>
+        </tr>
+        <tr>
+            <th>Batch Number</th>
+            <td>{{ batch_name }}</td>
+        </tr>
+        <tr>
+            <th>Health Status</th>
+            <td>{{ health_status }}</td>
+        </tr>
+        <tr>
+            <th>Predicted Disease</th>
+            <td>{{ analysis.predicted_disease }}</td>
+        </tr>
+        <tr>
+            <th>Confidence Score</th>
+            <td>{{ analysis.confidence_score|floatformat:2 }}%</td>
+        </tr>
+        <tr>
+            <th>Severity Level</th>
+            <td>{{ analysis.severity }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">Disease Probabilities</div>
+    <table class="probability-table">
+        <thead>
+            <tr>
+                <th>Disease</th>
+                <th>Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for disease, probability in all_probabilities.items %}
+            <tr>
+                <td>{{ disease }}</td>
+                <td>
+                    <div class="probability-bar" style="width: {{ probability }}%"></div>
+                    {{ probability|floatformat:2 }}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="section-title">Detected Symptoms</div>
+    <ul class="symptoms-list">
+        {% for symptom in analysis.symptoms_detected %}
+            <li>{{ symptom }}</li>
+        {% endfor %}
+    </ul>
+
+    <div class="section-title">Recommendation</div>
+    <div class="recommendation-box">
+        {{ recommendation }}
+    </div>
+
+    <div class="footer">
+        <p>Generated on: {{ generated_date }}</p>
+        <p>FeatherFarm Solutions - Poultry Health Management System</p>
+    </div>
+</body>
+</html> 

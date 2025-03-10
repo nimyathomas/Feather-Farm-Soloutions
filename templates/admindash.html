@@ -203,7 +203,7 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo">
-                <i class="fas fa-feather"></i>
+                <i class="fas fa-feather"   id="admin-dashboard"></i>
                 <span>Feather Farm</span>
             </div>
         </div>
@@ -259,7 +259,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'vaccination_main' %}">
+                <a href="{% url 'vaccination_main' %}" id="vaccination-link">
                     <i class="fas fa-syringe"></i>
                     <span>Vaccinations</span>
                 </a>
@@ -271,7 +271,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'stakeholder_payments' %}">
+                <a href="{% url 'stakeholder_payments' %}"  id="payment-link" >
                     <i class="fas fa-trash"></i>
                     <span>Payments</span>
                 </a>
@@ -283,7 +283,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'admin_chat_view' %}" class="{% if request.path == '/admin-chat/' %}active{% endif %}">
+                <a href="{% url 'admin_chat_view' %}" id="chat-link"  class="{% if request.path == '/admin-chat/' %}active{% endif %}">
                     <i class="fas fa-comments"></i>
                     <span>Chat with Farm Owners</span>
                 </a>

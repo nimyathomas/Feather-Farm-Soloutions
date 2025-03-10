@@ -1,0 +1,180 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="card shadow w-100">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Disease Analysis Details</h4>
+        </div>
+        <div class="card-body">
+            <!-- Analysis Info Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card w-100">
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Left side - Image -->
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        {% if analysis.image %}
+                                            <img src="{{ analysis.image.url }}" class="img-fluid rounded" style="max-height: 300px;">
+                                        {% else %}
+                                            <div class="alert alert-warning">No image available</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Right side - Analysis Information -->
+                                <div class="col-md-9">
+                                    <h5>Analysis Information</h5>
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <th style="width: 20%">Analysis Date:</th>
+                                            <td style="width: 30%">{{ analyzed_date }}</td>
+                                            <th style="width: 20%">Batch:</th>
+                                            <td style="width: 30%">{{ batch_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Health Status:</th>
+                                            <td>
+                                                {% if health_status == "Healthy" %}
+                                                    <span class="badge bg-success">{{ health_status }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">{{ health_status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <th>Predicted Disease:</th>
+                                            <td>{{ analysis.predicted_disease }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Confidence:</th>
+                                            <td>{{ analysis.confidence_score|floatformat:2 }}%</td>
+                                            <th>Severity:</th>
+                                            <td>
+                                                {% if analysis.severity == "Low" %}
+                                                    <span class="badge bg-info">{{ analysis.severity }}</span>
+                                                {% elif analysis.severity == "Medium" %}
+                                                    <span class="badge bg-warning">{{ analysis.severity }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">{{ analysis.severity }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disease Probabilities and Symptoms Row -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card w-100">
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Disease Probabilities -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3">Disease Probabilities</h5>
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30%">Disease</th>
+                                                <th style="width: 70%">Probability</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for disease, probability in all_probabilities.items %}
+                                            <tr>
+                                                <td>{{ disease }}</td>
+                                                <td>
+                                                    <div class="progress">
+                                                        <div class="progress-bar" role="progressbar" 
+                                                             style="width: {{ probability }}%;" 
+                                                             aria-valuenow="{{ probability }}" 
+                                                             aria-valuemin="0" 
+                                                             aria-valuemax="100">
+                                                            {{ probability|floatformat:2 }}%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Detected Symptoms -->
+                                <div class="col-md-6">
+                                    <h5 class="mb-3">Detected Symptoms</h5>
+                                    {% if analysis.symptoms_detected %}
+                                        <ul class="list-group">
+                                            {% for symptom in analysis.symptoms_detected %}
+                                                <li class="list-group-item">{{ symptom }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-muted">No symptoms detected</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendation Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card w-100">
+                        <div class="card-body">
+                            <h5 class="mb-3">Recommendation</h5>
+                            <p class="lead mb-0">{{ recommendation }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Back Button -->
+            <div class="row">
+                <div class="col-12">
+                    <a href="{% url 'chick_health_recognition' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Analysis List
+                    </a>
+                    <a href="{% url 'analysis_report' analysis.id %}" class="btn btn-primary ms-2">
+                        <i class="fas fa-download"></i> Download Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .progress {
+        height: 25px;
+    }
+    .progress-bar {
+        line-height: 25px;
+        background-color: #0d6efd;
+    }
+    .table th {
+        background-color: #f8f9fa;
+    }
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %} 

@@ -864,40 +864,88 @@ def tips(request):
 @login_required
 
 # views.py
-
 def forum_dashboard(request, post_id=None):
     posts = Post.objects.all().order_by("-created_at")  # Fetch all posts
-
+    
     selected_post = None
     comments = None
-
+    
     # If a specific post is selected for chat
     if post_id:
         selected_post = get_object_or_404(Post, id=post_id)
         comments = Comment.objects.filter(post=selected_post).order_by("created_at")
-
+    
     if request.method == "POST":
-        if "post_title" in request.POST:  # Handle new post
-            title = request.POST.get("post_title")
-            content = request.POST.get("post_content")
-            Post.objects.create(title=title, content=content, owner=request.user)
-            return redirect(
-                "forum_dashboard"
-            )  # Redirect to forum page after creating a post
-
-        elif "comment_content" in request.POST:  # Handle new comment
-            content = request.POST.get("comment_content")
-            Comment.objects.create(
-                content=content, post=selected_post, owner=request.user
-            )
-            return redirect("forum_dashboard", post_id=post_id)  # Stay on the same chat
-
+        # Check if it's JSON data
+        if request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+                
+                if "post_title" in data:  # Handle new post
+                    title = data.get("post_title")
+                    content = data.get("post_content")
+                    category = data.get("post_category", "general")
+                    
+                    Post.objects.create(
+                        title=title, 
+                        content=content, 
+                        owner=request.user,
+                        category=category
+                    )
+                    return JsonResponse({"success": True})
+                    
+                elif "comment_content" in data:  # Handle new comment
+                    content = data.get("comment_content")
+                    Comment.objects.create(
+                        content=content, 
+                        post=selected_post, 
+                        owner=request.user
+                    )
+                    return JsonResponse({"success": True})
+                    
+            except json.JSONDecodeError:
+                return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+        
+        # Handle form submissions (non-AJAX)
+        else:
+            if "post_title" in request.POST:  # Handle new post
+                title = request.POST.get("post_title")
+                content = request.POST.get("post_content")
+                category = request.POST.get("post_category", "general")
+                
+                Post.objects.create(
+                    title=title, 
+                    content=content, 
+                    owner=request.user,
+                    category=category
+                )
+                return redirect("forum_dashboard")
+                
+            elif "comment_content" in request.POST:  # Handle new comment
+                content = request.POST.get("comment_content")
+                Comment.objects.create(
+                    content=content, 
+                    post=selected_post, 
+                    owner=request.user
+                )
+                return redirect("forum_dashboard", post_id=post_id)
+    
+    # Fix the context to include all necessary data
     context = {
         "posts": posts,
         "selected_post": selected_post,
         "comments": comments,
+        "current_category": request.GET.get('category', 'all'),
+        "category_counts": {
+            "all": posts.count(),
+            "fcr": posts.filter(category='fcr').count(),
+            "health": posts.filter(category='health').count(),
+            "best_practices": posts.filter(category='best_practices').count(),
+        }
     }
-    return render(request, "forum/forum_dashboard.html", {"posts": posts})
+    
+    # Return the correct context
+    return render(request, "forum/forum_dashboard.html", context)
 
 
 
@@ -2732,7 +2780,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import ChickBatch, GrowthPrediction
+from .models import ChickBatch, GrowthPrediction,DailyData
 from .prediction_system import ChickGrowthPredictor
 from datetime import datetime
 
@@ -2769,29 +2817,58 @@ def predict_weight(request):
             # Validate batch exists and belongs to user
             batch = ChickBatch.objects.get(id=batch_id, user=request.user)
             
+            # Check if prediction for this day already exists
+            existing_prediction = GrowthPrediction.objects.filter(
+                batch=batch,
+                day_number=prediction_data['day_number']
+            ).first()
+            
             # Initialize predictor
             predictor = ChickGrowthPredictor()
             
             # Make prediction
             prediction_result = predictor.predict(prediction_data)
             
-            # Save prediction to database
-            GrowthPrediction.objects.create(
-                batch=batch,
-                day_number=prediction_data['day_number'],
-                feed_consumed=prediction_data['feed_taken'],
-                water_consumed=prediction_data['water_taken'],
-                temperature=prediction_data['temperature'],
-                alive_count=prediction_data['alive_count'],
-                predicted_weight=prediction_result['predicted_weight'],
-                actual_weight=prediction_data['actual_weight'] if prediction_data['actual_weight'] else None,
-                weight_difference=prediction_result['weight_difference'],
-                growth_status=prediction_result['growth_status']
-            )
+            if existing_prediction:
+                # Update existing prediction
+                existing_prediction.feed_consumed = prediction_data['feed_taken']
+                existing_prediction.water_consumed = prediction_data['water_taken']
+                existing_prediction.temperature = prediction_data['temperature']
+                existing_prediction.alive_count = prediction_data['alive_count']
+                existing_prediction.predicted_weight = prediction_result['predicted_weight']
+                existing_prediction.actual_weight = prediction_data['actual_weight'] if prediction_data['actual_weight'] else None
+                existing_prediction.weight_difference = prediction_result['weight_difference']
+                existing_prediction.growth_status = prediction_result['growth_status']
+                existing_prediction.save()
+            else:
+                # Save new prediction to database
+                GrowthPrediction.objects.create(
+                    batch=batch,
+                    day_number=prediction_data['day_number'],
+                    feed_consumed=prediction_data['feed_taken'],
+                    water_consumed=prediction_data['water_taken'],
+                    temperature=prediction_data['temperature'],
+                    alive_count=prediction_data['alive_count'],
+                    predicted_weight=prediction_result['predicted_weight'],
+                    actual_weight=prediction_data['actual_weight'] if prediction_data['actual_weight'] else None,
+                    weight_difference=prediction_result['weight_difference'],
+                    growth_status=prediction_result['growth_status']
+                )
+            
+            # Get historical data for chart
+            predictions = GrowthPrediction.objects.filter(batch=batch).order_by('day_number')
+            history_days = [pred.day_number for pred in predictions]
+            predicted_weights = [pred.predicted_weight for pred in predictions]
+            actual_weights = [pred.actual_weight if pred.actual_weight else None for pred in predictions]
             
             return JsonResponse({
                 'success': True,
-                **prediction_result
+                'predicted_weight': prediction_result['predicted_weight'],
+                'weight_difference': prediction_result['weight_difference'],
+                'growth_status': prediction_result['growth_status'],
+                'history_days': history_days,
+                'predicted_weights': predicted_weights,
+                'actual_weights': actual_weights
             })
             
         except Exception as e:
@@ -2804,24 +2881,68 @@ def predict_weight(request):
 
 @login_required
 def prediction_history(request, batch_id):
-    """API endpoint for batch prediction history"""
     try:
         batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
         predictions = GrowthPrediction.objects.filter(batch=batch).order_by('day_number')
         
-        history = [{
-            'date': pred.date.strftime('%Y-%m-%d'),
-            'day_number': pred.day_number,
-            'predicted_weight': pred.predicted_weight,
-            'actual_weight': pred.actual_weight,
-            'weight_difference': pred.weight_difference,
-            'growth_status': pred.growth_status
-        } for pred in predictions]
+        history = []
+        for pred in predictions:
+            history.append({
+                'date': pred.date.strftime('%Y-%m-%d'),
+                'day_number': pred.day_number,
+                'predicted_weight': float(pred.predicted_weight),
+                'actual_weight': float(pred.actual_weight) if pred.actual_weight else None,
+                'weight_difference': float(pred.weight_difference) if pred.weight_difference else None,
+                'growth_status': pred.growth_status
+            })
         
         return JsonResponse({
             'success': True,
             'history': history
         })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+        
+@login_required
+def day_prediction(request, batch_id, day_number):
+    """API endpoint for fetching prediction data for a specific day"""
+    try:
+        batch = get_object_or_404(ChickBatch, id=batch_id, user=request.user)
+        
+        # Try to find prediction for this day
+        prediction = GrowthPrediction.objects.filter(
+            batch=batch,
+            day_number=day_number
+        ).first()
+        
+        if not prediction:
+            return JsonResponse({
+                'success': True,
+                'prediction': None
+            })
+        
+        # Return prediction data
+        prediction_data = {
+            'date': prediction.date.strftime('%Y-%m-%d'),
+            'day_number': prediction.day_number,
+            'predicted_weight': prediction.predicted_weight,
+            'actual_weight': prediction.actual_weight,
+            'weight_difference': prediction.weight_difference,
+            'growth_status': prediction.growth_status,
+            'feed_consumed': prediction.feed_consumed,
+            'water_consumed': prediction.water_consumed,
+            'temperature': prediction.temperature,
+            'alive_count': prediction.alive_count
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'prediction': prediction_data
+        })
+        
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -3631,7 +3752,16 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
 from django.shortcuts import get_object_or_404
 from datetime import datetime
-
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch, cm
+from io import BytesIO
+from datetime import datetime
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
+import os
 def generate_bill(request, batch_id):
     try:
         # Get the batch and related data
@@ -3640,14 +3770,14 @@ def generate_bill(request, batch_id):
         # Create a file-like buffer to receive PDF data
         buffer = BytesIO()
         
-        # Set up the PDF document
+        # Set up the PDF document with smaller margins
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72
+            rightMargin=30,
+            leftMargin=30,
+            topMargin=30,
+            bottomMargin=30
         )
         
         # Container for the 'Flowable' objects
@@ -3659,104 +3789,208 @@ def generate_bill(request, batch_id):
             'CustomTitle',
             parent=styles['Heading1'],
             fontSize=24,
-            spaceAfter=30
+            spaceAfter=20,
+            textColor=colors.HexColor('#1a237e')
         )
         
-        # Add the letterhead
-        elements.append(Paragraph("Feather Farm Solutions", title_style))
-        elements.append(Paragraph(f"Bill Date: {datetime.now().strftime('%Y-%m-%d')}", styles['Normal']))
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=12,
+            textColor=colors.HexColor('#666666')
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#1a237e'),
+            spaceAfter=10
+        )
+
+        # Add header information
+        header_data = [
+            [Paragraph("Feather Farm Solutions", title_style), 
+             Paragraph(f"Bill #{batch.id}", heading_style)],
+            [Paragraph("FCR and Payment Statement", subtitle_style),
+             Paragraph(f"Date: {datetime.now().strftime('%B %d, %Y')}", styles['Normal'])]
+        ]
+        
+        header_table = Table(header_data, colWidths=[doc.width/2]*2)
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(header_table)
         elements.append(Spacer(1, 20))
         
-        # Add batch information
-        elements.append(Paragraph(f"Batch Details", styles['Heading2']))
-        batch_data = [
-            ["Batch ID:", str(batch.id)],
+        # Farm and Batch Details in two columns
+        farm_data = [
             ["Farm Name:", batch.farm.name],
-            ["Batch Date:", batch.batch_date.strftime("%Y-%m-%d")],
+            ["Farm Owner:", batch.farm.owner.get_full_name()],  # Changed from stakeholder to farm owner
+            ["Contact:", batch.farm.owner.email or "N/A"]  # Changed from stakeholder to farm owner
+        ]
+        
+        batch_data = [
+            ["Batch Date:", batch.batch_date.strftime("%B %d, %Y")],
             ["Duration:", f"{batch.duration} days"],
-            ["Status:", batch.batch_status]
+            ["Status:", batch.batch_status.title()]
         ]
         
-        batch_table = Table(batch_data, colWidths=[150, 300])
-        batch_table.setStyle(TableStyle([
+        details_data = [[
+            Table(farm_data, colWidths=[100, 150], 
+                  style=[('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#666666')),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 8)]),
+            Table(batch_data, colWidths=[100, 150],
+                  style=[('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#666666')),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 8)])
+        ]]
+        
+        details_table = Table(details_data, colWidths=[doc.width/2]*2)
+        details_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
+            ('PADDING', (0, 0), (-1, -1), 15),
+        ]))
+        elements.append(details_table)
+        elements.append(Spacer(1, 20))
+        
+        # FCR Metrics in a visually appealing format
+        elements.append(Paragraph("Performance Metrics", heading_style))
+        
+        fcr_color = colors.green if batch.actual_fcr <= 1.7 else \
+                    colors.orange if batch.actual_fcr <= 1.9 else colors.red
+                    
+        mortality_color = colors.green if batch.mortality_rate <= 5 else \
+                         colors.orange if batch.mortality_rate <= 8 else colors.red
+        
+        metrics_data = [[
+            Paragraph(f"<font size=14><b>{batch.actual_fcr:.2f}</b></font><br/>FCR",
+                     ParagraphStyle('Metric', alignment=1, textColor=fcr_color)),
+            Paragraph(f"<font size=14><b>{batch.mortality_rate:.1f}%</b></font><br/>Mortality Rate",
+                     ParagraphStyle('Metric', alignment=1, textColor=mortality_color)),
+            Paragraph(f"<font size=14><b>{batch.total_feed_sacks}</b></font><br/>Feed Sacks",
+                     ParagraphStyle('Metric', alignment=1))
+        ]]
+        
+        metrics_table = Table(metrics_data, colWidths=[doc.width/3]*3)
+        metrics_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('PADDING', (0, 0), (-1, -1), 20),
+        ]))
+        elements.append(metrics_table)
+        elements.append(Spacer(1, 20))
+        
+        # Batch Statistics
+        elements.append(Paragraph("Batch Statistics", heading_style))
+        stats_data = [
+            ["Initial Count:", str(batch.initial_chick_count)],
+            ["Current Count:", str(batch.live_chick_count)],
+            ["Total Feed Used:", f"{batch.total_feed_sacks} sacks"],
+            ["Target FCR:", f"{batch.target_fcr:.2f}"],
+            ["Actual FCR:", f"{batch.actual_fcr:.2f}"]
+        ]
+        
+        stats_table = Table(stats_data, colWidths=[doc.width/2]*2)
+        stats_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 12),
-            ('GRID', (0, 0), (-1, -1), 1, colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#666666')),
             ('PADDING', (0, 0), (-1, -1), 6),
         ]))
-        elements.append(batch_table)
+        elements.append(stats_table)
         elements.append(Spacer(1, 20))
         
-        # Add FCR metrics
-        elements.append(Paragraph("FCR Metrics", styles['Heading2']))
-        fcr_data = [
-            ["Metric", "Value"],
-            ["FCR", f"{batch.actual_fcr:.2f}"],
-            ["Total Feed Consumed", f"{batch.total_feed_sacks} sacks"],
-            ["Initial Count", str(batch.initial_chick_count)],
-            ["Current Count", str(batch.live_chick_count)],
-            ["Mortality Rate", f"{batch.mortality_rate:.2f}%"]
-        ]
+        # Payment Details with improved styling
+        elements.append(Paragraph("Payment Details", heading_style))
         
-        fcr_table = Table(fcr_data, colWidths=[200, 250])
-        fcr_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('PADDING', (0, 0), (-1, -1), 6),
-        ]))
-        elements.append(fcr_table)
-        elements.append(Spacer(1, 20))
+        # Calculate bonuses and penalties
+        fcr_bonus = calculate_fcr_bonus(batch)
+        mortality_penalty = calculate_mortality_penalty(batch)
+        total_payment = batch.stakeholder_payment + fcr_bonus - mortality_penalty
         
-        # Add payment details
-        elements.append(Paragraph("Payment Details", styles['Heading2']))
         payment_data = [
-            ["Item", "Amount (₹)"],
-            ["Base Payment", f"{batch.stakeholder_payment:.2f}"],
-            ["Total Payment", f"{batch.stakeholder_payment:.2f}"]
+            ["Base Payment", f"₹{batch.stakeholder_payment:,.2f}"],
+            ["FCR Bonus", f"+₹{fcr_bonus:,.2f}" if fcr_bonus > 0 else "₹0.00"],
+            ["Mortality Penalty", f"-₹{mortality_penalty:,.2f}" if mortality_penalty > 0 else "₹0.00"],
+            ["Total Payment", f"₹{total_payment:,.2f}"]
         ]
         
-        payment_table = Table(payment_data, colWidths=[250, 200])
+        payment_table = Table(payment_data, colWidths=[doc.width/2]*2)
         payment_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('PADDING', (0, 0), (-1, -1), 6),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#666666')),
+            ('TEXTCOLOR', (1, -1), (1, -1), colors.HexColor('#1a237e')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 12),
+            ('TOPPADDING', (-1, -1), (-1, -1), 10),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor('#dddddd')),
         ]))
         elements.append(payment_table)
         
-        # Add footer
-        elements.append(Spacer(1, 40))
-        elements.append(Paragraph("This is a computer-generated document. No signature required.", 
-                               ParagraphStyle('Footer', fontSize=10, textColor=colors.grey)))
+        # Add footer with terms
+        elements.append(Spacer(1, 30))
+        terms_style = ParagraphStyle(
+            'Terms',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#666666'),
+            alignment=1
+        )
+        elements.append(Paragraph("Terms & Conditions:", terms_style))
+        elements.append(Paragraph("• FCR Bonus is awarded for FCR below 1.7", terms_style))
+        elements.append(Paragraph("• Mortality Penalty applies for mortality rates above 5%", terms_style))
+        elements.append(Paragraph("• Payment will be processed within 7 working days", terms_style))
+        
+        elements.append(Spacer(1, 20))
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.HexColor('#999999'),
+            alignment=1
+        )
+        elements.append(Paragraph("This is a computer-generated document. No signature required.", footer_style))
         
         # Build the PDF document
         doc.build(elements)
         
-        # FileResponse sets the Content-Disposition header so that browsers
-        # present the option to save the file.
+        # FileResponse sets the Content-Disposition header
         buffer.seek(0)
         return FileResponse(
             buffer, 
             as_attachment=True, 
-            filename=f'bill_batch_{batch_id}.pdf'
+            filename=f'FFS_Bill_{batch.id}_{datetime.now().strftime("%Y%m%d")}.pdf'
         )
         
     except Exception as e:
         print(f"Error generating bill: {str(e)}")
+        import traceback
+        traceback.print_exc()  # This will print the full error traceback
         return HttpResponse(status=500)
-    
+
+def calculate_fcr_bonus(batch):
+    # Implement your FCR bonus calculation logic
+    if batch.actual_fcr <= 1.7:
+        return 1000  # Example bonus
+    return 0
+
+def calculate_mortality_penalty(batch):
+    # Implement your mortality penalty calculation logic
+    if batch.mortality_rate > 5:
+        return 500  # Example penalty
+    return 0
+
+
 import csv
 from django.http import HttpResponse
 import xlsxwriter
@@ -3871,6 +4105,19 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import DiseaseAnalysis, ChickBatch, Farm
+from django.db import IntegrityError
+from .models import FeedMonitoring, ChickBatch, DiseaseAnalysis, FeedCalculator
+# ... other existing imports ...
+
+# Add these imports
+import cv2
+from skimage import feature
+import numpy as np
+from PIL import Image
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 class DiseasePredictor:
     def __init__(self):
@@ -4001,11 +4248,13 @@ except Exception as e:
     print(f"Failed to initialize DiseasePredictor: {str(e)}")
     predictor = None
 
+
+
 @login_required
 def chick_health_recognition(request):
     if request.method == 'POST':
         try:
-            # Get batch and image from request
+            print("\n=== Processing Analysis Request ===")
             batch_id = request.POST.get('batch_id')
             image_file = request.FILES.get('image')
             
@@ -4015,29 +4264,144 @@ def chick_health_recognition(request):
                     'error': 'Please provide both batch and image'
                 })
             
-            # Get batch instance
             batch = ChickBatch.objects.get(id=batch_id, user=request.user)
             
-            # Make prediction
-            prediction = predictor.predict(image_file)
+            # Process image and get predictions
+            image = Image.open(image_file)
+            processed_image = image.resize((128, 128))
+            img_array = np.array(processed_image, dtype=np.uint8)
+            model_input = img_array.astype('float32') / 255.0
+            model_input = np.expand_dims(model_input, axis=0)
             
-            # Save analysis
+            # Get predictions from both models
+            print("Getting predictions from both models...")
+            cnn_pred = predictor.cnn_model.predict(model_input, verbose=0)
+            mobilenet_pred = predictor.mobilenet_model.predict(model_input, verbose=0)
+            
+            # Weighted ensemble
+            ensemble_pred = (0.45 * cnn_pred + 0.55 * mobilenet_pred)
+            predicted_class_idx = np.argmax(ensemble_pred[0])
+            confidence = float(ensemble_pred[0][predicted_class_idx] * 100)
+            predicted_disease = predictor.class_names[predicted_class_idx]
+            
+            
+            # Calculate all probabilities
+            all_probabilities = {
+                class_name: float(prob * 100)
+                for class_name, prob in zip(predictor.class_names, ensemble_pred[0])
+            }
+            
+            print(f"Predicted disease: {predicted_disease} with confidence: {confidence}%")
+            
+            # Detect symptoms
+            symptoms = []
+            try:
+                # Convert to HSV for color analysis
+                cv_image = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+                img_hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+                
+                # Check for inflammation (redness)
+                red_mask = cv2.inRange(img_hsv, 
+                                     np.array([0, 70, 50]), 
+                                     np.array([10, 255, 255]))
+                red_ratio = np.sum(red_mask) / red_mask.size
+                if red_ratio > 0.1:
+                    symptoms.append("Inflammation detected")
+                    print("Symptom: Inflammation detected")
+                
+                # Check for lesions (dark spots)
+                gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+                dark_spots = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY)[1]
+                dark_ratio = np.sum(dark_spots == 0) / dark_spots.size
+                if dark_ratio > 0.15:
+                    symptoms.append("Lesions detected")
+                    print("Symptom: Lesions detected")
+                
+                # Check feather condition
+                edges = cv2.Canny(gray, 100, 200)
+                edge_density = np.sum(edges) / edges.size
+                if edge_density > 0.1:
+                    symptoms.append("Abnormal feather pattern")
+                    print("Symptom: Abnormal feather pattern")
+                
+            except Exception as e:
+                print(f"Symptom detection error: {str(e)}")
+                symptoms.append("Symptom detection unavailable")
+            
+            # Calculate severity
+            severity_score = 0
+            if confidence > 90:
+                severity_score += 40
+            elif confidence > 75:
+                severity_score += 30
+            elif confidence > 60:
+                severity_score += 20
+            
+            symptom_weight = 60 / 3
+            severity_score += len(symptoms) * symptom_weight
+            
+            if severity_score >= 80:
+                severity = "High"
+            elif severity_score >= 50:
+                severity = "Medium"
+            else:
+                severity = "Low"
+            
+            print(f"Severity: {severity} (Score: {severity_score})")
+            
+            # Get recommendations
+            recommendations = {
+                'Coccidiosis': {
+                    'Low': "Monitor closely. Consider preventive coccidiostat treatment.",
+                    'Medium': "Begin immediate treatment with appropriate coccidiostat. Isolate affected birds.",
+                    'High': "Urgent veterinary attention needed. Intensive treatment required."
+                },
+                'New Castle Disease': {
+                    'Low': "Increase biosecurity measures. Monitor for respiratory symptoms.",
+                    'Medium': "Isolate affected birds. Begin supportive care and contact vet.",
+                    'High': "Emergency veterinary intervention required. High risk of spread."
+                },
+                'Salmonella': {
+                    'Low': "Enhance hygiene protocols. Monitor water quality.",
+                    'Medium': "Begin antibiotic treatment as prescribed. Isolate affected birds.",
+                    'High': "Urgent veterinary care needed. Risk of flock infection high."
+                },
+                'Healthy': {
+                    'Low': "Continue regular health monitoring and maintenance.",
+                    'Medium': "Increase monitoring frequency. Check environmental conditions.",
+                    'High': "Despite healthy diagnosis, symptoms suggest further investigation."
+                }
+            }
+            
+            recommendation = recommendations.get(predicted_disease, {}).get(severity, 
+                "Please consult a veterinarian for proper diagnosis and treatment.")
+            
+            # Create analysis record
             analysis = DiseaseAnalysis.objects.create(
                 batch=batch,
                 image=image_file,
-                predicted_disease=prediction['disease'],
-                confidence_score=prediction['confidence']
+                predicted_disease=predicted_disease,
+                confidence_score=confidence,
+                all_probabilities=all_probabilities,
+                severity=severity,
+                symptoms_detected=symptoms
             )
             
             return JsonResponse({
                 'success': True,
-                'disease': prediction['disease'],
-                'confidence': prediction['confidence'],
+                'disease': predicted_disease,
+                'confidence': confidence,
                 'image_url': analysis.image.url,
-                'all_probabilities': prediction['all_probabilities']
+                'all_probabilities': all_probabilities,
+                'severity': severity,
+                'symptoms': symptoms,
+                'recommendation': recommendation
             })
             
         except Exception as e:
+            print(f"Error in analysis: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({
                 'success': False,
                 'error': str(e)
@@ -4048,47 +4412,145 @@ def chick_health_recognition(request):
         batches = ChickBatch.objects.filter(user=request.user, batch_status='active')
         analyses = DiseaseAnalysis.objects.filter(batch__user=request.user).order_by('-analyzed_date')
         
-        # Get all analyses for metrics
-        all_analyses = DiseaseAnalysis.objects.all()
-        
-        # Use the same class order as in DiseasePredictor
-        class_names = ['Coccidiosis', 'Healthy', 'New Castle Disease', 'Salmonella']
-        y_true = []
-        y_pred = []
-        
-        for analysis in all_analyses:
-            # Convert disease names to numerical labels
-            true_label = class_names.index(analysis.predicted_disease)
-            y_true.append(true_label)
-            y_pred.append(true_label)  # For now, using same as true label
-        
-        # Calculate metrics
-        if len(y_true) > 0:
-            metrics = {
-                'accuracy': accuracy_score(y_true, y_pred),
-                'precision': precision_score(y_true, y_pred, average='weighted', zero_division=0),
-                'recall': recall_score(y_true, y_pred, average='weighted', zero_division=0),
-                'f1': f1_score(y_true, y_pred, average='weighted', zero_division=0)
-            }
-        else:
-            metrics = {
-                'accuracy': 0,
-                'precision': 0,
-                'recall': 0,
-                'f1': 0
-            }
-        
-        context = {
+        return render(request, 'chick_health_recognition.html', {
             'batches': batches,
-            'analyses': analyses,
-            'metrics': metrics
-        }
-        return render(request, 'chick_health_recognition.html', context)
+            'analyses': analyses
+        })
         
     except Exception as e:
         messages.error(request, f"Error: {str(e)}")
-        return redirect('stakeholder_dashboard')
+        return redirect('stakeholder')
+from django.http import JsonResponse
+@login_required
+def analysis_details_page(request, analysis_id):
+    try:
+        analysis = DiseaseAnalysis.objects.get(id=analysis_id)
+        
+        # Define recommendations dictionary
+        recommendations = {
+            'Coccidiosis': {
+                'Low': "Monitor closely. Consider preventive coccidiostat treatment.",
+                'Medium': "Begin immediate treatment with appropriate coccidiostat. Isolate affected birds.",
+                'High': "Urgent veterinary attention needed. Intensive treatment required."
+            },
+            'New Castle Disease': {
+                'Low': "Increase biosecurity measures. Monitor for respiratory symptoms.",
+                'Medium': "Isolate affected birds. Begin supportive care and contact vet.",
+                'High': "Emergency veterinary intervention required. High risk of spread."
+            },
+            'Salmonella': {
+                'Low': "Enhance hygiene protocols. Monitor water quality.",
+                'Medium': "Begin antibiotic treatment as prescribed. Isolate affected birds.",
+                'High': "Urgent veterinary care needed. Risk of flock infection high."
+            },
+            'Healthy': {
+                'Low': "Continue regular health monitoring and maintenance.",
+                'Medium': "Increase monitoring frequency. Check environmental conditions.",
+                'High': "Despite healthy diagnosis, symptoms suggest further investigation."
+            }
+        }
+        
+        # Get recommendation based on disease and severity
+        recommendation = recommendations.get(analysis.predicted_disease, {}).get(
+            analysis.severity, 
+            "Please consult a veterinarian for proper diagnosis and treatment."
+        )
+        
+        # Determine health status
+        health_status = "Healthy" if analysis.predicted_disease == "Healthy" else "Unhealthy"
+        
+        # Use batch ID instead of name
+        batch_id = analysis.batch.id if analysis.batch else "Unknown"
+        
+        context = {
+            'analysis': analysis,
+            'recommendation': recommendation,
+            'health_status': health_status,
+            'analyzed_date': analysis.analyzed_date,
+            'batch_name': f"Batch #{batch_id}",  # Use ID instead of name
+            'all_probabilities': analysis.all_probabilities if hasattr(analysis, 'all_probabilities') else {},
+        }
+        
+        return render(request, 'analysis_details.html', context)
+        
+    except DiseaseAnalysis.DoesNotExist:
+        messages.error(request, "Analysis not found.")
+        return redirect('chick_health_recognition')
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('chick_health_recognition')
 
+
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
+from datetime import datetime
+
+@login_required
+def generate_analysis_report(request, analysis_id):
+    try:
+        analysis = DiseaseAnalysis.objects.get(id=analysis_id)
+        
+        # Get recommendations dictionary
+        recommendations = {
+            'Coccidiosis': {
+                'Low': "Monitor closely. Consider preventive coccidiostat treatment.",
+                'Medium': "Begin immediate treatment with appropriate coccidiostat. Isolate affected birds.",
+                'High': "Urgent veterinary attention needed. Intensive treatment required."
+            },
+            'New Castle Disease': {
+                'Low': "Increase biosecurity measures. Monitor for respiratory symptoms.",
+                'Medium': "Isolate affected birds. Begin supportive care and contact vet.",
+                'High': "Emergency veterinary intervention required. High risk of spread."
+            },
+            'Salmonella': {
+                'Low': "Enhance hygiene protocols. Monitor water quality.",
+                'Medium': "Begin antibiotic treatment as prescribed. Isolate affected birds.",
+                'High': "Urgent veterinary care needed. Risk of flock infection high."
+            },
+            'Healthy': {
+                'Low': "Continue regular health monitoring and maintenance.",
+                'Medium': "Increase monitoring frequency. Check environmental conditions.",
+                'High': "Despite healthy diagnosis, symptoms suggest further investigation."
+            }
+        }
+        
+        # Get recommendation
+        recommendation = recommendations.get(analysis.predicted_disease, {}).get(
+            analysis.severity, 
+            "Please consult a veterinarian for proper diagnosis and treatment."
+        )
+        
+        # Prepare context
+        context = {
+            'analysis': analysis,
+            'recommendation': recommendation,
+            'health_status': "Healthy" if analysis.predicted_disease == "Healthy" else "Unhealthy",
+            'analyzed_date': analysis.analyzed_date,
+            'batch_name': f"Batch #{analysis.batch.id}",
+            'all_probabilities': analysis.all_probabilities,
+            'generated_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        # Render template
+        template = get_template('pdf_report.html')
+        html = template.render(context)
+        
+        # Create PDF
+        result = BytesIO()
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+        
+        if not pdf.err:
+            response = HttpResponse(result.getvalue(), content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="analysis_report_{analysis_id}.pdf"'
+            return response
+        
+        return HttpResponse("Error generating PDF", status=500)
+        
+    except DiseaseAnalysis.DoesNotExist:
+        return HttpResponse("Analysis not found", status=404)
 @login_required
 def provide_feedback(request, analysis_id):
     if request.method == 'POST':
@@ -4098,3 +4560,128 @@ def provide_feedback(request, analysis_id):
         analysis.save()
         return JsonResponse({'success': True})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+from hoteldetails.models import Order
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+import traceback
+from django.utils.html import strip_tags  # Import strip_tags here
+from smtplib import SMTPException  # Import SMTPException here
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+@login_required
+def stakeholder_order_dashboard(request):
+    # Debug: Print current user
+    print(f"Current user: {request.user}")
+    
+    # Get all orders for the stakeholder's farm
+    all_orders = Order.objects.filter(batch__farm__owner=request.user)
+    print(f"Total orders found: {all_orders.count()}")
+    
+    # Debug: Print all orders details
+    for order in all_orders:
+        print(f"Order #{order.id}: Status={order.status}, User={order.user}")
+    
+    orders_by_status = {
+        'all': all_orders,
+        'pending': all_orders.filter(status='pending'),
+        'confirmed': all_orders.filter(status='confirmed'),
+        'out_for_delivery': all_orders.filter(status='out_for_delivery'),
+        'delivered': all_orders.filter(status='delivered'),
+        'rejected': all_orders.filter(status='rejected')
+    }
+    
+    # Debug: Print counts for each status
+    for status, queryset in orders_by_status.items():
+        print(f"{status} orders count: {queryset.count()}")
+        if queryset.exists():
+            print(f"Sample {status} order IDs: {list(queryset.values_list('id', flat=True))}")
+    
+    context = {
+        'orders': orders_by_status,
+    }
+    
+    # Debug: Print context data
+    print("Context data:")
+    for status, orders in orders_by_status.items():
+        print(f"{status}: {orders.count()} orders")
+    
+    return render(request, 'order_dashboard.html', context)
+
+@login_required
+@require_POST
+def update_delivery_status(request, order_id):
+    try:
+        order = get_object_or_404(Order, id=order_id, batch__farm__owner=request.user)
+        print(f"\n=== Starting Delivery Process ===")
+        print(f"Processing order #{order.id}")
+        
+        if request.POST.get('action') == 'start_delivery':
+            try:
+                # Get hotel name
+                hotel_user = order.user.hotel_users.first()
+                hotel_name = hotel_user.hotel_name if hotel_user else "Valued Customer"
+                print(f"Hotel Name: {hotel_name}")
+                print(f"Customer Email: {order.user.email}")
+
+                # Update order status first
+                order.status = 'out_for_delivery'
+                order.save()
+                print(f"Order status updated to: {order.status}")
+
+                # Prepare email content
+                subject = f'Order #{order.id} Delivery Started'
+                context = {
+                    'order': order,
+                    'hotel_name': hotel_name,
+                    'delivery_date': order.delivery_date,
+                    'one_kg_count': order.one_kg_count,
+                    'two_kg_count': order.two_kg_count,
+                    'three_kg_count': order.three_kg_count,
+                    'total_price': order.price,
+                }
+                
+                # Sending email
+                try:
+                    html_message = render_to_string('emails/delivery_started.html', context)
+                    plain_message = strip_tags(html_message)
+                    
+                    send_mail(
+                        subject=subject,
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[order.user.email],
+                        html_message=html_message,
+                        fail_silently=True  # Prevents exceptions from being raised
+                    )
+                    print("Delivery notification email sent successfully!")
+                    messages.success(request, f'Started delivery for order #{order.id} and notification sent')
+                    
+                except Exception as email_error:
+                    logger.error(f"Email notification failed: {str(email_error)}")
+                    messages.warning(request, f'Email notification failed: {str(email_error)}')
+
+            except Exception as e:
+                print(f"\n=== Process Error ===")
+                print(f"Error Type: {type(e).__name__}")
+                print(f"Error Message: {str(e)}")
+                traceback.print_exc()
+                messages.warning(request, 'Order status updated but email notification failed')
+
+    except Exception as e:
+        print(f"\n=== View Error ===")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {str(e)}")
+        traceback.print_exc()
+        messages.error(request, 'Error updating order status')
+
+    return redirect('stakeholder_order_dashboard')
+
+

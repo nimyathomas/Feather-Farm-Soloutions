@@ -269,6 +269,8 @@ urlpatterns = [
     path('growth-prediction/', views.growth_prediction_dashboard, name='growth_prediction_dashboard'),
     path('predict-weight/', views.predict_weight, name='predict_weight'),
     path('prediction-history/<int:batch_id>/', views.prediction_history, name='prediction_history'),
+    path('day-prediction/<int:batch_id>/<int:day_number>/', views.day_prediction, name='day_prediction'),
+    # path('get-batch-alive-count/<int:batch_id>/', views.get_batch_alive_count, name='get_batch_alive_count'),
     
     # ... existing urls ...
 
@@ -317,8 +319,20 @@ urlpatterns = [
     path('export-fcr-data/<str:format>/', views.export_fcr_data, name='export_fcr_data'),
     
     path('chick-health-recognition/', views.chick_health_recognition, name='chick_health_recognition'),
+    # path('analysis/<int:analysis_id>/details/', 
+    #      views.get_analysis_details, 
+    #      name='analysis_details'),
+    path('analysis-details/<int:analysis_id>/', views.analysis_details_page, name='analysis_details'),
+    path('analysis-report/<int:analysis_id>/', views.generate_analysis_report, name='analysis_report'),
+
     #path('provide-feedback/<int:analysis_id>/', views.provide_feedback, name='provide_feedback'),
     
+    # It might look something like this:
+    
+    path('stakeholder/orders/', views.stakeholder_order_dashboard, name='stakeholder_order_dashboard'),
+    path('stakeholder/orders/<int:order_id>/update-delivery/', 
+         views.update_delivery_status, 
+         name='update_delivery_status'),    
 
 
     

@@ -1,0 +1,486 @@
+{% extends 'stakeholder.html' %}
+{% block body %}
+
+<div class="orders-management">
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="stat-card pending">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <h3>Pending</h3>
+                <p>{{ pending_count }} Orders</p>
+            </div>
+        </div>
+        <div class="stat-card approved">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3>Approved</h3>
+                <p>{{ approved_count }} Orders</p>
+            </div>
+        </div>
+        <div class="stat-card delivery">
+            <div class="stat-icon"><i class="fas fa-truck"></i></div>
+            <div class="stat-info">
+                <h3>In Delivery</h3>
+                <p>{{ delivery_count }} Orders</p>
+            </div>
+        </div>
+        <div class="stat-card completed">
+            <div class="stat-icon"><i class="fas fa-flag-checkered"></i></div>
+            <div class="stat-info">
+                <h3>Completed</h3>
+                <p>{{ completed_count }} Orders</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    {% if messages %}
+    <div class="notification-container">
+        {% for message in messages %}
+        <div class="notification {{ message.tags }} animate-fade">
+            <i class="fas fa-info-circle"></i>
+            <span>{{ message }}</span>
+            <button class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Order Management Section -->
+    <div class="order-section">
+        <div class="section-header">
+            <h2><i class="fas fa-list"></i> Order Management</h2>
+            <div class="orders-tabs">
+                <button class="tab-btn active" data-status="all">
+                    <i class="fas fa-list"></i> All
+                    <span class="count-badge">{{ total_count }}</span>
+                </button>
+                <button class="tab-btn" data-status="pending">
+                    <i class="fas fa-clock"></i> Pending
+                    <span class="count-badge">{{ pending_count }}</span>
+                </button>
+                <button class="tab-btn" data-status="approved">
+                    <i class="fas fa-check-circle"></i> Approved
+                    <span class="count-badge">{{ approved_count }}</span>
+                </button>
+                <button class="tab-btn" data-status="out_for_delivery">
+                    <i class="fas fa-truck"></i> In Delivery
+                    <span class="count-badge">{{ delivery_count }}</span>
+                </button>
+                <button class="tab-btn" data-status="delivered">
+                    <i class="fas fa-flag-checkered"></i> Completed
+                    <span class="count-badge">{{ completed_count }}</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="orders-grid">
+            {% for order in orders.all %}
+            <div class="order-card" data-status="{{ order.status }}">
+                <!-- Debug info -->
+                <div style="background: #fff3cd; padding: 5px; margin-bottom: 5px;">
+                    Debug: Order #{{ order.id }} - Status: {{ order.status }}
+                </div>
+                
+                <div class="order-header">
+                    <div class="order-id">
+                        <span class="id-badge">#{{ order.id }}</span>
+                        {% if order.status == 'confirmed' %}
+                        <span class="new-badge pulse">Confirmed!</span>
+                        {% endif %}
+                    </div>
+                    <span class="status-badge {{ order.status }}">
+                        <i class="fas fa-circle"></i>
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="order-content">
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> {{ order.user.phone_number }}</p>
+                    </div>
+
+                    <div class="order-details">
+                        <div class="detail-row">
+                            <span><i class="fas fa-calendar"></i> Order Date:</span>
+                            <span>{{ order.created_at|date:"d M Y" }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><i class="fas fa-truck"></i> Delivery Date:</span>
+                            <span>{{ order.delivery_date|date:"d M Y" }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span><i class="fas fa-weight"></i> Quantity:</span>
+                            <div class="quantity-badges">
+                                {% if order.one_kg_count %}
+                                <span class="quantity-badge">{{ order.one_kg_count }}×1kg</span>
+                                {% endif %}
+                                {% if order.two_kg_count %}
+                                <span class="quantity-badge">{{ order.two_kg_count }}×2kg</span>
+                                {% endif %}
+                                {% if order.three_kg_count %}
+                                <span class="quantity-badge">{{ order.three_kg_count }}×3kg</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <span><i class="fas fa-rupee-sign"></i> Total Price:</span>
+                            <span class="price">₹{{ order.price }}</span>
+                        </div>
+                    </div>
+
+                    {% if order.status == 'confirmed' %}
+                    <div class="order-actions">
+                        <form method="POST" action="{% url 'update_delivery_status' order.id %}">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="start_delivery" class="btn-delivery">
+                                <i class="fas fa-truck"></i> Start Delivery
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-orders">
+                <i class="fas fa-inbox"></i>
+                <p>No orders found</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Dashboard Styles */
+.orders-management {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Stats Overview */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-card.pending .stat-icon { background: #fef3c7; color: #92400e; }
+.stat-card.approved .stat-icon { background: #dcfce7; color: #166534; }
+.stat-card.delivery .stat-icon { background: #dbeafe; color: #1e40af; }
+.stat-card.completed .stat-icon { background: #f3e8ff; color: #6b21a8; }
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #64748b;
+}
+
+.stat-info p {
+    margin: 5px 0 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* Notifications */
+.notification-container {
+    margin-bottom: 30px;
+}
+
+.notification {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification i {
+    margin-right: 10px;
+}
+
+.notification.success { background: #dcfce7; color: #166534; }
+.notification.info { background: #dbeafe; color: #1e40af; }
+.notification.warning { background: #fef3c7; color: #92400e; }
+
+.close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+/* Order Section */
+.order-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-header h2 {
+    margin: 0 0 20px;
+    color: #1e293b;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Tabs */
+.orders-tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: #e2e8f0;
+}
+
+.tab-btn.active {
+    background: #3b82f6;
+    color: white;
+}
+
+.count-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+/* Orders Grid */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.order-header {
+    padding: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-content {
+    padding: 20px;
+}
+
+.contact-info {
+    margin-bottom: 20px;
+}
+
+.contact-info p {
+    margin: 5px 0;
+    color: #64748b;
+}
+
+.order-details {
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #64748b;
+}
+
+.quantity-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.quantity-badge {
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.price {
+    font-weight: bold;
+    color: #10b981;
+}
+
+.status-badge.confirmed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.order-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn-delivery {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-delivery:hover {
+    filter: brightness(110%);
+}
+
+/* Animations */
+@keyframes slideIn {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 1s infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .orders-management {
+        padding: 16px;
+    }
+    
+    .orders-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        flex: 1 1 calc(50% - 8px);
+    }
+    
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const orders = document.querySelectorAll('.order-card');
+
+    // Show confirmed orders by default
+    orders.forEach(order => {
+        if (order.dataset.status === 'confirmed') {
+            order.style.display = 'block';
+        } else {
+            order.style.display = 'none';
+        }
+    });
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const status = tab.dataset.status;
+            
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Filter orders
+            orders.forEach(order => {
+                if (status === 'all' || order.dataset.status === status) {
+                    order.style.display = 'block';
+                } else {
+                    order.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Notification close button
+    const closeButtons = document.querySelectorAll('.notification .close-btn');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const notification = button.closest('.notification');
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+    });
+});
+</script>
+{% endblock %}  

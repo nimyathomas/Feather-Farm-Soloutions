@@ -1,19 +1,20 @@
 {% extends 'admindash.html' %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid" >
     <div class="row">
         <!-- Stakeholders List -->
         <div class="col-md-3">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Farm Owners</h5>
+                    <h5 class="mb-0" id="farm-owners-title">Farm Owners</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush" id="farm-owners-list">
                         {% for stakeholder in stakeholders %}
                             {% with chat_room=stakeholder.chat_rooms.first %}
-                            <button class="list-group-item list-group-item-action select-chat" id="chat-button"
+                            <button class="list-group-item list-group-item-action select-chat farm-owner" 
+                                    id="chat-button-{{ stakeholder.id }}"
                                     data-room-id="{{ chat_room.id }}"
                                     data-name="{{ stakeholder.full_name }}">
                                 <h6 class="mb-1">{{ stakeholder.full_name }}</h6>
@@ -35,16 +36,17 @@
                     <h5 class="mb-0" id="selected-user">Select a farm owner to start chat</h5>
                 </div>
                 <div class="card-body chat-container" id="chat-container">
-                    <div id="messages-container"></div>
+                    <div id="messages-container" class="messages"></div>
                 </div>
+              
                 <div class="card-footer bg-white">
                     <form id="chat-form" class="d-none" onsubmit="return sendMessage(event)">
                         {% csrf_token %}
                         <input type="hidden" name="room_id" id="room-id">
                         <div class="input-group">
-                            <input type="text" class="form-control" id="message-input"
+                            <input type="text" class="form-control message-input" id="message-input"
                                    placeholder="Type your message..." required>
-                            <button type="submit" class="btn btn-primary" id="send-button">Send</button>
+                            <button type="submit" class="btn btn-primary send-button" id="send-button">Send</button>
                         </div>
                     </form>
                 </div>

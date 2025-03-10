@@ -102,7 +102,7 @@
                                         <a href="{% url 'payment_details' payment.id %}" class="btn btn-info">View Payment</a>
                                     {% else %}
                                         <!-- Change this line to point to process_payment -->
-                                        <a href="{% url 'process_payment' payment.id %}" class="btn btn-warning">Complete Payment</a>
+                                        <a href="{% url 'process_payment' payment.id %}"  id="complete-payment" class="btn btn-warning">Complete Payment</a>
                                     {% endif %}
                                 {% endwith %}
                             {% else %}

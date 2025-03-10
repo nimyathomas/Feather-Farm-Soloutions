@@ -104,7 +104,7 @@
                             </div>
                         </div>
                         <a href="{% url 'assign_vaccination' %}?batch_id={{ vacc.batch.id }}&vaccination_day={{ vacc.scheduled_day }}" 
-                           class="btn btn-primary schedule-btn">Schedule</a>
+                           class="btn btn-primary schedule-btn" id="schedule-btn">Schedule</a>
                     </div>
                     {% endfor %}
                 {% else %}
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                     <a href="{% url 'assign_vaccination' %}?batch_id={{ vacc.batch.id }}&vaccination_day={{ vacc.scheduled_day }}" 
-                       class="btn btn-outline schedule-btn">
+                       class="btn btn-outline schedule-btn" id="schedule-btn">
                         Schedule Vaccination
                     </a>
                 </div>
