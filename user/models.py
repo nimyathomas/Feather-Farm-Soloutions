@@ -469,3 +469,27 @@ from decimal import Decimal
 # Remove this import
 # from stakeholder.models import ChickBatch
 
+from django.db import models
+from django.utils import timezone
+
+class OrderAnalytics(models.Model):
+    date = models.DateField(default=timezone.now)
+    total_orders = models.IntegerField(default=0)
+    total_revenue = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    one_kg_count = models.IntegerField(default=0)
+    two_kg_count = models.IntegerField(default=0)
+    three_kg_count = models.IntegerField(default=0)
+    cash_payments = models.IntegerField(default=0)
+    online_payments = models.IntegerField(default=0)
+    upi_payments = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['date']),
+        ]
+        verbose_name_plural = "Order Analytics"
+
+    def __str__(self):
+        return f"Analytics for {self.date}"
+    
+    

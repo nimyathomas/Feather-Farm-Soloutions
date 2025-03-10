@@ -65,6 +65,62 @@
             </table>
         </div>
     </div>
+
+    <!-- Period Selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3" method="get">
+                <div class="col-md-4">
+                    <select class="form-select" name="period" onchange="this.form.submit()">
+                        <option value="daily" {% if period == 'daily' %}selected{% endif %}>Daily View</option>
+                        <option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly View</option>
+                        <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly View</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sales Data Table -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Sales Data ({{ period|title }})</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                            <th>1KG</th>
+                            <th>2KG</th>
+                            <th>3KG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales_data %}
+                        <tr>
+                            <td>
+                                {% if period == 'monthly' %}
+                                    {{ sale.period }}
+                                {% elif period == 'weekly' %}
+                                    {{ sale.period }}
+                                {% else %}
+                                    {{ sale.period }}
+                                {% endif %}
+                            </td>
+                            <td>{{ sale.total_orders }}</td>
+                            <td>₹{{ sale.total_revenue|floatformat:2 }}</td>
+                            <td>{{ sale.one_kg_sum }}</td>
+                            <td>{{ sale.two_kg_sum }}</td>
+                            <td>{{ sale.three_kg_sum }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>

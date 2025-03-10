@@ -42,7 +42,7 @@ from user.views import (
     get_vaccine,
     vaccine_stock_level,
     order_analytics,farm_analytics_dashboard,contract_dashboard,create_contract,view_contracts,
-    get_farm_details,contract_detail,generate_contract_pdf,sign_contract,admin_chat_view,stakeholder_chat_view,get_chat_messages,send_message  
+    get_farm_details,contract_detail,generate_contract_pdf,sign_contract,admin_chat_view,stakeholder_chat_view,get_chat_messages,send_message,generate_report  
    
 )
 from .views import stakeholder_vaccination_list  # Remove scan_qr_code from import
@@ -332,11 +332,17 @@ urlpatterns = [
     path('stakeholder/orders/', views.stakeholder_order_dashboard, name='stakeholder_order_dashboard'),
     path('stakeholder/orders/<int:order_id>/update-delivery/', 
          views.update_delivery_status, 
-         name='update_delivery_status'),    
+         name='update_delivery_status'), 
+    
+    
+
+    path('analytics/',order_analytics, name='order_analytics'),
+    path('analytics/report/',generate_report, name='generate_report'),
+]   
 
 
     
-]
+
 
     
     
