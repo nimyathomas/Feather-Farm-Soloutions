@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order #{{ order.id }} - Feather Farm Solutions</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
+    <style>
+        body {
+            background-color: #f8f9fc;
+            font-family: Arial, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #4e73df;
+        }
+        #map {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge {
+            font-size: 0.9em;
+        }
+        #tracking-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+        }
+        #tracking-info div {
+            margin-bottom: 0.5rem;
+        }
+        #tracking-info div:last-child {
+            margin-bottom: 0;
+        }
+        /* Custom markers */
+        .custom-div-icon {
+            background: none;
+            border: none;
+        }
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+        }
+        .farm-pin {
+            background: #28a745;
+        }
+        .hotel-pin {
+            background: #007bff;
+        }
+        .delivery-pin {
+            background: #dc3545;
+        }
+        .custom-div-icon i {
+            position: absolute;
+            width: 22px;
+            font-size: 22px;
+            left: 0;
+            right: 0;
+            margin: 10px auto;
+            text-align: center;
+            color: white;
+            transform: rotate(45deg);
+        }
+        /* Hide the routing machine control panel */
+        .leaflet-routing-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-light bg-white shadow-sm">
+        <div class="container">
+            <span class="navbar-brand">Feather Farm Solutions</span>
+            <span class="navbar-text">Order Tracking</span>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container-fluid p-4">
+        <div class="row">
+            <!-- Order Details Card -->
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-primary">
+                        <h6 class="m-0 font-weight-bold text-white">Order #{{ order.id }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Order Status -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">Status</h6>
+                            <div class="d-flex gap-2">
+                                <span class="badge {% if order.status == 'transit_to_hotel' %}bg-info{% elif order.status == 'confirmed' %}bg-warning{% elif order.status == 'delivered' %}bg-success{% else %}bg-secondary{% endif %} p-2">
+                                    {{ order.get_status_display }}
+                                </span>
+                                <span class="badge {% if order.delivery_option == 'express' %}bg-danger{% else %}bg-secondary{% endif %} p-2">
+                                    {{ order.get_delivery_option_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Order Details -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">Order Details</h6>
+                            <ul class="list-unstyled">
+                                {% if order.one_kg_count %}
+                                    <li><strong>1 KG Chickens:</strong> {{ order.one_kg_count }}</li>
+                                {% endif %}
+                                {% if order.two_kg_count %}
+                                    <li><strong>2 KG Chickens:</strong> {{ order.two_kg_count }}</li>
+                                {% endif %}
+                                {% if order.three_kg_count %}
+                                    <li><strong>3 KG Chickens:</strong> {{ order.three_kg_count }}</li>
+                                {% endif %}
+                            </ul>
+                            <p class="mb-1"><strong>Total Amount:</strong> ₹{{ order.price }}</p>
+                            <p class="mb-1"><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                        </div>
+
+                        <!-- Delivery Info -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">Delivery Information</h6>
+                            <p class="mb-1"><strong>From:</strong> {{ farm.name }}</p>
+                            <p class="mb-1"><strong>To:</strong> {{ hotel.hotel_name }}</p>
+                            <p class="mb-1"><strong>Delivery Date:</strong> {{ order.delivery_date|date:"F d, Y" }}</p>
+                        </div>
+
+                        <!-- Live Tracking Info -->
+                        {% if order.status == 'transit_to_hotel' %}
+                        <div class="alert alert-info" id="tracking-info">
+                            <div id="eta">Calculating ETA...</div>
+                            <div id="distance">Calculating distance...</div>
+                            <div id="last-update">Last updated: Calculating...</div>
+                        </div>
+                        {% elif order.status == 'confirmed' %}
+                        <div class="alert alert-warning">
+                            <p class="mb-0">Your order has been confirmed and is being prepared for delivery.</p>
+                        </div>
+                        {% elif order.status == 'delivered' %}
+                        <div class="alert alert-success">
+                            <p class="mb-0">Your order has been delivered. Thank you for your business!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Card -->
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 bg-primary">
+                        <h6 class="m-0 font-weight-bold text-white">Live Tracking</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-white text-center p-3 mt-4">
+        <p class="text-muted mb-0">© {% now "Y" %} Feather Farm Solutions. All rights reserved.</p>
+    </footer>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    let map, deliveryMarker, routeControl, farmToHotelRoute;
+    const UPDATE_INTERVAL = 30000; // Update every 30 seconds
+    const ORS_API_KEY = '5b3ce3597851110001cf6248f44205929c6349f89986b3f96892481b'; // Replace with your API key
+
+    // Initialize map
+    function initMap() {
+        // Create map centered between farm and hotel
+        const centerLat = ({{ farm.latitude }} + {{ hotel.latitude }}) / 2;
+        const centerLng = ({{ farm.longitude }} + {{ hotel.longitude }}) / 2;
+        
+        map = L.map('map').setView([centerLat, centerLng], 10);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Add farm marker (green)
+        L.marker([{{ farm.latitude }}, {{ farm.longitude }}], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: '<div class="marker-pin farm-pin"></div><i class="fa fa-home"></i>',
+            })
+        }).addTo(map).bindPopup('Farm: {{ farm.name }}');
+        
+        // Add hotel marker (blue)
+        L.marker([{{ hotel.latitude }}, {{ hotel.longitude }}], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: '<div class="marker-pin hotel-pin"></div><i class="fa fa-building"></i>',
+            })
+        }).addTo(map).bindPopup('Hotel: {{ hotel.hotel_name }}');
+        
+        // Get the road route between farm and hotel
+        getRoute(
+            [{{ farm.longitude }}, {{ farm.latitude }}],
+            [{{ hotel.longitude }}, {{ hotel.latitude }}]
+        );
+        
+        // Add delivery marker (red) - only if in transit
+        {% if order.status == 'transit_to_hotel' %}
+        deliveryMarker = L.marker([
+            {{ order.current_latitude|default:farm.latitude }},
+            {{ order.current_longitude|default:farm.longitude }}
+        ], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: '<div class="marker-pin delivery-pin"></div><i class="fa fa-truck"></i>',
+            })
+        }).addTo(map);
+        
+        // If in transit, get route from current location to hotel
+        if ('{{ order.status }}' === 'transit_to_hotel') {
+            getDeliveryRoute(
+                [{{ order.current_longitude|default:farm.longitude }}, {{ order.current_latitude|default:farm.latitude }}],
+                [{{ hotel.longitude }}, {{ hotel.latitude }}]
+            );
+        }
+        {% endif %}
+        
+        // Fit bounds to show all markers
+        const bounds = L.latLngBounds(
+            [{{ farm.latitude }}, {{ farm.longitude }}],
+            [{{ hotel.latitude }}, {{ hotel.longitude }}]
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+    
+    // Get route using OpenRouteService API
+    async function getRoute(start, end) {
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_API_KEY}&start=${start[0]},${start[1]}&end=${end[0]},${end[1]}`);
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const route = data.features[0];
+                const coordinates = route.geometry.coordinates;
+                
+                // Convert coordinates from [lng, lat] to [lat, lng] for Leaflet
+                const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+                
+                // Draw the route
+                farmToHotelRoute = L.polyline(latLngs, {
+                    color: '#6c757d',  // Gray color
+                    weight: 4,
+                    opacity: 0.7,
+                    dashArray: '5, 10'  // Dashed line
+                }).addTo(map);
+                
+                // Get the total distance
+                const totalDistance = route.properties.summary.distance / 1000; // Convert to km
+                
+                // Add distance label to the middle of the route
+                const midpointIndex = Math.floor(latLngs.length / 2);
+                const midpoint = latLngs[midpointIndex];
+                
+                L.marker(midpoint, {
+                    icon: L.divIcon({
+                        className: 'distance-label',
+                        html: `<div style="background: white; padding: 3px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">Total: ${totalDistance.toFixed(2)} km</div>`,
+                        iconSize: [100, 20],
+                        iconAnchor: [50, 10]
+                    })
+                }).addTo(map);
+                
+                // Update the distance in the info panel if in transit
+                if ('{{ order.status }}' === 'transit_to_hotel') {
+                    document.getElementById('distance').textContent = `Total distance: ${totalDistance.toFixed(2)} km`;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching route:', error);
+            
+            // Fallback to straight line if API fails
+            fallbackToStraightLine(
+                [{{ farm.latitude }}, {{ farm.longitude }}],
+                [{{ hotel.latitude }}, {{ hotel.longitude }}]
+            );
+        }
+    }
+    
+    // Get delivery route (from current location to hotel)
+    async function getDeliveryRoute(start, end) {
+        try {
+            const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_API_KEY}&start=${start[0]},${start[1]}&end=${end[0]},${end[1]}`);
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                const route = data.features[0];
+                const coordinates = route.geometry.coordinates;
+                
+                // Convert coordinates from [lng, lat] to [lat, lng] for Leaflet
+                const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+                
+                // Draw the active route
+                if (routeControl) {
+                    map.removeLayer(routeControl);
+                }
+                
+                routeControl = L.polyline(latLngs, {
+                    color: '#dc3545',  // Red color
+                    weight: 5,
+                    opacity: 1
+                }).addTo(map);
+                
+                // Get the remaining distance
+                const remainingDistance = route.properties.summary.distance / 1000; // Convert to km
+                
+                // Update info panel
+                document.getElementById('distance').textContent = `Distance remaining: ${remainingDistance.toFixed(2)} km`;
+                
+                // Estimate arrival time (using the duration from the API)
+                const durationMinutes = Math.round(route.properties.summary.duration / 60);
+                if (durationMinutes < 60) {
+                    document.getElementById('eta').textContent = `Estimated arrival: ${durationMinutes} minutes`;
+                } else {
+                    const hours = Math.floor(durationMinutes / 60);
+                    const minutes = durationMinutes % 60;
+                    document.getElementById('eta').textContent = `Estimated arrival: ${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${minutes > 1 ? 's' : ''}`;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching delivery route:', error);
+            
+            // Fallback to straight line calculation if API fails
+            if (deliveryMarker) {
+                const currentPos = deliveryMarker.getLatLng();
+                updateRouteWithStraightLine(currentPos.lat, currentPos.lng);
+            }
+        }
+    }
+    
+    // Fallback to straight line if routing API fails
+    function fallbackToStraightLine(start, end) {
+        console.log("Falling back to straight line route");
+        
+        farmToHotelRoute = L.polyline([start, end], {
+            color: '#6c757d',  // Gray color
+            weight: 2,
+            opacity: 0.7,
+            dashArray: '5, 10'  // Dashed line
+        }).addTo(map);
+        
+        // Calculate distance using Haversine formula
+        const totalDistance = calculateDistance(
+            start[0], start[1], end[0], end[1]
+        );
+        
+        // Add distance label to the middle of the line
+        const midpoint = [
+            (start[0] + end[0]) / 2,
+            (start[1] + end[1]) / 2
+        ];
+        
+        L.marker(midpoint, {
+            icon: L.divIcon({
+                className: 'distance-label',
+                html: `<div style="background: white; padding: 3px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">Total: ${totalDistance.toFixed(2)} km</div>`,
+                iconSize: [100, 20],
+                iconAnchor: [50, 10]
+            })
+        }).addTo(map);
+    }
+    
+    // Update route with straight line (fallback)
+    function updateRouteWithStraightLine(lat, lng) {
+        if (routeControl) {
+            map.removeLayer(routeControl);
+        }
+        
+        routeControl = L.polyline([
+            [lat, lng],
+            [{{ hotel.latitude }}, {{ hotel.longitude }}]
+        ], {
+            color: '#dc3545',  // Red color
+            weight: 3
+        }).addTo(map);
+        
+        // Calculate distance and ETA
+        const distance = calculateDistance(
+            lat, 
+            lng,
+            {{ hotel.latitude }},
+            {{ hotel.longitude }}
+        );
+        
+        // Update info panel
+        document.getElementById('distance').textContent = `Distance remaining: ${distance.toFixed(2)} km`;
+        
+        // Estimate arrival time (assuming 40 km/h average speed)
+        const etaMinutes = Math.round((distance / 40) * 60);
+        if (etaMinutes < 60) {
+            document.getElementById('eta').textContent = `Estimated arrival: ${etaMinutes} minutes`;
+        } else {
+            const hours = Math.floor(etaMinutes / 60);
+            const minutes = etaMinutes % 60;
+            document.getElementById('eta').textContent = `Estimated arrival: ${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${minutes > 1 ? 's' : ''}`;
+        }
+    }
+    
+    // Calculate distance between two points in km (Haversine formula)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        const distance = R * c; // Distance in km
+        return distance;
+    }
+    
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+    
+    // Fetch current location from server
+    async function updateLocation() {
+        try {
+            const response = await fetch(`/api/order/{{ order.id }}/location/`);
+            const data = await response.json();
+            
+            if (data.success && data.order.current_location) {
+                const location = data.order.current_location;
+                
+                // Update marker position
+                deliveryMarker.setLatLng([location.lat, location.lng]);
+                
+                // Update route using the routing API
+                getDeliveryRoute(
+                    [location.lng, location.lat],
+                    [{{ hotel.longitude }}, {{ hotel.latitude }}]
+                );
+                
+                // Update last update time
+                if (location.last_update) {
+                    const lastUpdate = new Date(location.last_update);
+                    const now = new Date();
+                    const diffMinutes = Math.round((now - lastUpdate) / 60000);
+                    
+                    document.getElementById('last-update').textContent = 
+                        `Last updated: ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching location:', error);
+        }
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        
+        // Start periodic updates if order is in transit
+        {% if order.status == 'transit_to_hotel' %}
+        updateLocation(); // Initial update
+        setInterval(updateLocation, UPDATE_INTERVAL);
+        {% endif %}
+    });
+    </script>
+</body>
+</html>

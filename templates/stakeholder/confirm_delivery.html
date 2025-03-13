@@ -1,0 +1,37 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Confirm Delivery</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Order #{{ order.id }}</h6>
+                    <p>Are you sure you want to mark this order as delivered?</p>
+                    
+                    <div class="order-details mb-4">
+                        <p><strong>Hotel:</strong> {{ order.user.hotel_users.first.hotel_name }}</p>
+                        <p><strong>Order Date:</strong> {{ order.order_date|date:"F d, Y" }}</p>
+                        <p><strong>Total Amount:</strong> ₹{{ order.price }}</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'stakeholder:stakeholder_order_dashboard' %}" class="btn btn-secondary me-2">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle"></i> Confirm Delivery
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

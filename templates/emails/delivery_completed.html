@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Delivered Successfully</title>
+    <style>
+        /* ... your email styles ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Delivered Successfully!</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ hotel_name }},</p>
+            
+            <p>Great news! Your order #{{ order.id }} has been successfully delivered.</p>
+            
+            <div class="order-details">
+                <h3>Order Details:</h3>
+                <p><strong>Delivery Date:</strong> {{ delivery_date|date:"F d, Y" }}</p>
+                <p><strong>Total Amount:</strong> ₹{{ order.price }}</p>
+                
+                <h4>Items Delivered:</h4>
+                {% if order.one_kg_count > 0 %}
+                <p>1 kg Chickens: {{ order.one_kg_count }}</p>
+                {% endif %}
+                {% if order.two_kg_count > 0 %}
+                <p>2 kg Chickens: {{ order.two_kg_count }}</p>
+                {% endif %}
+                {% if order.three_kg_count > 0 %}
+                <p>3 kg Chickens: {{ order.three_kg_count }}</p>
+                {% endif %}
+            </div>
+            
+            <p>Thank you for choosing Feather Farm Solutions!</p>
+        </div>
+        <div class="footer">
+            <p>© {% now "Y" %} Feather Farm Solutions. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

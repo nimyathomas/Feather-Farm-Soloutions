@@ -1,0 +1,509 @@
+{% extends 'stakeholder.html' %}
+
+{% block body %}
+<style>
+    .page-container {
+        padding: 20px;
+        background: #f8f9fc;
+        min-height: calc(100vh - 60px);
+    }
+
+    .location-header {
+        background: #0d6efd;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .detail-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .detail-card h6 {
+        color: #4e73df;
+        margin-bottom: 10px;
+    }
+
+    .map-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+    }
+
+    .coordinates-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        height: 45px;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        font-weight: 500;
+    }
+
+    .btn-location {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .btn-location:hover {
+        background: #34495e;
+        color: white;
+    }
+</style>
+
+<div class="page-container">
+    <div class="location-header">
+        <h5 class="mb-0">Update Order Location - Order #{{ order.id }}</h5>
+    </div>
+
+    <div class="order-details-grid">
+        <div class="detail-card">
+            <h6>Hotel</h6>
+            <p class="mb-0">{{ order.user.hotel_users.first.hotel_name }}</p>
+        </div>
+        <div class="detail-card">
+            <h6>Order Date</h6>
+            <p class="mb-0">{{ order.order_date|date:"F d, Y" }}</p>
+        </div>
+        <div class="detail-card">
+            <h6>Status</h6>
+            <p class="mb-0">{{ order.get_status_display }}</p>
+        </div>
+        <div class="detail-card">
+            <h6>Last Updated</h6>
+            <p class="mb-0">{{ order.last_location_update|default:"Not updated yet"|date:"F d, Y H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+
+    <form method="post" id="locationForm">
+        {% csrf_token %}
+        <div class="coordinates-container">
+            <div>
+                <label for="latitude" class="form-label">Latitude</label>
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" 
+                       value="{{ order.current_latitude|default:farm.latitude }}" required>
+            </div>
+            <div>
+                <label for="longitude" class="form-label">Longitude</label>
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" 
+                       value="{{ order.current_longitude|default:farm.longitude }}" required>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-location" id="getCurrentLocation">
+                <i class="fas fa-location-arrow"></i> Use Current Location
+            </button>
+            <div>
+                <a href="{% url 'stakeholder_order_dashboard' %}" class="btn btn-light me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Location
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- First, add all required CSS and JS in the correct order -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
+<!-- Then your map container with a defined height -->
+<div id="map" style="height: 500px; width: 100%;"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map
+        const map = L.map('map').setView([{{ farm.latitude }}, {{ farm.longitude }}], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add markers
+        const farmMarker = L.marker([{{ farm.latitude }}, {{ farm.longitude }}], {
+            title: 'Farm Location'
+        }).addTo(map);
+        farmMarker.bindPopup('Farm Location');
+
+        const hotelMarker = L.marker([{{ hotel.latitude }}, {{ hotel.longitude }}], {
+            title: 'Hotel Location'
+        }).addTo(map);
+        hotelMarker.bindPopup('Hotel Location');
+
+        let currentMarker = L.marker([
+            {% if order.current_latitude %}{{ order.current_latitude }}{% else %}{{ farm.latitude }}{% endif %},
+            {% if order.current_longitude %}{{ order.current_longitude }}{% else %}{{ farm.longitude }}{% endif %}
+        ], {
+            draggable: true,
+            title: 'Current Location'
+        }).addTo(map);
+        currentMarker.bindPopup('Current Location');
+
+        // Store route polylines
+        let originalRoute = null;
+        let deliveryRoute1 = null;
+        let deliveryRoute2 = null;
+
+        // OpenRouteService API key
+        const apiKey = '5b3ce3597851110001cf6248f44205929c6349f89986b3f96892481b';
+
+        // Function to get route from OpenRouteService
+        async function getRoute(start, end, routeColor, isDashed = false) {
+            try {
+                // Format coordinates for OpenRouteService (longitude,latitude)
+                const coordinates = [
+                    [start[1], start[0]],
+                    [end[1], end[0]]
+                ];
+                
+                const response = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        coordinates: coordinates
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.features && data.features.length > 0) {
+                    const routeCoordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    const routeStyle = {
+                        color: routeColor,
+                        weight: isDashed ? 2 : 3,
+                        opacity: 0.8
+                    };
+                    
+                    if (isDashed) {
+                        routeStyle.dashArray = '5,10';
+                    }
+                    
+                    return L.polyline(routeCoordinates, routeStyle).addTo(map);
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error fetching route:', error);
+                return null;
+            }
+        }
+
+        // Function to update all routes
+        async function updateRoutes() {
+            const farmCoords = [{{ farm.latitude }}, {{ farm.longitude }}];
+            const hotelCoords = [{{ hotel.latitude }}, {{ hotel.longitude }}];
+            const currentCoords = [currentMarker.getLatLng().lat, currentMarker.getLatLng().lng];
+            
+            // Remove existing routes
+            if (originalRoute) map.removeLayer(originalRoute);
+            if (deliveryRoute1) map.removeLayer(deliveryRoute1);
+            if (deliveryRoute2) map.removeLayer(deliveryRoute2);
+            
+            // Get original route (Farm to Hotel)
+            originalRoute = await getRoute(farmCoords, hotelCoords, 'gray', true);
+            if (originalRoute) originalRoute.bindPopup('Original Route');
+            
+            // Get delivery routes (Farm to Current, Current to Hotel)
+            deliveryRoute1 = await getRoute(farmCoords, currentCoords, '#0d6efd');
+            if (deliveryRoute1) deliveryRoute1.bindPopup('Farm to Current Location');
+            
+            deliveryRoute2 = await getRoute(currentCoords, hotelCoords, '#0d6efd');
+            if (deliveryRoute2) deliveryRoute2.bindPopup('Current Location to Hotel');
+        }
+
+        // Add a div to display the address
+        const addressDiv = document.createElement('div');
+        addressDiv.id = 'current-address';
+        addressDiv.className = 'alert alert-info mt-3';
+        addressDiv.innerHTML = 'Address will appear here when location is updated';
+        document.querySelector('form').insertBefore(addressDiv, document.querySelector('form button'));
+        
+        // Function to get address from coordinates using Nominatim
+        async function getAddressFromCoordinates(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await response.json();
+                
+                if (data && data.display_name) {
+                    return data.display_name;
+                } else {
+                    return 'Address not found';
+                }
+            } catch (error) {
+                console.error('Error fetching address:', error);
+                return 'Error fetching address';
+            }
+        }
+        
+        // Function to update address display
+        async function updateAddressDisplay(lat, lng) {
+            addressDiv.innerHTML = 'Fetching address...';
+            const address = await getAddressFromCoordinates(lat, lng);
+            
+            // Update the address display
+            addressDiv.innerHTML = `<strong>Current Address:</strong> ${address}`;
+            
+            // Add a hidden input to store the address
+            let addressInput = document.getElementById('address');
+            if (!addressInput) {
+                addressInput = document.createElement('input');
+                addressInput.type = 'hidden';
+                addressInput.id = 'address';
+                addressInput.name = 'address';
+                document.querySelector('form').appendChild(addressInput);
+            }
+            addressInput.value = address;
+        }
+
+        // Update routes when marker is dragged
+        currentMarker.on('dragend', function(event) {
+            const position = event.target.getLatLng();
+            document.getElementById('latitude').value = position.lat.toFixed(6);
+            document.getElementById('longitude').value = position.lng.toFixed(6);
+            
+            // Update the address
+            updateAddressDisplay(position.lat, position.lng);
+            
+            // Update routes
+            updateRoutes();
+        });
+
+        // Get current location button handler
+        document.getElementById('getCurrentLocation').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    document.getElementById('latitude').value = lat.toFixed(6);
+                    document.getElementById('longitude').value = lng.toFixed(6);
+                    
+                    currentMarker.setLatLng([lat, lng]);
+                    
+                    // Update the address
+                    updateAddressDisplay(lat, lng);
+                    
+                    // Update routes
+                    updateRoutes();
+                    
+                    map.setView([lat, lng], 13);
+                }, function(error) {
+                    alert('Error getting location: ' + error.message);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Fit map to show all points
+        const bounds = L.latLngBounds([
+            [{{ farm.latitude }}, {{ farm.longitude }}],
+            [{{ hotel.latitude }}, {{ hotel.longitude }}],
+            [currentMarker.getLatLng().lat, currentMarker.getLatLng().lng]
+        ]);
+        map.fitBounds(bounds.pad(0.1));
+
+        // Initial route drawing
+        updateRoutes();
+        
+        // Get initial address if coordinates are available
+        const initialLat = {% if order.current_latitude %}{{ order.current_latitude }}{% else %}{{ farm.latitude }}{% endif %};
+        const initialLng = {% if order.current_longitude %}{{ order.current_longitude }}{% else %}{{ farm.longitude }}{% endif %};
+        updateAddressDisplay(initialLat, initialLng);
+    });
+</script>
+{% endblock %}
+
+
+
+{% comment %} <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map
+        const map = L.map('map').setView([{{ farm.latitude }}, {{ farm.longitude }}], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add markers
+        const farmMarker = L.marker([{{ farm.latitude }}, {{ farm.longitude }}], {
+            title: 'Farm Location'
+        }).addTo(map);
+        farmMarker.bindPopup('Farm Location');
+
+        const hotelMarker = L.marker([{{ hotel.latitude }}, {{ hotel.longitude }}], {
+            title: 'Hotel Location'
+        }).addTo(map);
+        hotelMarker.bindPopup('Hotel Location');
+
+        let currentMarker = L.marker([
+            {% if order.current_latitude %}{{ order.current_latitude }}{% else %}{{ farm.latitude }}{% endif %},
+            {% if order.current_longitude %}{{ order.current_longitude }}{% else %}{{ farm.longitude }}{% endif %}
+        ], {
+            draggable: true,
+            title: 'Current Location'
+        }).addTo(map);
+        currentMarker.bindPopup('Current Location');
+
+        // Store route polylines
+        let originalRoute = null;
+        let deliveryRoute1 = null;
+        let deliveryRoute2 = null;
+
+        // OpenRouteService API key
+        const apiKey = '5b3ce3597851110001cf6248f44205929c6349f89986b3f96892481b';
+
+        // Function to get route from OpenRouteService
+        async function getRoute(start, end, routeColor, isDashed = false) {
+            try {
+                // Format coordinates for OpenRouteService (longitude,latitude)
+                const coordinates = [
+                    [start[1], start[0]],
+                    [end[1], end[0]]
+                ];
+                
+                const response = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        coordinates: coordinates
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.features && data.features.length > 0) {
+                    const routeCoordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    const routeStyle = {
+                        color: routeColor,
+                        weight: isDashed ? 2 : 3,
+                        opacity: 0.8
+                    };
+                    
+                    if (isDashed) {
+                        routeStyle.dashArray = '5,10';
+                    }
+                    
+                    return L.polyline(routeCoordinates, routeStyle).addTo(map);
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error fetching route:', error);
+                return null;
+            }
+        }
+
+        // Function to update all routes
+        async function updateRoutes() {
+            const farmCoords = [{{ farm.latitude }}, {{ farm.longitude }}];
+            const hotelCoords = [{{ hotel.latitude }}, {{ hotel.longitude }}];
+            const currentCoords = [currentMarker.getLatLng().lat, currentMarker.getLatLng().lng];
+            
+            // Remove existing routes
+            if (originalRoute) map.removeLayer(originalRoute);
+            if (deliveryRoute1) map.removeLayer(deliveryRoute1);
+            if (deliveryRoute2) map.removeLayer(deliveryRoute2);
+            
+            // Get original route (Farm to Hotel)
+            originalRoute = await getRoute(farmCoords, hotelCoords, 'gray', true);
+            if (originalRoute) originalRoute.bindPopup('Original Route');
+            
+            // Get delivery routes (Farm to Current, Current to Hotel)
+            deliveryRoute1 = await getRoute(farmCoords, currentCoords, '#0d6efd');
+            if (deliveryRoute1) deliveryRoute1.bindPopup('Farm to Current Location');
+            
+            deliveryRoute2 = await getRoute(currentCoords, hotelCoords, '#0d6efd');
+            if (deliveryRoute2) deliveryRoute2.bindPopup('Current Location to Hotel');
+        }
+
+        // Update routes when marker is dragged
+        currentMarker.on('dragend', function(event) {
+            const position = event.target.getLatLng();
+            document.getElementById('latitude').value = position.lat.toFixed(6);
+            document.getElementById('longitude').value = position.lng.toFixed(6);
+            
+            updateRoutes();
+        });
+
+        // Get current location button handler
+        document.getElementById('getCurrentLocation').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    document.getElementById('latitude').value = lat.toFixed(6);
+                    document.getElementById('longitude').value = lng.toFixed(6);
+                    
+                    currentMarker.setLatLng([lat, lng]);
+                    updateRoutes();
+                    
+                    map.setView([lat, lng], 13);
+                }, function(error) {
+                    alert('Error getting location: ' + error.message);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Fit map to show all points
+        const bounds = L.latLngBounds([
+            [{{ farm.latitude }}, {{ farm.longitude }}],
+            [{{ hotel.latitude }}, {{ hotel.longitude }}],
+            [currentMarker.getLatLng().lat, currentMarker.getLatLng().lng]
+        ]);
+        map.fitBounds(bounds.pad(0.1));
+
+        // Initial route drawing
+        updateRoutes();
+    });
+</script> {% endcomment %}

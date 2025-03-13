@@ -7,6 +7,10 @@ from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings  # Import settings here
 from .utils import send_order_confirmation_email  # Adjust the path as necessary
+from django.utils import timezone
+from datetime import datetime, timedelta  # Add this import
+# Add this import
+
 
 
 
@@ -67,7 +71,9 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(
         max_length=20,
-        choices=[("pending", "Pending"), ("completed", "Completed"),
+        choices=[("pending", "Pending"),
+                 ("completed", "Completed"),
+                  ('transit_to_hotel', 'Transit to Hotel'),  # New status
                   ('out_for_delivery', 'Out for Delivery'),
                   ('delivered', 'Delivered'),
                   ('cancelled', 'Cancelled'),
@@ -93,6 +99,17 @@ class Order(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     notification_sent = models.BooleanField(default=False)
+    
+    current_latitude = models.FloatField(null=True, blank=True)
+    current_longitude = models.FloatField(null=True, blank=True)
+    current_address = models.TextField(null=True, blank=True)  # Add this field
+
+    last_location_update = models.DateTimeField(null=True, blank=True)
+    transit_started_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)  #
+    
+    tracking_token = models.CharField(max_length=64, null=True, blank=True)
+
 
     def send_status_notification(self):
         subject = f"Order #{self.id} Status Update"
@@ -155,7 +172,7 @@ class Order(models.Model):
         self.save()
         
         # Send confirmation email
-        send_order_confirmation_email(self.user.email, self)
+        
 
     def total_weight(self):
         """Calculate the total weight of the order."""
@@ -173,7 +190,52 @@ class Order(models.Model):
         cart_items = CartItem.objects.filter(cart__user=self.user)
         for item in cart_items:
             total += item.total_price()  # Assuming each CartItem has a method total_price()
-        return total
+    def start_transit(self):
+        if self.status == 'confirmed':
+            self.status = 'transit_to_hotel'
+            
+            # Set initial location to farm location
+            self.current_latitude = self.batch.farm.latitude
+            self.current_longitude = self.batch.farm.longitude
+            
+            # Set transit start time based on delivery date and option
+            if self.delivery_option == 'express':
+                # For express delivery, start immediately
+                self.transit_started_at = timezone.now()
+            else:
+                # For standard delivery, start on delivery date
+                delivery_datetime = datetime.combine(
+                    self.delivery_date, 
+                    datetime.min.time()
+                ).replace(hour=8)  # Start at 8 AM on delivery date
+                self.transit_started_at = delivery_datetime
+                
+            self.save()
+            return True
+        return False
+    def initialize_location(self):
+        """Initialize current location with farm coordinates"""
+        if self.current_latitude is None or self.current_longitude is None:
+            self.current_latitude = self.batch.farm.latitude
+            self.current_longitude = self.batch.farm.longitude
+            self.last_location_update = timezone.now()
+            self.save()
+
+    def update_location(self, latitude, longitude):
+        """Update current location"""
+        self.current_latitude = latitude
+        self.current_longitude = longitude
+        self.last_location_update = timezone.now()
+        self.save()
+
+    def complete_delivery(self):
+        """Mark order as delivered"""
+        if self.status == 'transit_to_hotel':
+            self.status = 'delivered'
+            self.delivered_at = timezone.now()
+            self.save()
+            return True
+        return False
 
 
 class Cart(models.Model):

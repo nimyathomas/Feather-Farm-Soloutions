@@ -1,26 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Delivery Started</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4e73df;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f8f9fc;
+        }
+        .order-details {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #e3e6f0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .tracking-button {
+            display: inline-block;
+            background-color: #4e73df;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e3e6f0;
+            color: #858796;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Order Delivery Started</h1>
-    <p>Dear {{ hotel_name }},</p>
-    \
-
-    
-    <p>Your order #{{ order.id }} is in transit!</p>
-    
-    <h3>Order Details:</h3>
-    <ul>
-        {% if one_kg_count %}<li>{{ one_kg_count }}×1kg</li>{% endif %}
-        {% if two_kg_count %}<li>{{ two_kg_count }}×2kg</li>{% endif %}
-        {% if three_kg_count %}<li>{{ three_kg_count }}×3kg</li>{% endif %}
-    </ul>
-    
-    <p>Total Price: ₹{{ total_price }}</p>
-    <p>Delivery Date: {{ delivery_date }}</p>
-    
-    <p>Thank you for your business!</p>
+    <div class="container">
+        <div class="header">
+            <h1>Your Order is on the Way!</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ hotel_name }},</p>
+            
+            <p>Great news! Your order #{{ order.id }} has been dispatched from our farm and is now on its way to you.</p>
+            
+            <div class="order-details">
+                <h3>Order Details:</h3>
+                
+                <div class="detail-row">
+                    <span>Order Number:</span>
+                    <span>#{{ order.id }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span>Order Date:</span>
+                    <span>{{ order.order_date|date:"F d, Y" }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span>Expected Delivery:</span>
+                    <span>{{ delivery_date|date:"F d, Y" }}</span>
+                </div>
+                
+                <h4>Items:</h4>
+                {% if one_kg_count > 0 %}
+                <div class="detail-row">
+                    <span>1 kg Chicken:</span>
+                    <span>{{ one_kg_count }}</span>
+                </div>
+                {% endif %}
+                
+                {% if two_kg_count > 0 %}
+                <div class="detail-row">
+                    <span>2 kg Chicken:</span>
+                    <span>{{ two_kg_count }}</span>
+                </div>
+                {% endif %}
+                
+                {% if three_kg_count > 0 %}
+                <div class="detail-row">
+                    <span>3 kg Chicken:</span>
+                    <span>{{ three_kg_count }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <span><strong>Total Amount:</strong></span>
+                    <span><strong>₹{{ total_price }}</strong></span>
+                </div>
+            </div>
+            
+            <p>You can now track your order in real-time using the link below:</p>
+            
+            <a href="{{ tracking_url }}" class="tracking-button">TRACK YOUR ORDER</a>
+            
+            <p>If you have any questions about your delivery, please contact us.</p>
+            
+            <p>Thank you for choosing Feather Farm Solutions!</p>
+        </div>
+        <div class="footer">
+            <p>© {% now "Y" %} Feather Farm Solutions. All rights reserved.</p>
+            <p>This email was sent to you because you placed an order with us.</p>
+        </div>
+    </div>
 </body>
 </html> 

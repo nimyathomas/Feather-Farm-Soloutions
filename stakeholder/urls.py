@@ -42,7 +42,8 @@ from user.views import (
     get_vaccine,
     vaccine_stock_level,
     order_analytics,farm_analytics_dashboard,contract_dashboard,create_contract,view_contracts,
-    get_farm_details,contract_detail,generate_contract_pdf,sign_contract,admin_chat_view,stakeholder_chat_view,get_chat_messages,send_message,generate_report  
+    get_farm_details,contract_detail,generate_contract_pdf,sign_contract,admin_chat_view,stakeholder_chat_view,get_chat_messages,send_message,generate_report,order_tracking_dashboard,track_single_order,get_order_location, update_order_location,download_sales_report,order_list,
+
    
 )
 from .views import stakeholder_vaccination_list  # Remove scan_qr_code from import
@@ -338,7 +339,31 @@ urlpatterns = [
 
     path('analytics/',order_analytics, name='order_analytics'),
     path('analytics/report/',generate_report, name='generate_report'),
-]   
+    path('analytics/download-report/', download_sales_report, name='download_sales_report'),
+     path('order_list/', order_list, name='order_list'),  # Add this line
+
+    
+    
+    
+    
+    path('tracking/', 
+         order_tracking_dashboard, name='order_tracking_dashboard'),
+    path('tracking/<int:order_id>/', 
+         track_single_order, name='track_single_order'),
+    path('api/order/<int:order_id>/location/', 
+         get_order_location, name='get_order_location'),
+    path('orders/<int:order_id>/update-location/', views.update_location, name='update_location'),
+    path('orders/<int:order_id>/mark-delivered/', views.mark_delivered, name='mark_delivered'),
+    path('proxy/route/', views.proxy_route, name='proxy_route'),
+
+
+
+    
+]
+    
+    
+    
+
 
 
     

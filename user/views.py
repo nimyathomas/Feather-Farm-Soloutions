@@ -354,14 +354,98 @@ def approve_order(request, order_id):
                 request, f"Not enough chickens available. Required: 1kg:{order.one_kg_count}, 2kg:{order.two_kg_count}, 3kg:{order.three_kg_count}. Available: 1kg:{order.batch.one_kg_count}, 2kg:{order.batch.two_kg_count}, 3kg:{order.batch.three_kg_count}")
             return redirect('customeruserprofile', id=order.user.id)
 
-        # Confirm the order
         try:
+            # Confirm the order
             order.confirm_order()
-            messages.success(request, "Order confirmed successfully!")
+            # Start tracking
+            order.start_transit()
+            messages.success(request, "Order confirmed and tracking started!")
+            
+            # Redirect to tracking dashboard instead
+            return redirect('order_tracking_dashboard')
+            
         except ValueError as e:
             messages.error(request, str(e))
+            return redirect('customeruserprofile', id=order.user.id)
+    
+    return redirect('customeruserprofile', id=order.user.id)
+import uuid
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from django.urls import reverse
+
+
+@login_required
+def approve_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST':
+        # Debug prints
+        print(f"Order quantities - 1kg: {order.one_kg_count}, 2kg: {order.two_kg_count}, 3kg: {order.three_kg_count}")
+        print(f"Batch quantities - 1kg: {order.batch.one_kg_count}, 2kg: {order.batch.two_kg_count}, 3kg: {order.batch.three_kg_count}")
         
-        return redirect('customeruserprofile', id=order.user.id)
+        # Check if the order can be fulfilled
+        if not order.can_fulfill_order():
+            messages.error(
+                request, f"Not enough chickens available. Required: 1kg:{order.one_kg_count}, 2kg:{order.two_kg_count}, 3kg:{order.three_kg_count}. Available: 1kg:{order.batch.one_kg_count}, 2kg:{order.batch.two_kg_count}, 3kg:{order.batch.three_kg_count}")
+            return redirect('customeruserprofile', id=order.user.id)
+
+        try:
+            # Confirm the order but don't start transit
+            order.confirm_order()
+            
+            # Generate tracking token if not exists
+            if not hasattr(order, 'tracking_token') or not order.tracking_token:
+                order.tracking_token = str(uuid.uuid4())
+                order.save()
+            
+            # Generate tracking URL for hotel
+            tracking_url = request.build_absolute_uri(
+                reverse('track_order', args=[order.id, order.tracking_token])
+            )
+            
+            # Send email with tracking link to hotel
+            hotel_email = order.user.email
+            print(f"Sending email to: {hotel_email}")
+            
+            hotel_name = "Customer"
+            if hasattr(order.user, 'hotel_users') and order.user.hotel_users.exists():
+                hotel_name = order.user.hotel_users.first().hotel_name
+            
+            # Prepare email content
+            try:
+                html_message = render_to_string('emails/order_approved.html', {
+                    'order': order,
+                    'hotel_name': hotel_name,
+                    'tracking_url': tracking_url,
+                })
+                plain_message = strip_tags(html_message)
+                
+                # Send the email
+                try:
+                    send_mail(
+                        subject=f'Your Order #{order.id} has been Approved',
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[hotel_email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                    print("Email sent successfully!")
+                except Exception as e:
+                    print(f"Email sending error: {str(e)}")
+                    messages.warning(request, f"Order confirmed but email could not be sent: {str(e)}")
+            except Exception as e:
+                print(f"Template rendering error: {str(e)}")
+                messages.warning(request, f"Order confirmed but email template error: {str(e)}")
+            
+            messages.success(request, f"Order confirmed and tracking link sent to {hotel_email}!")
+            return redirect('customeruserprofile', id=order.user.id)
+            
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('customeruserprofile', id=order.user.id)
     
     return redirect('customeruserprofile', id=order.user.id)
 
@@ -1468,254 +1552,422 @@ from django.utils import timezone
 
 
 
-def populate_analytics():
-    try:
-        # Debug: Check if we have any orders
-        orders = Order.objects.all()
-        print(f"Total orders in database: {orders.count()}")
+# def populate_analytics():
+#     try:
+#         # Debug: Check if we have any orders
+#         orders = Order.objects.all()
+#         print(f"Total orders in database: {orders.count()}")
 
-        # Get today's date
-        today = timezone.now().date()
-        print(f"Processing analytics for date: {today}")
+#         # Get today's date
+#         today = timezone.now().date()
+#         print(f"Processing analytics for date: {today}")
         
-        # Get orders for today
-        daily_orders = Order.objects.filter(created_at__date=today)
-        print(f"Orders found for today: {daily_orders.count()}")
+#         # Get orders for today
+#         daily_orders = Order.objects.filter(created_at__date=today)
+#         print(f"Orders found for today: {daily_orders.count()}")
         
-        # Calculate daily totals
-        daily_total = daily_orders.aggregate(
-            total_orders=Count('id'),
-            total_revenue=Sum('price')
-        )
-        print(f"Daily totals: {daily_total}")
+#         # Calculate daily totals
+#         daily_total = daily_orders.aggregate(
+#             total_orders=Count('id'),
+#             total_revenue=Sum('price')
+#         )
+#         print(f"Daily totals: {daily_total}")
 
-        # Calculate weight counts
-        weight_counts = {
-            'one_kg': daily_orders.aggregate(Sum('one_kg_count'))['one_kg_count__sum'] or 0,
-            'two_kg': daily_orders.aggregate(Sum('two_kg_count'))['two_kg_count__sum'] or 0,
-            'three_kg': daily_orders.aggregate(Sum('three_kg_count'))['three_kg_count__sum'] or 0,
-        }
-        print(f"Weight counts: {weight_counts}")
+#         # Calculate weight counts
+#         weight_counts = {
+#             'one_kg': daily_orders.aggregate(Sum('one_kg_count'))['one_kg_count__sum'] or 0,
+#             'two_kg': daily_orders.aggregate(Sum('two_kg_count'))['two_kg_count__sum'] or 0,
+#             'three_kg': daily_orders.aggregate(Sum('three_kg_count'))['three_kg_count__sum'] or 0,
+#         }
+#         print(f"Weight counts: {weight_counts}")
         
-        # Calculate payment methods
-        payment_counts = {
-            'cash': daily_orders.filter(payment_method='Cash').count(),
-            'online': daily_orders.filter(payment_method='Online').count(),
-            'upi': daily_orders.filter(payment_method='UPI').count(),
-        }
-        print(f"Payment counts: {payment_counts}")
+#         # Calculate payment methods
+#         payment_counts = {
+#             'cash': daily_orders.filter(payment_method='Cash').count(),
+#             'online': daily_orders.filter(payment_method='Online').count(),
+#             'upi': daily_orders.filter(payment_method='UPI').count(),
+#         }
+#         print(f"Payment counts: {payment_counts}")
         
-        # Create or update analytics
-        analytics, created = OrderAnalytics.objects.update_or_create(
-            date=today,
-            defaults={
-                'total_orders': daily_total['total_orders'] or 0,
-                'total_revenue': daily_total['total_revenue'] or 0,
-                'one_kg_count': weight_counts['one_kg'],
-                'two_kg_count': weight_counts['two_kg'],
-                'three_kg_count': weight_counts['three_kg'],
-                'cash_payments': payment_counts['cash'],
-                'online_payments': payment_counts['online'],
-                'upi_payments': payment_counts['upi']
-            }
-        )
-        print(f"Analytics {'created' if created else 'updated'} for {today}")
-        return analytics
+#         # Create or update analytics
+#         analytics, created = OrderAnalytics.objects.update_or_create(
+#             date=today,
+#             defaults={
+#                 'total_orders': daily_total['total_orders'] or 0,
+#                 'total_revenue': daily_total['total_revenue'] or 0,
+#                 'one_kg_count': weight_counts['one_kg'],
+#                 'two_kg_count': weight_counts['two_kg'],
+#                 'three_kg_count': weight_counts['three_kg'],
+#                 'cash_payments': payment_counts['cash'],
+#                 'online_payments': payment_counts['online'],
+#                 'upi_payments': payment_counts['upi']
+#             }
+#         )
+#         print(f"Analytics {'created' if created else 'updated'} for {today}")
+#         return analytics
 
-    except Exception as e:
-        print(f"Error in populate_analytics: {str(e)}")
+#     except Exception as e:
+#         print(f"Error in populate_analytics: {str(e)}")
+# from django.shortcuts import render
+# from django.db.models import Sum, Count, F
+# from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
+# from django.utils import timezone
+# from datetime import datetime, timedelta
+# from hoteldetails.models import Order
+
+# from django.shortcuts import render
+# from django.db.models import Sum, Count, F
+# from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
+# from django.utils import timezone
+# from datetime import datetime, timedelta
+# from hoteldetails.models import Order, HotelUser
+# from django.db import models
+# from django.shortcuts import render
+# from django.db.models import Sum, Count, F
+# from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
+# from django.utils import timezone
+# from datetime import datetime, timedelta
+# from hoteldetails.models import Order, HotelUser
+
+# from django.shortcuts import render
+# from django.db.models import Sum, Count, F
+# from django.db.models.functions import ExtractYear, ExtractMonth, ExtractDay
+# from django.utils import timezone
+# from datetime import datetime, timedelta
+# from hoteldetails.models import Order
+
+# def order_analytics(request):
+#     try:
+#         period = request.GET.get('period', 'daily')  # daily/weekly/monthly
+
+#         # Get all orders
+#         orders = Order.objects.all().select_related('user')
+
+#         # Calculate totals
+#         totals = orders.aggregate(
+#             total_orders=Count('id'),
+#             total_revenue=Sum('price'),
+#             total_1kg=Sum('one_kg_count'),
+#             total_2kg=Sum('two_kg_count'),
+#             total_3kg=Sum('three_kg_count')
+#         )
+
+#         # Get top customers
+#         top_customers = orders.values(
+#             'user__id',
+#             'user__email',
+#             'user__phone_number'
+#         ).annotate(
+#             hotel_name=F('user__hotel_users__hotel_name'),
+#             hotel_address=F('user__hotel_users__address'),
+#             total_orders=Count('id'),
+#             total_spent=Sum('price'),
+#             total_1kg=Sum('one_kg_count'),
+#             total_2kg=Sum('two_kg_count'),
+#             total_3kg=Sum('three_kg_count')
+#         ).order_by('-total_spent')[:5]
+
+#         # Handle different period views without timezone functions
+#         if period == 'monthly':
+#             # Group by month using extract
+#             sales_data = []
+#             for order in orders:
+#                 month = order.order_date.strftime('%Y-%m')
+#                 sales_data.append({
+#                     'period': month,
+#                     'order_id': order.id,
+#                     'price': order.price,
+#                     'one_kg_count': order.one_kg_count,
+#                     'two_kg_count': order.two_kg_count,
+#                     'three_kg_count': order.three_kg_count
+#                 })
+            
+#             # Aggregate manually
+#             monthly_data = {}
+#             for item in sales_data:
+#                 month = item['period']
+#                 if month not in monthly_data:
+#                     monthly_data[month] = {
+#                         'period': month,
+#                         'total_orders': 0,
+#                         'total_revenue': 0,
+#                         'one_kg_sum': 0,
+#                         'two_kg_sum': 0,
+#                         'three_kg_sum': 0
+#                     }
+#                 monthly_data[month]['total_orders'] += 1
+#                 monthly_data[month]['total_revenue'] += float(item['price'])
+#                 monthly_data[month]['one_kg_sum'] += item['one_kg_count']
+#                 monthly_data[month]['two_kg_sum'] += item['two_kg_count']
+#                 monthly_data[month]['three_kg_sum'] += item['three_kg_count']
+            
+#             sales_list = list(monthly_data.values())
+#             sales_list.sort(key=lambda x: x['period'])
+            
+#         elif period == 'weekly':
+#             # Group by day and then calculate week
+#             sales_data = []
+#             for order in orders:
+#                 day = order.order_date.strftime('%Y-%m-%d')
+#                 week = order.order_date.strftime('%Y-W%W')
+#                 sales_data.append({
+#                     'period': week,
+#                     'date': day,
+#                     'order_id': order.id,
+#                     'price': order.price,
+#                     'one_kg_count': order.one_kg_count,
+#                     'two_kg_count': order.two_kg_count,
+#                     'three_kg_count': order.three_kg_count
+#                 })
+            
+#             # Aggregate manually
+#             weekly_data = {}
+#             for item in sales_data:
+#                 week = item['period']
+#                 if week not in weekly_data:
+#                     weekly_data[week] = {
+#                         'period': week,
+#                         'total_orders': 0,
+#                         'total_revenue': 0,
+#                         'one_kg_sum': 0,
+#                         'two_kg_sum': 0,
+#                         'three_kg_sum': 0
+#                     }
+#                 weekly_data[week]['total_orders'] += 1
+#                 weekly_data[week]['total_revenue'] += float(item['price'])
+#                 weekly_data[week]['one_kg_sum'] += item['one_kg_count']
+#                 weekly_data[week]['two_kg_sum'] += item['two_kg_count']
+#                 weekly_data[week]['three_kg_sum'] += item['three_kg_count']
+            
+#             sales_list = list(weekly_data.values())
+#             sales_list.sort(key=lambda x: x['period'])
+            
+#         else:  # daily
+#             # Group by day
+#             sales_data = []
+#             for order in orders:
+#                 day = order.order_date.strftime('%Y-%m-%d')
+#                 sales_data.append({
+#                     'period': day,
+#                     'order_id': order.id,
+#                     'price': order.price,
+#                     'one_kg_count': order.one_kg_count,
+#                     'two_kg_count': order.two_kg_count,
+#                     'three_kg_count': order.three_kg_count
+#                 })
+            
+#             # Aggregate manually
+#             daily_data = {}
+#             for item in sales_data:
+#                 day = item['period']
+#                 if day not in daily_data:
+#                     daily_data[day] = {
+#                         'period': day,
+#                         'total_orders': 0,
+#                         'total_revenue': 0,
+#                         'one_kg_sum': 0,
+#                         'two_kg_sum': 0,
+#                         'three_kg_sum': 0
+#                     }
+#                 daily_data[day]['total_orders'] += 1
+#                 daily_data[day]['total_revenue'] += float(item['price'])
+#                 daily_data[day]['one_kg_sum'] += item['one_kg_count']
+#                 daily_data[day]['two_kg_sum'] += item['two_kg_count']
+#                 daily_data[day]['three_kg_sum'] += item['three_kg_count']
+            
+#             sales_list = list(daily_data.values())
+#             sales_list.sort(key=lambda x: x['period'])
+
+#         context = {
+#             'period': period,
+#             'sales_data': sales_list,
+#             'top_customers': top_customers,
+#             'summary': {
+#                 'total_orders': totals['total_orders'] or 0,
+#                 'total_revenue': totals['total_revenue'] or 0,
+#                 'weight_distribution': {
+#                     '1KG': totals['total_1kg'] or 0,
+#                     '2KG': totals['total_2kg'] or 0,
+#                     '3KG': totals['total_3kg'] or 0
+#                 }
+#             }
+#         }
+
+#         return render(request, 'order_analytics.html', context)
+
+#     except Exception as e:
+#         print(f"Error in order_analytics view: {str(e)}")
+#         import traceback
+#         traceback.print_exc()
+#         return render(request, 'order_analytics.html', {'error': str(e)})
+
+
 from django.shortcuts import render
-from django.db.models import Sum, Count, F
-from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
-from django.utils import timezone
-from datetime import datetime, timedelta
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Sum, Count
 from hoteldetails.models import Order
-
-from django.shortcuts import render
-from django.db.models import Sum, Count, F
-from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
-from django.utils import timezone
 from datetime import datetime, timedelta
-from hoteldetails.models import Order, HotelUser
-from django.db import models
-from django.shortcuts import render
-from django.db.models import Sum, Count, F
-from django.db.models.functions import TruncMonth, TruncWeek, TruncDate
-from django.utils import timezone
-from datetime import datetime, timedelta
-from hoteldetails.models import Order, HotelUser
-
-from django.shortcuts import render
-from django.db.models import Sum, Count, F
-from django.db.models.functions import ExtractYear, ExtractMonth, ExtractDay
-from django.utils import timezone
-from datetime import datetime, timedelta
-from hoteldetails.models import Order
-
+import csv
+@login_required
 def order_analytics(request):
-    try:
-        period = request.GET.get('period', 'daily')  # daily/weekly/monthly
+    print("Entering order_analytics view")
 
-        # Get all orders
-        orders = Order.objects.all().select_related('user')
+    # Get all orders for total calculations
+    all_orders = Order.objects.all()
+    total_orders = all_orders.count()
+    total_revenue = all_orders.aggregate(total_revenue=Sum('price'))['total_revenue'] or 0
 
-        # Calculate totals
-        totals = orders.aggregate(
-            total_orders=Count('id'),
-            total_revenue=Sum('price'),
-            total_1kg=Sum('one_kg_count'),
-            total_2kg=Sum('two_kg_count'),
-            total_3kg=Sum('three_kg_count')
-        )
+    # Calculate daily trend data
+    today = timezone.now()
+    last_7_days = today - timedelta(days=7)
+    
+    daily_orders = Order.objects.filter(
+        order_date__gte=last_7_days,
+        order_date__isnull=False  # Add this to filter out null dates
+    ).annotate(
+        date=TruncDate('order_date')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
 
-        # Get top customers
-        top_customers = orders.values(
-            'user__id',
-            'user__email',
-            'user__phone_number'
-        ).annotate(
-            hotel_name=F('user__hotel_users__hotel_name'),
-            hotel_address=F('user__hotel_users__address'),
-            total_orders=Count('id'),
-            total_spent=Sum('price'),
-            total_1kg=Sum('one_kg_count'),
-            total_2kg=Sum('two_kg_count'),
-            total_3kg=Sum('three_kg_count')
-        ).order_by('-total_spent')[:5]
+    # Safely create daily trend data with null checks
+    daily_trend_data = {
+        'labels': [],
+        'values': []
+    }
 
-        # Handle different period views without timezone functions
-        if period == 'monthly':
-            # Group by month using extract
-            sales_data = []
-            for order in orders:
-                month = order.order_date.strftime('%Y-%m')
-                sales_data.append({
-                    'period': month,
-                    'order_id': order.id,
-                    'price': order.price,
-                    'one_kg_count': order.one_kg_count,
-                    'two_kg_count': order.two_kg_count,
-                    'three_kg_count': order.three_kg_count
-                })
-            
-            # Aggregate manually
-            monthly_data = {}
-            for item in sales_data:
-                month = item['period']
-                if month not in monthly_data:
-                    monthly_data[month] = {
-                        'period': month,
-                        'total_orders': 0,
-                        'total_revenue': 0,
-                        'one_kg_sum': 0,
-                        'two_kg_sum': 0,
-                        'three_kg_sum': 0
-                    }
-                monthly_data[month]['total_orders'] += 1
-                monthly_data[month]['total_revenue'] += float(item['price'])
-                monthly_data[month]['one_kg_sum'] += item['one_kg_count']
-                monthly_data[month]['two_kg_sum'] += item['two_kg_count']
-                monthly_data[month]['three_kg_sum'] += item['three_kg_count']
-            
-            sales_list = list(monthly_data.values())
-            sales_list.sort(key=lambda x: x['period'])
-            
-        elif period == 'weekly':
-            # Group by day and then calculate week
-            sales_data = []
-            for order in orders:
-                day = order.order_date.strftime('%Y-%m-%d')
-                week = order.order_date.strftime('%Y-W%W')
-                sales_data.append({
-                    'period': week,
-                    'date': day,
-                    'order_id': order.id,
-                    'price': order.price,
-                    'one_kg_count': order.one_kg_count,
-                    'two_kg_count': order.two_kg_count,
-                    'three_kg_count': order.three_kg_count
-                })
-            
-            # Aggregate manually
-            weekly_data = {}
-            for item in sales_data:
-                week = item['period']
-                if week not in weekly_data:
-                    weekly_data[week] = {
-                        'period': week,
-                        'total_orders': 0,
-                        'total_revenue': 0,
-                        'one_kg_sum': 0,
-                        'two_kg_sum': 0,
-                        'three_kg_sum': 0
-                    }
-                weekly_data[week]['total_orders'] += 1
-                weekly_data[week]['total_revenue'] += float(item['price'])
-                weekly_data[week]['one_kg_sum'] += item['one_kg_count']
-                weekly_data[week]['two_kg_sum'] += item['two_kg_count']
-                weekly_data[week]['three_kg_sum'] += item['three_kg_count']
-            
-            sales_list = list(weekly_data.values())
-            sales_list.sort(key=lambda x: x['period'])
-            
-        else:  # daily
-            # Group by day
-            sales_data = []
-            for order in orders:
-                day = order.order_date.strftime('%Y-%m-%d')
-                sales_data.append({
-                    'period': day,
-                    'order_id': order.id,
-                    'price': order.price,
-                    'one_kg_count': order.one_kg_count,
-                    'two_kg_count': order.two_kg_count,
-                    'three_kg_count': order.three_kg_count
-                })
-            
-            # Aggregate manually
-            daily_data = {}
-            for item in sales_data:
-                day = item['period']
-                if day not in daily_data:
-                    daily_data[day] = {
-                        'period': day,
-                        'total_orders': 0,
-                        'total_revenue': 0,
-                        'one_kg_sum': 0,
-                        'two_kg_sum': 0,
-                        'three_kg_sum': 0
-                    }
-                daily_data[day]['total_orders'] += 1
-                daily_data[day]['total_revenue'] += float(item['price'])
-                daily_data[day]['one_kg_sum'] += item['one_kg_count']
-                daily_data[day]['two_kg_sum'] += item['two_kg_count']
-                daily_data[day]['three_kg_sum'] += item['three_kg_count']
-            
-            sales_list = list(daily_data.values())
-            sales_list.sort(key=lambda x: x['period'])
+    for order in daily_orders:
+        if order['date']:  # Check if date exists
+            try:
+                daily_trend_data['labels'].append(order['date'].strftime('%Y-%m-%d'))
+                daily_trend_data['values'].append(order['count'])
+            except AttributeError:
+                print(f"Skipping invalid date: {order['date']}")
+                continue
 
-        context = {
-            'period': period,
-            'sales_data': sales_list,
-            'top_customers': top_customers,
-            'summary': {
-                'total_orders': totals['total_orders'] or 0,
-                'total_revenue': totals['total_revenue'] or 0,
-                'weight_distribution': {
-                    '1KG': totals['total_1kg'] or 0,
-                    '2KG': totals['total_2kg'] or 0,
-                    '3KG': totals['total_3kg'] or 0
-                }
-            }
-        }
+    # Calculate weight distribution
+    weight_distribution = all_orders.aggregate(
+        one_kg=Sum('one_kg_count'),
+        two_kg=Sum('two_kg_count'),
+        three_kg=Sum('three_kg_count')
+    )
 
-        return render(request, 'order_analytics.html', context)
+    weight_data = {
+        'labels': ['1KG', '2KG', '3KG'],
+        'values': [
+            weight_distribution['one_kg'] or 0,
+            weight_distribution['two_kg'] or 0,
+            weight_distribution['three_kg'] or 0
+        ]
+    }
 
-    except Exception as e:
-        print(f"Error in order_analytics view: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return render(request, 'order_analytics.html', {'error': str(e)})
+    # Calculate payment methods distribution
+    payment_methods = all_orders.values('payment_method').annotate(
+        count=Count('id')
+    ).order_by('payment_method')
+
+    payment_data = {
+        'labels': [],
+        'values': []
+    }
+
+    for method in payment_methods:
+        if method['payment_method']:  # Check if payment method exists
+            payment_data['labels'].append(method['payment_method'].upper())
+            payment_data['values'].append(method['count'])
+
+    # Get top customers
+    top_customers = Order.objects.values(
+        'user__email',
+        'user__hotel_users__hotel_name'  # Add this line to get hotel name
+
+    ).annotate(
+        total_orders=Count('id'),
+        total_spent=Sum('price')
+    ).order_by('-total_spent')[:5]
+
+    context = {
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'daily_trend_data': json.dumps(daily_trend_data),
+        'weight_data': json.dumps(weight_data),
+        'payment_data': json.dumps(payment_data),
+        'top_customers': top_customers,
+    }
+
+    print("Context data:", context)  # Debug print
+    return render(request, 'order_analytics.html', context)
+
+def download_sales_report(request):
+    print("Entering download_sales_report view")
+
+    # Create a CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
+
+    # Create a CSV writer
+    writer = csv.writer(response)
+
+    # Write the header
+    writer.writerow(['Order ID', 'User', 'Total Price', 'Order Date', 'Payment Method'])
+
+    # Write data rows
+    orders = Order.objects.all()
+    print(f"Number of orders for report: {orders.count()}")
+    for order in orders:
+        writer.writerow([order.id, order.user.email, order.price, order.order_date, order.payment_method])
+
+    print("CSV report generated successfully")
+    return response
+from django.shortcuts import render
+from django.http import HttpResponse
+from hoteldetails.models import Order
+from django.utils import timezone
+from datetime import datetime, timedelta
+
+@login_required
+def order_list(request):
+    # Initialize filters
+    date_filter = None
+    hotel_name = request.GET.get('hotel_name')
+
+    # Fetch all orders initially
+    orders = Order.objects.all()  
+    print(f"Total Orders in DB: {orders.count()}")
+
+    # Apply date filter if provided
+    
+    if 'date' in request.GET and request.GET['date']:
+        date_filter = request.GET['date']
+        try:
+            # Convert string to datetime
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d')
+            
+            # Make the datetime timezone-aware
+            start_date = timezone.make_aware(filter_date)
+            end_date = timezone.make_aware(filter_date + timedelta(days=1))
+            
+            print(f"Filtering for date range: {start_date} to {end_date}")
+            
+            # Filter orders between start_date and end_date
+            orders = orders.filter(order_date__gte=start_date, order_date__lt=end_date)
+            print(f"Orders after date filter: {orders.count()}")
+            
+        except ValueError as e:
+            print(f"Error parsing date: {e}")
+
+    # Apply hotel name filter if provided
+    if hotel_name and hotel_name != "None":
+        orders = orders.filter(user__hotel_users__hotel_name__icontains=hotel_name)
+        print(f"Orders after hotel filter: {orders.count()}")
+
+    context = {
+        'orders': orders,
+        'date_filter': date_filter,
+        'hotel_name': hotel_name,
+    }
+
+    return render(request, 'order_list.html', context)
 
     
 def generate_report(request):
@@ -1741,3 +1993,139 @@ def generate_report(request):
     except Exception as e:
         print(f"Error generating report: {str(e)}")
         return HttpResponse(status=500)
+    
+    
+    
+from django.utils import timezone
+from datetime import datetime, timedelta
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db.models import Q
+from datetime import datetime, timedelta
+from hoteldetails.models import Order
+
+
+@login_required
+def order_tracking_dashboard(request):
+    """Admin dashboard for tracking deliveries"""
+    today = timezone.now().date()
+    
+    # Get orders that are:
+    # 1. Already in transit, or
+    # 2. Confirmed and scheduled for delivery today
+    active_orders = Order.objects.filter(
+        (Q(status='transit_to_hotel') & Q(transit_started_at__isnull=False)) |
+        (Q(status='confirmed') & Q(delivery_date=today))
+    ).select_related(
+        'user__hotel_users',
+        'batch__farm'
+    ).order_by('delivery_date', 'delivery_option')
+
+    context = {
+        'orders': active_orders,
+        'today': today,
+        'page_title': 'Live Order Tracking'
+    }
+    return render(request, 'tracking/admin_track_order.html', context)
+
+@login_required
+def track_single_order(request, order_id):
+    """View for tracking a single order (for both admin and hotel)"""
+    order = get_object_or_404(Order, id=order_id)
+    hotel = order.user.hotel_users.first()
+    farm = order.batch.farm
+
+    # Initialize current location with farm coordinates if None
+    if order.current_latitude is None or order.current_longitude is None:
+        order.current_latitude = farm.latitude
+        order.current_longitude = farm.longitude
+        order.last_location_update = timezone.now()
+        order.save()
+
+    context = {
+        'order': order,
+        'hotel': hotel,
+        'farm': farm,
+        'current_location': {
+            'lat': order.current_latitude,
+            'lng': order.current_longitude
+        },
+        'page_title': f'Track Order #{order_id}'
+    }
+    
+    if request.user.user_type and request.user.user_type.name.lower() == 'admin':
+        return render(request, 'tracking/admin_track_order.html', context)
+    else:
+        return render(request, 'tracking/hotel_track_order.html', context)
+    
+    
+    
+def get_order_location(request, order_id):
+    """API endpoint to get current order location"""
+    order = get_object_or_404(Order, id=order_id)
+    hotel = order.user.hotel_users.first()
+    farm = order.batch.farm
+    
+    return JsonResponse({
+        'success': True,
+        'order': {
+            'id': order.id,
+            'status': order.status,
+            'current_location': {
+                'lat': order.current_latitude,
+                'lng': order.current_longitude,
+                'last_update': order.last_location_update.isoformat() 
+                    if order.last_location_update else None
+            },
+            'destination': {
+                'name': hotel.hotel_name if hasattr(hotel, 'hotel_name') else str(hotel),
+                'lat': hotel.latitude,
+                'lng': hotel.longitude
+            },
+            'origin': {
+                'name': farm.name if hasattr(farm, 'name') else str(farm),  # Changed from farm_name to name
+                'lat': farm.latitude,
+                'lng': farm.longitude
+            }
+        }
+    })
+
+
+
+
+
+
+@login_required
+def update_order_location(request, order_id):
+    """API endpoint to update order location"""
+    if request.method == 'POST':
+        try:
+            order = get_object_or_404(Order, id=order_id)
+            data = json.loads(request.body)
+            
+            # Update order location
+            order.current_latitude = data.get('latitude')
+            order.current_longitude = data.get('longitude')
+            order.last_location_update = timezone.now()
+            order.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Location updated successfully'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+            
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)
+    
+    
+    

@@ -632,3 +632,31 @@ def buy_entire_batch(request, batch_id):
     except Exception as e:
         messages.error(request, f"Error processing batch purchase: {str(e)}")
         return redirect('view_farm', farm_id=batch.farm.id)
+    
+    
+    
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+
+
+    
+    
+def track_order(request, order_id, token):
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Verify tracking token
+    if order.tracking_token != token:
+        return render(request, 'tracking/invalid_token.html', {'message': 'Invalid tracking token'})
+    
+    hotel = order.user.hotel_users.first()
+    farm = order.batch.farm
+    
+    context = {
+        'order': order,
+        'hotel': hotel,
+        'farm': farm,
+        'page_title': f'Track Order #{order_id}'
+    }
+    
+    return render(request, 'tracking/hotel_track_order.html', context)

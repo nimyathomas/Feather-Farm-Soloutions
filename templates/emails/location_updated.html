@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Order Location Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .button {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Order Location Update</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ hotel_name }},</p>
+            
+            <p>Your order #{{ order.id }} from {{ order.batch.farm.name }} has been updated with a new location.</p>            
+            {% comment %} <p><strong>Current Location:</strong> {{ order.current_latitude }}, {{ order.current_longitude }}</p>
+            <!-- Add this after the coordinates line -->
+<p><strong>Current Location:</strong> {{ order.current_latitude }}, {{ order.current_longitude }}</p> {% endcomment %}
+            <p><strong>Address:</strong> {{ order.current_address }}</p>
+            
+            <p>You can track your order in real-time using the link below:</p>
+            
+            <a href="{{ tracking_url }}" class="button">Track Your Order</a>
+            
+            <p>Thank you for your business!</p>
+            
+            <p>Best regards,<br>{{ farm_name }}</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html> 

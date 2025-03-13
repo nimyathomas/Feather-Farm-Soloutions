@@ -77,14 +77,19 @@
               </p>
               
               <!-- Approve Button (shows only if status is pending) -->
-              {% if order.status == 'pending' %}
-              <form method="post" action="{% url 'approve_order' order.id %}">
-                {% csrf_token %}
-                <button type="submit" class="approve-button">Approve</button>
-              </form>
-              {% endif %}
-            </div>
-        </div>
+              <!-- Replace the existing approve button section with this -->
+{% if order.status == 'pending' %}
+<form method="post" action="{% url 'approve_order' order.id %}">
+    {% csrf_token %}
+    <button type="submit" class="approve-button">
+        Approve & Start Tracking
+    </button>
+</form>
+{% elif order.status == 'transit_to_hotel' %}
+<a href="{% url 'track_single_order' order.id %}" class="track-button">
+    Track Order
+</a>
+{% endif %}
         {% empty %}
         <li>No purchases yet</li>
         {% endfor %}
@@ -92,4 +97,43 @@
     </div>
   </div>
 </div>
+
+<style>
+.approve-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.approve-button:hover {
+    background-color: #218838;
+}
+
+.track-button {
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.track-button:hover {
+    background-color: #0056b3;
+    color: white;
+    text-decoration: none;
+}
+
+.order-status.transit_to_hotel {
+    background-color: #17a2b8;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+</style>
 {% endblock %}

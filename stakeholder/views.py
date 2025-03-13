@@ -4614,7 +4614,6 @@ def stakeholder_order_dashboard(request):
         print(f"{status}: {orders.count()} orders")
     
     return render(request, 'order_dashboard.html', context)
-
 @login_required
 @require_POST
 def update_delivery_status(request, order_id):
@@ -4631,13 +4630,29 @@ def update_delivery_status(request, order_id):
                 print(f"Hotel Name: {hotel_name}")
                 print(f"Customer Email: {order.user.email}")
 
-                # Update order status first
-                order.status = 'out_for_delivery'
+                # Generate tracking token if not exists
+                if not order.tracking_token:
+                    order.tracking_token = str(uuid.uuid4())
+                
+                # Update order status to transit_to_hotel
+                order.status = 'transit_to_hotel'
+                
+                # Set initial location to farm location
+                farm = order.batch.farm
+                order.current_latitude = farm.latitude
+                order.current_longitude = farm.longitude
+                order.last_location_update = timezone.now()
+                
                 order.save()
                 print(f"Order status updated to: {order.status}")
+                
+                # Generate tracking URL
+                tracking_url = request.build_absolute_uri(
+                    reverse('track_order', args=[order.id, order.tracking_token])
+                )
 
                 # Prepare email content
-                subject = f'Order #{order.id} Delivery Started'
+                subject = f'Order #{order.id} Delivery Started - Track Your Order'
                 context = {
                     'order': order,
                     'hotel_name': hotel_name,
@@ -4646,6 +4661,7 @@ def update_delivery_status(request, order_id):
                     'two_kg_count': order.two_kg_count,
                     'three_kg_count': order.three_kg_count,
                     'total_price': order.price,
+                    'tracking_url': tracking_url,
                 }
                 
                 # Sending email
@@ -4667,7 +4683,7 @@ def update_delivery_status(request, order_id):
                 except Exception as email_error:
                     logger.error(f"Email notification failed: {str(email_error)}")
                     messages.warning(request, f'Email notification failed: {str(email_error)}')
-
+                   
             except Exception as e:
                 print(f"\n=== Process Error ===")
                 print(f"Error Type: {type(e).__name__}")
@@ -4683,5 +4699,211 @@ def update_delivery_status(request, order_id):
         messages.error(request, 'Error updating order status')
 
     return redirect('stakeholder_order_dashboard')
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+
+
+
+@login_required
+def update_location(request, order_id):
+    # Get the order object
+    order = get_object_or_404(Order, id=order_id, batch__farm__owner=request.user)
+    
+    if request.method == 'POST':
+        try:
+            latitude = float(request.POST.get('latitude'))
+            longitude = float(request.POST.get('longitude'))
+            address = request.POST.get('address', '')
+            # Update order location
+            order.current_latitude = latitude
+            order.current_longitude = longitude
+            order.current_address = address
+            order.save()
+            
+            # Get hotel details
+            hotel_user = order.user.hotel_users.first()
+            hotel_name = hotel_user.hotel_name if hotel_user else "Valued Customer"
+            
+            try:
+                # Prepare email content
+                subject = f'Order #{order.id} Location Updated'
+                farm = order.batch.farm
+                logger.info(f"Farm fields: {vars(farm)}")
+                farm_name = farm.name  # Change this to match your actual field name
+
+
+                context = {
+                    'order': order,
+                    'hotel_name': hotel_name,
+                    'farm_name':  farm_name,
+                    'address': address,  # Add the address to the context
+
+                    'tracking_url': request.build_absolute_uri(
+                        reverse('track_order', args=[order.id, order.tracking_token])
+                    ),
+                }
+                
+                # Render email template
+                html_message = render_to_string('emails/location_updated.html', context)
+                plain_message = strip_tags(html_message)
+                
+                # Log email details for debugging
+                logger.info(f"Attempting to send email to {order.user.email}")
+                
+                # Send email
+                send_mail(
+                    subject=subject,
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    html_message=html_message,
+                    fail_silently=False
+                )
+                
+                messages.success(request, f'Location updated and notification sent for order #{order.id}')
+                logger.info(f'Location update email sent successfully for order #{order.id}')
+                
+            except Exception as email_error:
+                logger.error(f"Failed to send email: {str(email_error)}")
+                logger.error(f"Farm object details: {vars(order.batch.farm)}")  # Log farm details
+                messages.warning(request, f'Location updated but email notification failed: {str(email_error)}')
+                
+            return redirect('stakeholder_order_dashboard')
+            
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid coordinates for order #{order.id}: {str(e)}")
+            messages.error(request, 'Invalid location coordinates')
+    
+    # For GET requests, render the template with context
+    context = {
+        'order': order,
+        'farm': order.batch.farm,
+        'hotel': order.user.hotel_users.first(),
+    }
+    
+    return render(request, 'stakeholder/update_location.html', context)
+
+@login_required
+def mark_delivered(request, order_id):
+    order = get_object_or_404(Order, id=order_id, batch__farm__owner=request.user)
+    
+    # Check if order is in transit
+    if order.status != 'transit_to_hotel':
+        messages.error(request, 'You can only mark orders in transit as delivered')
+        return redirect('stakeholder:stakeholder_order_dashboard')
+    
+    if request.method == 'POST':
+        # Use the model's method to complete delivery
+        if order.complete_delivery():
+            # Get hotel details
+            hotel_user = order.user.hotel_users.first()
+            hotel_name = hotel_user.hotel_name if hotel_user else "Valued Customer"
+            
+            # Send delivery confirmation email
+            subject = f'Order #{order.id} Delivered Successfully'
+            context = {
+                'order': order,
+                'hotel_name': hotel_name,
+                'delivery_date': timezone.now(),
+            }
+            
+            try:
+                html_message = render_to_string('emails/delivery_completed.html', context)
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    subject=subject,
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.user.email],
+                    html_message=html_message,
+                    fail_silently=True
+                )
+                messages.success(request, f'Order #{order.id} marked as delivered and notification sent')
+            except Exception as email_error:
+                logger.error(f"Delivery confirmation email failed: {str(email_error)}")
+                messages.warning(request, f'Order marked as delivered but email notification failed')
+        else:
+            messages.error(request, 'Could not mark order as delivered')
+        
+        return redirect('stakeholder:stakeholder_order_dashboard')
+    
+    # If GET request, show confirmation page
+    context = {
+        'order': order,
+    }
+    
+    return render(request, 'stakeholder/confirm_delivery.html', context)
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import requests
+
+# ... your existing views ...
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import requests
+import json
+
+@csrf_exempt
+def proxy_route(request):
+    """Proxy view to handle OpenRouteService requests"""
+    api_key = '5b3ce3597851110001cf6248f44205929c6349f89986b3f96892481b'
+    base_url = 'https://api.openrouteservice.org/v2/directions/driving-car'
+    
+    # Get coordinates from the path
+    path_info = request.path.replace('/proxy/route/', '')
+    if '/driving-car/' in path_info:
+        coordinates = path_info.split('/driving-car/')[1].split('?')[0]
+        
+        # Format coordinates for OpenRouteService
+        coords = coordinates.replace(';', '|').split('|')
+        formatted_coords = []
+        for coord in coords:
+            if coord:  # Skip empty coordinates
+                lat_lng = coord.split(',')
+                if len(lat_lng) == 2:
+                    # OpenRouteService expects [longitude,latitude]
+                    formatted_coords.append(f"{lat_lng[1]},{lat_lng[0]}")
+        
+        # Build the request URL
+        coordinates_param = ';'.join(formatted_coords)
+        url = f"{base_url}?coordinates={coordinates_param}"
+        
+        # Add any additional query parameters
+        if '?' in request.path:
+            query_params = request.path.split('?')[1]
+            url += f"&{query_params}"
+        
+        headers = {
+            'Authorization': api_key,
+            'Accept': 'application/json, application/geo+json',
+            'Content-Type': 'application/json'
+        }
+        
+        try:
+            response = requests.get(url, headers=headers)
+            return JsonResponse(response.json())
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid request format'}, status=400)
 
 

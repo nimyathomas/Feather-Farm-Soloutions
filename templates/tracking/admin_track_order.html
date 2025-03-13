@@ -1,0 +1,401 @@
+{% extends 'admindash.html' %}
+{% block body %}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <!-- Order Details Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Order #{{ order.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Order Status -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Status</h6>
+                        <div class="d-flex gap-2">
+                            <span class="badge {% if order.status == 'transit_to_hotel' %}bg-info{% else %}bg-secondary{% endif %} p-2">
+                                {{ order.get_status_display }}
+                            </span>
+                            <span class="badge {% if order.delivery_option == 'express' %}bg-danger{% else %}bg-secondary{% endif %} p-2">
+                                {{ order.get_delivery_option_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Customer Information</h6>
+                        <p class="mb-1"><strong>Hotel:</strong> {{ hotel.hotel_name }}</p>
+                        <p class="mb-1"><strong>Contact:</strong> {{ order.user.phone_number }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ order.user.email }}</p>
+                        <p class="mb-1"><strong>Address:</strong> {{ hotel.address }}</p>
+                    </div>
+
+                    <!-- Order Details -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Order Details</h6>
+                        <ul class="list-unstyled">
+                            {% if order.one_kg_count %}
+                                <li>1 KG Chickens: {{ order.one_kg_count }}</li>
+                            {% endif %}
+                            {% if order.two_kg_count %}
+                                <li>2 KG Chickens: {{ order.two_kg_count }}</li>
+                            {% endif %}
+                            {% if order.three_kg_count %}
+                                <li>3 KG Chickens: {{ order.three_kg_count }}</li>
+                            {% endif %}
+                        </ul>
+                        <p class="mb-1"><strong>Total Amount:</strong> ₹{{ order.price }}</p>
+                        <p class="mb-1"><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                    </div>
+
+                    <!-- Delivery Info -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Delivery Information</h6>
+                        <p class="mb-1"><strong>From:</strong> {{ farm.name }}</p>
+                        <p class="mb-1"><strong>Delivery Date:</strong> {{ order.delivery_date|date:"F d, Y" }}</p>
+                    </div>
+
+                    <!-- Live Tracking Info -->
+                    {% if order.status == 'transit_to_hotel' %}
+                    <div class="alert alert-info" id="tracking-info">
+                        <div id="eta">Calculating ETA...</div>
+                        <div id="distance">Calculating distance...</div>
+                        <div id="last-update">Last updated: Calculating...</div>
+                    </div>
+
+                    <!-- Admin Controls -->
+                    <div class="mt-4">
+                        <button id="update-location" class="btn btn-primary mb-2 w-100">
+                            Update Location
+                        </button>
+                        <button id="complete-delivery" class="btn btn-success w-100">
+                            Mark as Delivered
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Card -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Live Tracking</h5>
+                </div>
+                <div class="card-body">
+                    <div id="map" style="height: 600px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include OpenStreetMap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map, deliveryMarker, routeLine;
+const UPDATE_INTERVAL = 10000; // Update every 10 seconds
+
+// Initialize map
+function initMap() {
+    // Create map centered between farm and hotel
+    const centerLat = ({{ farm.latitude }} + {{ hotel.latitude }}) / 2;
+    const centerLng = ({{ farm.longitude }} + {{ hotel.longitude }}) / 2;
+    
+    map = L.map('map').setView([centerLat, centerLng], 10);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add farm marker (green)
+    L.marker([{{ farm.latitude }}, {{ farm.longitude }}], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div class="marker-pin farm-pin"></div><i class="fa fa-home"></i>',
+        })
+    }).addTo(map).bindPopup('Farm: {{ farm.name }}');
+    
+    // Add hotel marker (blue)
+    L.marker([{{ hotel.latitude }}, {{ hotel.longitude }}], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div class="marker-pin hotel-pin"></div><i class="fa fa-building"></i>',
+        })
+    }).addTo(map).bindPopup('Hotel: {{ hotel.hotel_name }}');
+    
+    // Add delivery marker (red)
+    deliveryMarker = L.marker([
+        {{ current_location.lat }},
+        {{ current_location.lng }}
+    ], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div class="marker-pin delivery-pin"></div><i class="fa fa-truck"></i>',
+        })
+    }).addTo(map);
+    
+    // Draw initial route
+    updateRoute(
+        {{ current_location.lat }},
+        {{ current_location.lng }},
+        {{ hotel.latitude }},
+        {{ hotel.longitude }}
+    );
+}
+
+// Update delivery location
+async function updateLocation() {
+    try {
+        const response = await fetch(`/api/order/{{ order.id }}/location/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const order = data.order;
+            const currentLoc = order.current_location;
+            
+            // Update marker position
+            deliveryMarker.setLatLng([currentLoc.lat, currentLoc.lng]);
+            
+            // Update route
+            updateRoute(
+                currentLoc.lat,
+                currentLoc.lng,
+                order.destination.lat,
+                order.destination.lng
+            );
+            
+            // Update info
+            updateTrackingInfo(order);
+        }
+    } catch (error) {
+        console.error('Error updating location:', error);
+    }
+}
+
+// Update route line
+function updateRoute(fromLat, fromLng, toLat, toLng) {
+    if (routeLine) {
+        map.removeLayer(routeLine);
+    }
+    
+    routeLine = L.polyline([
+        [fromLat, fromLng],
+        [toLat, toLng]
+    ], {
+        color: '#007bff',
+        weight: 3,
+        dashArray: '10, 10'
+    }).addTo(map);
+}
+
+// Update tracking information
+function updateTrackingInfo(order) {
+    const currentLoc = order.current_location;
+    const destination = order.destination;
+    
+    // Calculate distance
+    const distance = calculateDistance(
+        currentLoc.lat,
+        currentLoc.lng,
+        destination.lat,
+        destination.lng
+    );
+    
+    // Update info displays
+    document.getElementById('distance').textContent = 
+        `Distance remaining: ${distance.toFixed(1)} km`;
+    
+    document.getElementById('eta').textContent = 
+        `ETA: ${calculateETA(distance)}`;
+    
+    if (currentLoc.last_update) {
+        document.getElementById('last-update').textContent = 
+            `Last updated: ${new Date(currentLoc.last_update).toLocaleTimeString()}`;
+    }
+}
+
+// Calculate distance between two points
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// Calculate ETA based on distance
+function calculateETA(distance) {
+    // Assume average speed of 40 km/h
+    const hours = distance / 40;
+    
+    if (hours < 1/60) {
+        return "Less than a minute";
+    } else if (hours < 1) {
+        return `${Math.round(hours * 60)} minutes`;
+    } else {
+        const hrs = Math.floor(hours);
+        const mins = Math.round((hours - hrs) * 60);
+        return `${hrs} hour${hrs > 1 ? 's' : ''} ${mins} minute${mins > 1 ? 's' : ''}`;
+    }
+}
+
+// Get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Handle admin controls
+document.getElementById('update-location')?.addEventListener('click', async function() {
+    try {
+        const csrftoken = getCookie('csrftoken');
+        const currentLocation = deliveryMarker.getLatLng();
+        
+        const response = await fetch(`/api/order/{{ order.id }}/update-location/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                latitude: currentLocation.lat,
+                longitude: currentLocation.lng
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Location updated successfully!');
+            updateLocation();  // Refresh tracking info
+        } else {
+            alert('Failed to update location: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update location. Check console for details.');
+    }
+});
+
+document.getElementById('complete-delivery')?.addEventListener('click', async function() {
+    if (confirm('Are you sure you want to mark this order as delivered?')) {
+        try {
+            const response = await fetch(`/api/order/{{ order.id }}/complete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            if (response.ok) {
+                alert('Delivery marked as complete!');
+                window.location.reload();
+            } else {
+                alert('Failed to complete delivery');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to complete delivery');
+        }
+    }
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    // Start periodic updates if order is in transit
+    {% if order.status == 'transit_to_hotel' %}
+    updateLocation(); // Initial update
+    setInterval(updateLocation, UPDATE_INTERVAL);
+    {% endif %}
+});
+</script>
+
+<style>
+#map {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+#tracking-info {
+    background-color: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+}
+
+#tracking-info div {
+    margin-bottom: 0.5rem;
+}
+
+#tracking-info div:last-child {
+    margin-bottom: 0;
+}
+
+/* Custom markers */
+.custom-div-icon {
+    background: none;
+    border: none;
+}
+
+.marker-pin {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -15px 0 0 -15px;
+}
+
+.farm-pin {
+    background: #28a745;
+}
+
+.hotel-pin {
+    background: #007bff;
+}
+
+.delivery-pin {
+    background: #dc3545;
+}
+
+.custom-div-icon i {
+    position: absolute;
+    width: 22px;
+    font-size: 22px;
+    left: 0;
+    right: 0;
+    margin: 10px auto;
+    text-align: center;
+    color: white;
+    transform: rotate(45deg);
+}
+</style>
+
+{% endblock %} 
