@@ -13,7 +13,7 @@ from django.contrib.auth import login
 from django.db.models import Sum
 
 from stakeholder.models import ChickBatch, DailyData,Farm
-from .forms import CustomUserCreationForm, EmailAuthenticationForm
+from .forms import CustomUserCreationForm, EmailAuthenticationForm, VaccineForm, VaccinationRecordForm,VaccinationRecord
 from .models import UserType, User
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -1968,7 +1968,81 @@ def order_list(request):
     }
 
     return render(request, 'order_list.html', context)
+# Add these imports at the top of your file if they're not already there
+import io
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from django.http import HttpResponse
 
+# ... existing code ...
+
+def generate_excel_report(analytics_data):
+    """Generate Excel report from analytics data"""
+    # Create a workbook and add a worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Report"
+    
+    # Add headers with styling
+    headers = ['Date', 'Total Orders', 'Total Revenue', '1KG Count', '2KG Count', '3KG Count', 
+               'Cash Payments', 'Online Payments', 'UPI Payments']
+    
+    # Style for headers
+    header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    
+    # Add headers
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Add data
+    for row_num, record in enumerate(analytics_data, 2):
+        ws.cell(row=row_num, column=1, value=record.date.strftime('%Y-%m-%d'))
+        ws.cell(row=row_num, column=2, value=record.total_orders)
+        ws.cell(row=row_num, column=3, value=record.total_revenue)
+        ws.cell(row=row_num, column=4, value=record.one_kg_count)
+        ws.cell(row=row_num, column=5, value=record.two_kg_count)
+        ws.cell(row=row_num, column=6, value=record.three_kg_count)
+        ws.cell(row=row_num, column=7, value=record.cash_payments)
+        ws.cell(row=row_num, column=8, value=record.online_payments)
+        ws.cell(row=row_num, column=9, value=record.upi_payments)
+    
+    # Adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    
+    # Save to a BytesIO object
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Create response
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=sales_report.xlsx'
+    
+    return response
+
+def generate_pdf_report(analytics_data):
+    """Generate PDF report from analytics data"""
+    # Create a file-like buffer to receive PDF data
+    buffer = BytesIO()
+    
+    # Create the PDF object, using the buffer as its "file"
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    
+    # Container
     
 def generate_report(request):
     try:

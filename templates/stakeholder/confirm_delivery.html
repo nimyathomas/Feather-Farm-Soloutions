@@ -1,37 +1,154 @@
 {% extends 'stakeholder.html' %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Confirm Delivery</h5>
-                </div>
-                <div class="card-body">
-                    <h6>Order #{{ order.id }}</h6>
-                    <p>Are you sure you want to mark this order as delivered?</p>
-                    
-                    <div class="order-details mb-4">
-                        <p><strong>Hotel:</strong> {{ order.user.hotel_users.first.hotel_name }}</p>
-                        <p><strong>Order Date:</strong> {{ order.order_date|date:"F d, Y" }}</p>
-                        <p><strong>Total Amount:</strong> ₹{{ order.price }}</p>
-                    </div>
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="d-flex justify-content-end">
-                            <a href="{% url 'stakeholder:stakeholder_order_dashboard' %}" class="btn btn-secondary me-2">
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check-circle"></i> Confirm Delivery
-                            </button>
+<!-- Full-width container with no padding -->
+<div class="container-fluid p-0">
+    <!-- Full-width card -->
+    <div class="card border-0 rounded-0 shadow-sm">
+        <!-- Card header -->
+        <div class="card-header bg-primary text-white py-3">
+            <div class="container-fluid">
+                <h5 class="mb-0">Confirm Delivery</h5>
+            </div>
+        </div>
+        
+        <!-- Card body with padding -->
+        <div class="card-body p-4">
+            <div class="container-fluid">
+                <!-- Order information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Order #{{ order.id }}</h6>
+                        <p>Are you sure you want to mark this order as delivered?</p>
+                        
+                        <div class="order-details">
+                            <p><strong>Hotel:</strong> {{ order.user.hotel_users.first.hotel_name }}</p>
+                            <p><strong>Order Date:</strong> {{ order.order_date|date:"F d, Y" }}</p>
+                            <p><strong>Total Amount:</strong> ₹{{ order.price }}</p>
+                            {% if order.current_address %}
+                            <p><strong>Delivery Address:</strong> {{ order.current_address }}</p>
+                            {% endif %}
                         </div>
-                    </form>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="bg-light p-4 rounded">
+                            <h6 class="fw-bold mb-3">Delivery Summary</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Order Status:</span>
+                                <span class="badge bg-info">{{ order.status }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Estimated Delivery Time:</span>
+                                <span>{{ order.estimated_delivery_time|default:"Not available" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Distance:</span>
+                                <span>{{ order.distance|default:"Not calculated" }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
+                <hr>
+                
+                <!-- Form with buttons -->
+                <form method="post" id="delivery-form">
+                    {% csrf_token %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="delivery_notes" class="form-label">Delivery Notes (optional):</label>
+                            <textarea class="form-control" id="delivery_notes" name="delivery_notes" rows="3" placeholder="Add any notes about this delivery..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Button container -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-end gap-3">
+                                <!-- Cancel button -->
+                                <a href="{% url 'stakeholder_order_dashboard' %}" class="btn btn-secondary btn-lg px-4" id="cancel-btn">
+                                    Cancel
+                                </a>
+                                
+                                <!-- Confirm button -->
+                                <button type="submit" class="btn btn-success btn-lg px-4" id="confirm-btn">
+                                    Confirm Delivery
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Custom styles -->
+<style>
+    /* Ensure full width */
+    body {
+        overflow-x: hidden;
+    }
+    
+    .container-fluid {
+        max-width: 100%;
+    }
+    
+    /* Button styles */
+    .btn {
+        font-weight: 500;
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: white !important;
+    }
+    
+    .btn-success {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .d-flex.justify-content-end.gap-3 {
+            flex-direction: column;
+            gap: 10px !important;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- Script to ensure buttons are visible -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure buttons are visible
+        const cancelBtn = document.getElementById('cancel-btn');
+        const confirmBtn = document.getElementById('confirm-btn');
+        
+        if (cancelBtn) {
+            cancelBtn.style.display = 'inline-block';
+            cancelBtn.style.visibility = 'visible';
+            cancelBtn.style.opacity = '1';
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.style.display = 'inline-block';
+            confirmBtn.style.visibility = 'visible';
+            confirmBtn.style.opacity = '1';
+        }
+        
+        console.log('Cancel button:', cancelBtn);
+        console.log('Confirm button:', confirmBtn);
+    });
+</script>
 {% endblock %} 

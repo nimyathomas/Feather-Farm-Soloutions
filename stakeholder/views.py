@@ -7,6 +7,9 @@ from .forms import DailyComparisonForm
 from .forms import DailyComparisonForm  # Ensure this is the correct import
 from sklearn.preprocessing import MinMaxScaler
 
+
+
+
 from django.shortcuts import get_object_or_404, redirect
 from .forms import DailyDataForm
 from .models import ChickBatch, DailyData  # Adjust based on your models
@@ -25,7 +28,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from stakeholder.models import ChickBatch
-from user.models import User, FeedStock
+from user.models import User, FeedStock, Supplier,DailyTip
 from django.urls import reverse
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
@@ -107,7 +110,7 @@ import io
 import base64
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import label_binarize
-
+import uuid
 
 
 # At the top of views.py, add this debug code
@@ -858,10 +861,10 @@ def supplier_list(request):
     return render(request, "supplier_list_stakeholder.html", {"suppliers": suppliers})
 
 
-def tips(request):
-    tips = WasteTip.objects.all()
-    return render(request, "waste_management/tips.html", {"tips": tips})
-@login_required
+# def tips(request):
+#     tips = WasteTip.objects.all()
+#     return render(request, "waste_management/tips.html", {"tips": tips})
+# @login_required
 
 # views.py
 def forum_dashboard(request, post_id=None):
@@ -4841,7 +4844,7 @@ def mark_delivered(request, order_id):
         else:
             messages.error(request, 'Could not mark order as delivered')
         
-        return redirect('stakeholder:stakeholder_order_dashboard')
+        return redirect('stakeholder_order_dashboard')
     
     # If GET request, show confirmation page
     context = {

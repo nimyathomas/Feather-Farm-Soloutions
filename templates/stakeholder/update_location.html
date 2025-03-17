@@ -254,89 +254,117 @@
             if (deliveryRoute2) deliveryRoute2.bindPopup('Current Location to Hotel');
         }
 
-        // Add a div to display the address
-        const addressDiv = document.createElement('div');
-        addressDiv.id = 'current-address';
-        addressDiv.className = 'alert alert-info mt-3';
-        addressDiv.innerHTML = 'Address will appear here when location is updated';
-        document.querySelector('form').insertBefore(addressDiv, document.querySelector('form button'));
-        
-        // Function to get address from coordinates using Nominatim
-        async function getAddressFromCoordinates(lat, lng) {
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-                const data = await response.json();
-                
-                if (data && data.display_name) {
-                    return data.display_name;
-                } else {
-                    return 'Address not found';
-                }
-            } catch (error) {
-                console.error('Error fetching address:', error);
-                return 'Error fetching address';
-            }
-        }
-        
-        // Function to update address display
-        async function updateAddressDisplay(lat, lng) {
-            addressDiv.innerHTML = 'Fetching address...';
-            const address = await getAddressFromCoordinates(lat, lng);
-            
-            // Update the address display
-            addressDiv.innerHTML = `<strong>Current Address:</strong> ${address}`;
-            
-            // Add a hidden input to store the address
-            let addressInput = document.getElementById('address');
-            if (!addressInput) {
-                addressInput = document.createElement('input');
-                addressInput.type = 'hidden';
-                addressInput.id = 'address';
-                addressInput.name = 'address';
-                document.querySelector('form').appendChild(addressInput);
-            }
-            addressInput.value = address;
-        }
-
         // Update routes when marker is dragged
         currentMarker.on('dragend', function(event) {
             const position = event.target.getLatLng();
             document.getElementById('latitude').value = position.lat.toFixed(6);
             document.getElementById('longitude').value = position.lng.toFixed(6);
             
-            // Update the address
-            updateAddressDisplay(position.lat, position.lng);
-            
-            // Update routes
             updateRoutes();
         });
 
         // Get current location button handler
         document.getElementById('getCurrentLocation').addEventListener('click', function() {
+            updateCurrentLocation();
+        });
+
+        // Function to get and update current location with high accuracy
+        function updateCurrentLocation() {
             if (navigator.geolocation) {
+                // Request high accuracy and set timeout
+                const geoOptions = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+                
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    
+                    // Log accuracy information
+                    console.log('Location accuracy:', position.coords.accuracy, 'meters');
                     
                     document.getElementById('latitude').value = lat.toFixed(6);
                     document.getElementById('longitude').value = lng.toFixed(6);
                     
                     currentMarker.setLatLng([lat, lng]);
                     
-                    // Update the address
-                    updateAddressDisplay(lat, lng);
+                    // Update the address with improved geocoding
+                    updateAddressWithBetterGeocoding(lat, lng);
                     
                     // Update routes
                     updateRoutes();
                     
-                    map.setView([lat, lng], 13);
+                    // Center map on current location
+                    map.setView([lat, lng], 15); // Increased zoom level for better detail
+                    
+                    // Show notification with accuracy information
+                    showNotification(`Location updated (accuracy: ${Math.round(position.coords.accuracy)}m)`);
+                    
                 }, function(error) {
-                    alert('Error getting location: ' + error.message);
-                });
+                    console.error('Error getting location:', error);
+                    showNotification('Error getting location: ' + error.message, 'error');
+                }, geoOptions);
             } else {
-                alert('Geolocation is not supported by this browser.');
+                showNotification('Geolocation is not supported by this browser', 'error');
             }
-        });
+        }
+        
+        // Improved geocoding function that tries multiple services
+        async function updateAddressWithBetterGeocoding(lat, lng) {
+            addressDiv.innerHTML = 'Fetching address...';
+            
+            try {
+                // Try OpenStreetMap Nominatim first
+                const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                const response = await fetch(nominatimUrl);
+                const data = await response.json();
+                
+                let address = 'Address not found';
+                
+                if (data && data.display_name) {
+                    // Extract more detailed components if available
+                    const addressParts = [];
+                    
+                    if (data.address) {
+                        // Try to build a more precise address
+                        const components = [
+                            data.address.road,
+                            data.address.neighbourhood,
+                            data.address.suburb,
+                            data.address.village || data.address.town || data.address.city,
+                            data.address.county,
+                            data.address.state,
+                            data.address.postcode
+                        ];
+                        
+                        // Filter out undefined components
+                        address = components.filter(part => part).join(', ');
+                    } else {
+                        address = data.display_name;
+                    }
+                }
+                
+                // Update the address display
+                addressDiv.innerHTML = `<strong>Current Address:</strong> ${address}`;
+                
+                // Add a hidden input to store the address
+                let addressInput = document.getElementById('address');
+                if (!addressInput) {
+                    addressInput = document.createElement('input');
+                    addressInput.type = 'hidden';
+                    addressInput.id = 'address';
+                    addressInput.name = 'address';
+                    document.querySelector('form').appendChild(addressInput);
+                }
+                addressInput.value = address;
+                
+            } catch (error) {
+                console.error('Error fetching address:', error);
+                addressDiv.innerHTML = '<strong>Current Address:</strong> Error fetching address';
+            }
+        }
 
         // Fit map to show all points
         const bounds = L.latLngBounds([
@@ -348,13 +376,8 @@
 
         // Initial route drawing
         updateRoutes();
-        
-        // Get initial address if coordinates are available
-        const initialLat = {% if order.current_latitude %}{{ order.current_latitude }}{% else %}{{ farm.latitude }}{% endif %};
-        const initialLng = {% if order.current_longitude %}{{ order.current_longitude }}{% else %}{{ farm.longitude }}{% endif %};
-        updateAddressDisplay(initialLat, initialLng);
     });
-</script>
+</script> 
 {% endblock %}
 
 

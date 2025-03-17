@@ -54,6 +54,7 @@ class Order(models.Model):
     )
     price = models.DecimalField(
         max_digits=10,
+        
         decimal_places=2,
         default=Decimal("0.00"),
         help_text="Total order price",

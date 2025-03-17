@@ -102,23 +102,39 @@ ASGI_APPLICATION = 'FeatherFarmSoloutions.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'feather_project',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',  # Set to your database host
-        'PORT': '3306',       # Default MySQL port
+        'NAME': 'featherfarm_db',
+        'USER': 'featherfarm_user',
+        'PASSWORD': 'your_secure_password',
+        'HOST': 'localhost',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        }
+        },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'feather_project',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'HOST': 'localhost',  # Set to your database host
+#         'PORT': '3306',       # Default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         }
+#     }
+# }
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.sqlite3",  # Database engine
 #         "NAME": BASE_DIR / "db.sqlite3",  # Path to database file
 #     }
 # }
-
+# 
+#
+# import dj_database_url  
 
 # DATABASES = {
 #     'default': {
