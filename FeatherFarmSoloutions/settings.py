@@ -12,9 +12,10 @@ SITE_URL = 'http://localhost:8000'
 SECRET_KEY = "django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+# DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Add your domain here
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '34.31.177.139']  # Add your domain here
 
 
 # Application definition
