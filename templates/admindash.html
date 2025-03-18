@@ -264,24 +264,24 @@
                     <span>Vaccinations</span>
                 </a>
             </li>
-            <li>
+            {% comment %} <li>
                 <a href="{% url 'waste_management_admin' %}">
                     <i class="fas fa-trash"></i>
                     <span>Waste Management</span>
                 </a>
-            </li>
+            </li> {% endcomment %}
             <li>
                 <a href="{% url 'stakeholder_payments' %}"  id="payment-link" >
                     <i class="fas fa-trash"></i>
                     <span>Payments</span>
                 </a>
             </li>
-            <li>
+            {% comment %} <li>
                 <a href="{% url  'contract_dashboard' %}">
                     <i class="fas fa-trash"></i>
                     <span>My Contracts</span>
                 </a>
-            </li>
+            </li> {% endcomment %}
             <li>
                 <a href="{% url 'admin_chat_view' %}" id="chat-link"  class="{% if request.path == '/admin-chat/' %}active{% endif %}">
                     <i class="fas fa-comments"></i>

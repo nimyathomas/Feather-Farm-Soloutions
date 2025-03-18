@@ -1,0 +1,610 @@
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    box-sizing: border-box;
+}
+
+/* Container for layout */
+.container {
+    display: flex;
+
+
+    
+    /* Use flexbox for layout */
+    min-height: 100vh;
+    /* Full height for the sidebar */
+}
+
+/* Navigation menu styles */
+.nav-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-menu li {
+    margin: 5px 0;
+}
+
+.nav-menu li a {
+    color: #ECF0F1;
+    text-decoration: none;
+    font-size: 15px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.nav-menu li a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.nav-menu li a.active {
+    background: #3498db;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Main content area styling */
+.content {
+    flex: 1;
+    /* Take remaining space for content */
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* Header styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #2C3E50 0%, #3498db 100%);
+    padding: 20px 30px;
+    color: #ECF0F1;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.logo h2 {
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Profile styles */
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.notification-icon {
+    font-size: 24px;
+    margin-right: 20px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.profile-email {
+    font-size: 13px;
+    color: rgba(236, 240, 241, 0.8);
+}
+
+.logout {
+    font-size: 13px;
+    color: #ECF0F1;
+    text-decoration: none;
+    margin-top: 5px;
+    transition: color 0.3s ease;
+}
+
+.logout:hover {
+    color: #e74c3c;
+}
+
+.sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, #2C3E50 0%, #34495e 100%);
+    color: #ECF0F1;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #ffffff;
+}
+
+/* Alert styles */
+.alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+/* Button styles */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    background-color: #1ABC9C;
+}
+
+.btn-primary {
+    background-color: #3498DB;
+}
+
+/* Content section styles */
+.content-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-section {
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+h2.text-center {
+    text-align: center;
+    margin-bottom: 20px;
+    /* Space below the heading */
+}
+
+/* daily update */
+/* Wrapper to enable scrolling */
+.scrollable-table-wrapper {
+    max-height: 400px;
+    /* Adjust as needed */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+/* Table styling */
+#daily-entries {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    background-color: #fff;
+}
+
+#daily-entries thead th {
+    position: sticky;
+    top: 0;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd;
+}
+
+#daily-entries tbody td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Style rows for readability */
+#daily-entries tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#daily-entries tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Input field styling */
+#daily-entries input[type="date"],
+#daily-entries input[type="number"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+/* Focus state for inputs */
+#daily-entries input[type="date"]:focus,
+#daily-entries input[type="number"]:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.table-container {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    text-align: left;
+    background-color: #fff;
+}
+
+
+.table-data{
+    background-color: #f9f9f9;
+}
+.error-message{
+    color: red;
+    padding: 10px;
+}
+
+.form-group {
+    padding: 10px;
+    /* Space between form groups */
+}
+
+.form-label {
+    display: block;
+}
+
+.form-group input {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.form-group input:focus {
+    border: 1px solid grey
+}
+
+.form-control:readonly {
+    background-color: #f9f9f9;
+    /* Light background for readonly fields */
+    cursor: not-allowed;
+    /* Indicate field is not editable */
+}
+
+.left-column{
+    display: flex;
+    justify-content: space-between;
+}
+.id_batch{
+    padding: 5px;
+}
+
+.current-image {
+    margin-bottom: 10px;
+    /* Space below the image */
+}
+
+.btn {
+    background-color: #1ABC9C;
+    /* Primary button color */
+    color: #fff;
+    /* Text color for button */
+    padding: 10px 20px;
+    /* Button padding */
+    border: none;
+    /* Remove default border */
+    border-radius: 5px;
+    /* Rounded corners */
+    cursor: pointer;
+    /* Pointer cursor on hover */
+}
+
+.btn:hover {
+    background-color: #16A085;
+    /* Darker shade on hover */
+}
+
+
+.calendar {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    margin-top: 10px;
+}
+
+.calendar h3 {
+    font-size: 20px;
+    color: #16a085;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.calendar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.calendar li {
+    background-color: #ecf0f1;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar li strong {
+    font-size: 18px;
+    color: #34495e;
+}
+
+.calendar li span.highlight-warning {
+    background-color: #f39c12;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Hover effects */
+.calendar li:hover {
+    background-color: #d1f0dd;
+    transition: background-color 0.3s ease;
+}
+
+/* General Card Styling */
+
+/* Batch Info Section */
+.batch-info h3 {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+}
+
+.total-chick-count {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+.total-chick-count strong {
+    font-size: 1.4rem;
+}
+
+/* Batch List Styling */
+.batch-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.batch-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+}
+
+.batch-item strong {
+    font-size: 1.1rem;
+}
+
+.batch-item span {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.no-batches {
+    font-size: 1.1rem;
+    color: #999;
+    text-align: center;
+}
+
+/* Add some hover effect to list items */
+.batch-item:hover {
+    background-color: #f9f9f9;
+}
+
+.icon-class {
+    width: 45px;
+    /* Set the desired width */
+    height: 45px;
+    /* Set the desired height */
+    vertical-align: middle;
+    /* Aligns the icon with the text */
+    margin-right: 5px;
+    /* Optional: Adds some space between the icon and the text */
+}
+
+.text-danger {
+    color: red;
+    /* Change text color to red */
+    font-size: 12px;
+    /* Set a smaller font size */
+    margin-top: 5px;
+    /* Add some space above the error message */
+}
+
+.feed-monitoring {
+    margin-top: 20px;
+    /* Space above the feed section */
+}
+
+.feed-card {
+    background-color: #f9f9f9;
+    /* Light background for cards */
+    border: 1px solid #e0e0e0;
+    /* Border color */
+    border-radius: 8px;
+    /* Rounded corners */
+    padding: 15px;
+    /* Padding inside the card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    margin-bottom: 20px;
+    /* Space below each card */
+}
+
+.feed-card h2 {
+    font-size: 1.5rem;
+    /* Larger font size for the title */
+    margin-bottom: 15px;
+    /* Space below the title */
+    color: #333;
+    /* Dark color for the title */
+}
+
+.feed-card p {
+    font-size: 1.1rem;
+    /* Slightly larger font size for paragraphs */
+    margin: 5px 0;
+    /* Space above and below paragraphs */
+    color: #555;
+    /* Gray color for text */
+}
+
+.feed-card a {
+    display: inline-block;
+    /* Allows for margin and padding */
+    margin-top: 10px;
+    /* Space above the button */
+    padding: 10px 15px;
+    /* Padding inside the button */
+    border-radius: 5px;
+    /* Rounded corners for buttons */
+    text-decoration: none;
+    /* Remove underline */
+    color: #fff;
+    /* White text color */
+    background-color: #007bff;
+    /* Primary button color */
+    transition: background-color 0.3s;
+    /* Transition for hover effect */
+}
+
+.feed-card a:hover {
+    background-color: #0056b3;
+    /* Darker blue on hover */
+}
+
+.alert-container {
+    background-color: #fff3cd;
+    /* Light yellow background for alerts */
+    border: 1px solid #ffeeba;
+    /* Yellow border */
+    border-radius: 5px;
+    /* Rounded corners */
+    padding: 10px;
+    /* Padding inside the alert */
+    color: #856404;
+    /* Dark yellow text color */
+    margin-top: 20px;
+    /* Space above the alert */
+}
+
+<style>
+
+.container {
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* Wider container to accommodate larger images */
+    text-align: center;
+}
+
+/* Flexbox for vaccine cards */
+.vaccine-info {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Ensures wrapping on smaller screens */
+}
+
+.card {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 30%; /* Three cards align horizontally */
+    text-align: center;
+}
+
+.card img {
+    width: 100%; /* Make image take up most of the card width */
+    height: auto;
+    max-height: 300px; /* Control image height */
+    object-fit: cover;
+    margin-bottom: 10px; /* Space between image and text */
+}
+
+.card h2 {
+    font-size: 20px; /* Reduce text size */
+    margin-bottom: 10px;
+}
+
+.card p.date {
+    font-size: 16px;
+    color: #34495E;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 14px; /* Reduce paragraph text size */
+    color: #34495E;
+    margin-bottom: 10px;
+}
+
+.card ul {
+    font-size: 14px; /* Reduce list text size */
+    text-align: left;
+}
+
+.card h3 {
+    font-size: 16px; /* Smaller headers */
+    margin-bottom: 5px;
+}
+
+.card ul {
+    list-style-type: none; /* Removes bullet points */
+    padding: 0;
+}
+
+.card ul li {
+    margin-bottom: 5px;
+}
+
+.card h3.red {
+    color: red;
+}
+
+</style>

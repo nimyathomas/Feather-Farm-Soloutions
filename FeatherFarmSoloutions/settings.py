@@ -15,7 +15,8 @@ SECRET_KEY = "django-insecure-any&$e=8_%j$4u1aw@%b_uo!+0x(88%aj0h!1&m4pqic(cjv(l
 DEBUG = False
 # DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '34.31.177.139']  # Add your domain here
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '35.224.201.187']  # Add your domain here
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost']  # Add your domain here
 
 
 # Application definition
@@ -100,33 +101,34 @@ ASGI_APPLICATION = 'FeatherFarmSoloutions.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'featherfarm_db',
-        'USER': 'featherfarm_user',
-        'PASSWORD': 'your_secure_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-    }
-}
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'feather_project',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',  # Set to your database host
-#         'PORT': '3306',       # Default MySQL port
+#         'NAME': 'featherfarm_db',
+#         'USER': 'featherfarm_user',
+#         'PASSWORD': 'your_secure_password',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
 #         'OPTIONS': {
 #             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#         }
+#         },
+        
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'feather_project',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',  # Set to your database host
+        'PORT': '3306',       # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
+    }
+}
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.sqlite3",  # Database engine

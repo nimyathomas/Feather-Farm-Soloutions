@@ -1,0 +1,68 @@
+/* Core Layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Alert Messages */
+.alert-message {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.message-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #856404;
+}
+
+/* Farm Header */
+.farm-header-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* ... existing CSS styles ... */
+
+/* Media Queries */
+@media (max-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .photos-section {
+        position: relative;
+        top: 0;
+    }
+
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .contact-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .farm-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .farm-title {
+        font-size: 1.5rem;
+    }
+} 
